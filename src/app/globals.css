@@ -14,8 +14,10 @@
   --border-strong: #d4d4d8;
   --muted-foreground: #52525b;
   
-  /* MZNET Design System Tokens */
-  --verde-primario: #018942;
+  /* WBR Design System Tokens */
+  --cor-primaria: #0B42C6;
+  --cor-secundaria: #FF6600;
+  --verde-primario: #0B42C6;
   --preto: #000000;
   --cinza: #bdbdbd;
   --branco: #ffffff;
@@ -70,7 +72,7 @@
   
   /* Cores MZNET */
   --color-emerald-600: var(--verde-primario);
-  --color-emerald-700: #016835;
+  --color-emerald-700: #0934A0;
   --color-zinc-900: var(--preto);
   --color-zinc-800: #27272a;
   --color-zinc-700: #3f3f46;
@@ -128,8 +130,8 @@ body {
 /* Kanban helpers */
 .hover-scale{transition:transform .2s ease}
 .hover-scale:hover{transform:scale(1.02)}
-.kanban-card{transition:all .25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 12px 30px -12px hsl(148 98% 27% / 0.35)}
-.kanban-card:hover{box-shadow:0 0 40px hsl(149 80% 40% / 0.35)}
+.kanban-card{transition:all .25s cubic-bezier(0.4,0,0.2,1);box-shadow:0 12px 30px -12px hsl(222 89% 41% / 0.35)}
+.kanban-card:hover{box-shadow:0 0 40px hsl(222 89% 51% / 0.35)}
 
 /* Custom scrollbars */
 .scrollbar-thin {
@@ -207,11 +209,11 @@ body {
 
 .kanban-card {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 12px 30px -12px hsl(148 98% 27% / 0.35);
+  box-shadow: 0 12px 30px -12px hsl(222 89% 41% / 0.35);
 }
 
 .kanban-card:hover {
-  box-shadow: 0 0 40px hsl(149 80% 40% / 0.35);
+  box-shadow: 0 0 40px hsl(222 89% 51% / 0.35);
 }
 
 /* Animações para Login */
@@ -295,19 +297,19 @@ body {
 
 /* Glass Effect Styles */
 .glass-effect {
-  background: rgba(1, 137, 66, 0.15);
+  background: rgba(11, 66, 198, 0.15);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(1, 137, 66, 0.3);
+  border: 1px solid rgba(11, 66, 198, 0.3);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(1, 137, 66, 0.1);
+  box-shadow: 0 8px 32px rgba(11, 66, 198, 0.1);
 }
 
 .glass-title {
   background: linear-gradient(135deg, 
-    rgba(1, 137, 66, 0.25) 0%, 
-    rgba(1, 137, 66, 0.15) 50%, 
-    rgba(1, 137, 66, 0.3) 100%);
+    rgba(11, 66, 198, 0.25) 0%, 
+    rgba(11, 66, 198, 0.15) 50%, 
+    rgba(11, 66, 198, 0.3) 100%);
   backdrop-filter: blur(20px) saturate(1.8);
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -319,7 +321,7 @@ body {
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1),
-    0 8px 32px rgba(1, 137, 66, 0.2),
+    0 8px 32px rgba(11, 66, 198, 0.2),
     0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -366,7 +368,7 @@ body {
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -1px 0 rgba(0, 0, 0, 0.15),
-    0 12px 40px rgba(1, 137, 66, 0.3),
+    0 12px 40px rgba(11, 66, 198, 0.3),
     0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -378,9 +380,9 @@ body {
 /* Modal Glass Title - Smaller version */
 .glass-title-modal {
   background: linear-gradient(135deg, 
-    rgba(1, 137, 66, 0.25) 0%, 
-    rgba(1, 137, 66, 0.15) 50%, 
-    rgba(1, 137, 66, 0.3) 100%);
+    rgba(11, 66, 198, 0.25) 0%, 
+    rgba(11, 66, 198, 0.15) 50%, 
+    rgba(11, 66, 198, 0.3) 100%);
   backdrop-filter: blur(20px) saturate(1.8);
   -webkit-backdrop-filter: blur(20px) saturate(1.8);
   border: none;
@@ -392,7 +394,7 @@ body {
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.4),
     inset 0 -1px 0 rgba(0, 0, 0, 0.1),
-    0 4px 16px rgba(1, 137, 66, 0.2);
+    0 4px 16px rgba(11, 66, 198, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-block;
 }
@@ -405,7 +407,7 @@ body {
 
 /* Header Editar Ficha - Estilo da imagem */
 .header-editar-ficha {
-  background: linear-gradient(135deg, var(--verde-primario) 0%, #016835 100%);
+  background: linear-gradient(135deg, var(--verde-primario) 0%, #0934A0 100%);
   border-radius: 28px 28px 0 0; /* apenas nos cantos superiores para colar no modal */
   padding: 0;
   overflow: visible;
@@ -532,10 +534,10 @@ body {
 }
 
 .section-title.info-contato {
-  color: #34a853;
+  color: #0B42C6;
 }
 .section-title.info-contato::before {
-  background: #34a853;
+  background: #0B42C6;
 }
 
 .section-title.endereco {
@@ -560,10 +562,10 @@ body {
 }
 
 .section-title.pareceres {
-  color: #34a853;
+  color: #0B42C6;
 }
 .section-title.pareceres::before {
-  background: #34a853;
+  background: #0B42C6;
 }
 
 .section-content {
@@ -572,7 +574,7 @@ body {
 
 /* MZNET Button Styles */
 .btn-primary-mznet {
-  background: linear-gradient(135deg, var(--verde-primario) 0%, #016835 100%);
+  background: linear-gradient(135deg, var(--verde-primario) 0%, #0934A0 100%);
   color: white;
   font-weight: 600;
   font-size: 14px;
@@ -582,7 +584,7 @@ body {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 
-    0 4px 12px rgba(1, 137, 66, 0.3),
+    0 4px 12px rgba(11, 66, 198, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
@@ -590,9 +592,9 @@ body {
 .btn-primary-mznet:hover {
   transform: translateY(-2px);
   box-shadow: 
-    0 6px 16px rgba(1, 137, 66, 0.4),
+    0 6px 16px rgba(11, 66, 198, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
-  background: linear-gradient(135deg, #016835 0%, var(--verde-primario) 100%);
+  background: linear-gradient(135deg, #0934A0 0%, var(--verde-primario) 100%);
 }
 
 .btn-secondary-mznet {
@@ -601,23 +603,23 @@ body {
   font-weight: 600;
   font-size: 14px;
   padding: 10px 20px;
-  border: 1px solid rgba(1, 137, 66, 0.3);
+  border: 1px solid rgba(11, 66, 198, 0.3);
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 
-    0 2px 8px rgba(1, 137, 66, 0.1),
+    0 2px 8px rgba(11, 66, 198, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .btn-secondary-mznet:hover {
   transform: translateY(-1px);
-  background: rgba(1, 137, 66, 0.05);
-  border-color: rgba(1, 137, 66, 0.5);
+  background: rgba(11, 66, 198, 0.05);
+  border-color: rgba(11, 66, 198, 0.5);
   box-shadow: 
-    0 4px 12px rgba(1, 137, 66, 0.15),
+    0 4px 12px rgba(11, 66, 198, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
@@ -625,14 +627,14 @@ body {
 .btn-secondary-mznet.no-hover:hover {
   transform: none;
   background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(1, 137, 66, 0.3);
+  border-color: rgba(11, 66, 198, 0.3);
   box-shadow:
-    0 2px 8px rgba(1, 137, 66, 0.1),
+    0 2px 8px rgba(11, 66, 198, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .btn-small-primary {
-  background: linear-gradient(135deg, var(--verde-primario) 0%, #016835 100%);
+  background: linear-gradient(135deg, var(--verde-primario) 0%, #0934A0 100%);
   color: white;
   font-weight: 600;
   font-size: 12px;
@@ -642,7 +644,7 @@ body {
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 
-    0 2px 8px rgba(1, 137, 66, 0.3),
+    0 2px 8px rgba(11, 66, 198, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
@@ -650,7 +652,7 @@ body {
 .btn-small-primary:hover {
   transform: translateY(-1px);
   box-shadow: 
-    0 4px 12px rgba(1, 137, 66, 0.4),
+    0 4px 12px rgba(11, 66, 198, 0.4),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
@@ -660,7 +662,7 @@ body {
   font-weight: 500;
   font-size: 12px;
   padding: 6px 12px;
-  border: 1px solid rgba(1, 137, 66, 0.2);
+  border: 1px solid rgba(11, 66, 198, 0.2);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -669,8 +671,8 @@ body {
 }
 
 .btn-small-secondary:hover {
-  background: rgba(1, 137, 66, 0.05);
-  border-color: rgba(1, 137, 66, 0.4);
+  background: rgba(11, 66, 198, 0.05);
+  border-color: rgba(11, 66, 198, 0.4);
   transform: translateY(-1px);
 }
 
@@ -1394,7 +1396,7 @@ body {
 
 /* Pareceres Pai e Respondidos - Borda Primária */
 .pareceres .border.border-zinc-400.bg-blue-100 {
-  border-left: 4px solid var(--verde-primario, #34a853) !important;
+  border-left: 4px solid var(--verde-primario, #0B42C6) !important;
   border-radius: 2px !important;
   background: #dbeafe !important;
   box-shadow: none !important;
@@ -1410,7 +1412,7 @@ body {
 
 /* Pareceres aninhados (respostas) - Borda mais sutil */
 .pareceres .border.border-zinc-400.bg-blue-100[style*="margin-left"] {
-  border-left: 3px solid rgba(52, 168, 83, 0.6) !important;
+  border-left: 3px solid rgba(11, 66, 198, 0.6) !important;
   background: #e3f0ff !important;
 }
 
@@ -1559,7 +1561,7 @@ body {
   padding: 6px; /* reduzir área do hover com espaçamento interno */
 }
 .cmd-menu-item {
-  color: var(--verde-primario, #34a853);
+  color: var(--verde-primario, #0B42C6);
   transition: background-color 0.15s ease, color 0.15s ease;
   border-radius: 8px; /* mesmo corner radius dos outros popovers/selects */
   margin: 2px 0; /* separação para o hover não ocupar de ponta a ponta */
@@ -1567,7 +1569,7 @@ body {
 .cmd-menu-item:hover,
 .cmd-menu-item[aria-selected="true"],
 .cmd-menu-item:focus {
-  background: var(--verde-primario, #34a853);
+  background: var(--verde-primario, #0B42C6);
   color: #ffffff;
 }
 
@@ -1575,7 +1577,7 @@ body {
 .cmd-menu-item--primary:hover,
 .cmd-menu-item--primary[aria-selected="true"],
 .cmd-menu-item--primary:focus {
-  background: var(--verde-primario, #34a853);
+  background: var(--verde-primario, #0B42C6);
   color: #ffffff;
 }
 .cmd-menu-item--destructive:hover,
@@ -1584,7 +1586,7 @@ body {
 .cmd-menu-item--warning:hover,
 .cmd-menu-item--warning[aria-selected="true"],
 .cmd-menu-item--warning:focus {
-  background: var(--verde-primario, #34a853);
+  background: var(--verde-primario, #0B42C6);
   color: #ffffff;
 }
 .cmd-menu-item--primary:hover span,
@@ -1740,8 +1742,8 @@ body {
 .composer-input ul { list-style: disc; padding-left: 1.25rem; margin: 6px 0; }
 .composer-input ol { list-style: decimal; padding-left: 1.25rem; margin: 6px 0; }
 .composer-input:focus {
-  border-color: var(--verde-primario, #34a853);
-  box-shadow: 0 0 0 3px rgba(1, 137, 66, 0.12);
+  border-color: var(--verde-primario, #0B42C6);
+  box-shadow: 0 0 0 3px rgba(11, 66, 198, 0.12);
 }
 .composer-input-disabled {
   background: #f3f4f6;
@@ -1758,8 +1760,8 @@ body {
 /* Drag & drop feedback for composer */
 .composer-input-drag-over {
   border-style: dashed;
-  border-color: var(--verde-primario, #34a853);
-  background: rgba(1, 137, 66, 0.04);
+  border-color: var(--verde-primario, #0B42C6);
+  background: rgba(11, 66, 198, 0.04);
 }
 .composer-placeholder {
   position: absolute;
@@ -1801,7 +1803,7 @@ body {
 }
 
 .decision-chip.decision-chip--primary {
-  background: var(--verde-primario, #34a853);
+  background: var(--verde-primario, #0B42C6);
 }
 .decision-chip.decision-chip--destructive {
   background: #ef4444;
@@ -1833,7 +1835,7 @@ body {
   text-decoration: none;
   /* realce sutil na cor principal */
   box-shadow: 0 0 0 2px currentColor inset;
-  background-color: rgba(1, 137, 66, 0.08); /* fallback próximo ao brand */
+  background-color: rgba(11, 66, 198, 0.08); /* fallback próximo ao brand */
 }
 
 .mention-chip-inline {
@@ -1984,13 +1986,13 @@ body {
   .info-contato .field-input:hover,
   .endereco .field-input:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(52, 168, 83, 0.15);
+    box-shadow: 0 4px 12px rgba(11, 66, 198, 0.15);
   }
   
   .info-contato .field-input:focus,
   .endereco .field-input:focus {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(52, 168, 83, 0.2);
+    box-shadow: 0 6px 20px rgba(11, 66, 198, 0.2);
   }
 }
 
@@ -2215,7 +2217,7 @@ body {
   height: clamp(44px, 8vw, 52px);
   padding: clamp(10px, 2vw, 14px) clamp(12px, 2.5vw, 18px);
   font-size: clamp(12px, 2.2vw, 14px);
-  color: #34a853;
+  color: #0B42C6;
   font-weight: 500;
   background: white;
   border: 1px solid #e5e7eb;
@@ -2227,8 +2229,8 @@ body {
 }
 
 .field-input:focus {
-  border-color: #34a853;
-  box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
+  border-color: #0B42C6;
+  box-shadow: 0 2px 8px rgba(11, 66, 198, 0.15);
   transform: none;
 }
 
@@ -2273,8 +2275,8 @@ body {
 }
 
 .field-select:focus {
-  border-color: #34a853;
-  box-shadow: 0 2px 8px rgba(52, 168, 83, 0.15);
+  border-color: #0B42C6;
+  box-shadow: 0 2px 8px rgba(11, 66, 198, 0.15);
   transform: none;
 }
 
@@ -2293,7 +2295,7 @@ body {
 /* Comment Cards - MZNET Style */
 .comment-card {
   background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(1, 137, 66, 0.15);
+  border: 1px solid rgba(11, 66, 198, 0.15);
   border-radius: 12px;
   padding: 16px;
   font-size: 14px;
@@ -2301,15 +2303,15 @@ body {
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
   box-shadow: 
-    0 2px 8px rgba(1, 137, 66, 0.08),
+    0 2px 8px rgba(11, 66, 198, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .comment-card:hover {
-  border-color: rgba(1, 137, 66, 0.25);
+  border-color: rgba(11, 66, 198, 0.25);
   box-shadow: 
-    0 4px 12px rgba(1, 137, 66, 0.12),
+    0 4px 12px rgba(11, 66, 198, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transform: translateY(-1px);
 }
@@ -2320,13 +2322,13 @@ body {
 }
 
 .comment-role {
-  color: rgba(1, 137, 66, 0.6);
+  color: rgba(11, 66, 198, 0.6);
   font-size: 11px;
   font-weight: 400;
 }
 
 .comment-timestamp {
-  color: rgba(1, 137, 66, 0.5);
+  color: rgba(11, 66, 198, 0.5);
   font-size: 11px;
   font-weight: 400;
   margin-left: 8px;
@@ -2344,7 +2346,7 @@ body {
 }
 
 .comment-action-btn:hover {
-  background: rgba(1, 137, 66, 0.1);
+  background: rgba(11, 66, 198, 0.1);
   color: var(--verde-primario);
 }
 
@@ -2353,7 +2355,7 @@ body {
 }
 
 .comment-action-reply:hover {
-  background: rgba(1, 137, 66, 0.15);
+  background: rgba(11, 66, 198, 0.15);
 }
 
 /* Filter CTA Styling */
@@ -2418,7 +2420,7 @@ input[placeholder*="Buscar"] {
 .command-input::placeholder,
 input[placeholder*="Filtros"]::placeholder,
 input[placeholder*="Buscar"]::placeholder {
-  color: rgba(1, 137, 66, 0.6) !important;
+  color: rgba(11, 66, 198, 0.6) !important;
 }
 
 /* Placeholder específico para "Analisar" */
@@ -2521,8 +2523,8 @@ textarea[placeholder="Analisar"]::placeholder {
   --rdp-cell-size: 36px;
   --rdp-accent-color: var(--verde-primario);
   --rdp-accent-color-dark: var(--verde-primario);
-  --rdp-range-color: rgba(1, 137, 66, 0.12);
-  --rdp-outline: 2px solid rgba(1, 137, 66, 0.24);
+  --rdp-range-color: rgba(11, 66, 198, 0.12);
+  --rdp-outline: 2px solid rgba(11, 66, 198, 0.24);
   margin: 0;
   font-family: inherit;
   color: #1f2937;
@@ -2595,7 +2597,7 @@ textarea[placeholder="Analisar"]::placeholder {
 }
 
 .rdp-day_range_middle {
-  background-color: rgba(1, 137, 66, 0.12) !important;
+  background-color: rgba(11, 66, 198, 0.12) !important;
   color: var(--verde-primario) !important;
 }
 
