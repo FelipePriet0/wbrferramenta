@@ -23,8 +23,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Mznet",
-  description: "Gestão de fichas — Mznet",
+  title: "WBR",
+  description: "Gestão de fichas — WBR",
 };
 
 export default function RootLayout({

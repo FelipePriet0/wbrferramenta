@@ -10,8 +10,8 @@ export const Logo = () => {
       className="relative z-20 flex items-center rounded-lg px-2 py-1 text-sm font-normal transition-colors hover:bg-white/20"
     >
       <Image
-        src="/mznet-logo.png"
-        alt="Mznet"
+        src="/wbr-logo.png"
+        alt="WBR"
         width={32}
         height={32}
         priority
@@ -28,8 +28,8 @@ export const LogoIcon = () => {
       className="relative z-20 flex items-center rounded-lg px-2 py-1 text-sm font-normal transition-colors hover:bg-white/20"
     >
       <Image
-        src="/mznet-logo.png"
-        alt="Mznet"
+        src="/wbr-logo.png"
+        alt="WBR"
         width={32}
         height={32}
         priority

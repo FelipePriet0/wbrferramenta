@@ -489,11 +489,11 @@ export default function ExpandedPfPage() {
 
   useEffect(() => {
     if (!app.primary_name) return;
-    document.title = `${app.primary_name} — Toolmznet`;
+    document.title = `${app.primary_name} — WBRFerramenta`;
   }, [app.primary_name]);
 
   useEffect(() => {
-    return () => { document.title = 'Mznet'; };
+    return () => { document.title = 'WBR'; };
   }, []);
 
   // Flush pending writes on unmount, tab close, or visibility change so the

@@ -208,8 +208,8 @@ export default function LoginForm() {
 
             <div className="relative z-10 flex h-full items-center justify-center">
               <Image
-                src="/mznet-logo.png"
-                alt="Mznet"
+                src="/wbr-logo.png"
+                alt="WBR"
                 width={480}
                 height={600}
                 priority

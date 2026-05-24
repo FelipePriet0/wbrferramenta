@@ -147,8 +147,8 @@ export function BasicInfoModal({
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <Image
-                  src="/mznet-logo.png"
-                  alt="Mznet"
+                  src="/wbr-logo.png"
+                  alt="WBR"
                   width={36}
                   height={36}
                   priority
@@ -209,7 +209,7 @@ export function BasicInfoModal({
                     />
                     <Field
                       label="Nome Fantasia"
-                      placeholder="Ex: Mznet"
+                      placeholder="Ex: WBR"
                       value={pj.fantasia || ''}
                       onChange={(v) => setPJ({ ...pj, fantasia: v })}
                     />

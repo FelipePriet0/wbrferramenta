@@ -62,7 +62,7 @@ export function GamificacaoTable({ area, vendorId, refreshKey }: Props) {
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="text-xl leading-none">🏆</span>
-            <h3 className="text-base font-bold text-white">Ranking Mensal Mznet</h3>
+            <h3 className="text-base font-bold text-white">Ranking Mensal WBR</h3>
           </div>
 
           {/* Navegação de mês */}

@@ -514,8 +514,8 @@ export function EditarFichaModal({
           <div className="header-editar-ficha relative flex items-center gap-4 bg-[var(--verde-primario)] py-6 pl-8 pr-6 text-white">
             <div className="flex items-center gap-5">
               <Image
-                src="/mznet-logo.png"
-                alt="Mznet"
+                src="/wbr-logo.png"
+                alt="WBR"
                 width={128}
                 height={128}
                 priority

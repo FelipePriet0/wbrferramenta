@@ -75,8 +75,8 @@ export function PersonTypeModal({
           <div className="rounded-t-[28px] bg-[var(--verde-primario)] px-6 py-4 text-white">
             <div className="flex items-center gap-3">
               <Image
-                src="/mznet-logo.png"
-                alt="Mznet"
+                src="/wbr-logo.png"
+                alt="WBR"
                 width={36}
                 height={36}
                 priority

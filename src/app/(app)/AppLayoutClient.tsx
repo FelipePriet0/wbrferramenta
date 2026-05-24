@@ -63,15 +63,15 @@ function AppSidebar() {
                 style={{ borderRadius: '30%', backgroundColor: '#ffffff' }}
               >
                 <Image
-                  src="/mznet-logo.png"
-                  alt="Mznet"
+                  src="/wbr-logo.png"
+                  alt="WBR"
                   fill
                   sizes="40px"
                   style={{ objectFit: 'contain' }}
                 />
               </div>
               <div className="ml-1 leading-tight">
-                <div className="text-base font-semibold text-white">Mznet</div>
+                <div className="text-base font-semibold text-white">WBR</div>
                 <div className="text-sm text-white/80">Empresa</div>
               </div>
             </div>
@@ -83,8 +83,8 @@ function AppSidebar() {
               style={{ borderRadius: '30%', backgroundColor: '#ffffff' }}
             >
               <Image
-                src="/mznet-logo.png"
-                alt="Mznet"
+                src="/wbr-logo.png"
+                alt="WBR"
                 fill
                 sizes="36px"
                 style={{ objectFit: 'contain' }}
