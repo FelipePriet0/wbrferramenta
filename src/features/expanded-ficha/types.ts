@@ -1,0 +1,140 @@
+export type FieldAuditEntry = { by_id: string; by_name: string; at: string; action?: 'preenchido' | 'atualizado' | 'apagado' };
+export type FieldAudit = Record<string, FieldAuditEntry>;
+
+// Full applicants row used by the PF/PJ expanded page (broader than the
+// trimmed AppModel used by EditarFichaModal).
+export type ExpandedAppModel = {
+  id?: string;
+  primary_name?: string;
+  cpf_cnpj?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address_line?: string;
+  address_number?: string;
+  address_complement?: string;
+  cep?: string;
+  bairro?: string;
+  plano_acesso?: string;
+  venc?: string | number | null;
+  sva_avulso?: string;
+  carne_impresso?: boolean;
+  quem_solicitou?: string;
+  telefone_solicitante?: string;
+  protocolo_mk?: string;
+  meio?: string | null;
+  info_spc?: string;
+  info_pesquisador?: string;
+  info_relevantes?: string;
+  info_mk?: string;
+  observacoes?: string;
+  parecer_analise?: string;
+  representante_mz?: string | null;
+  created_at?: string;
+  field_audit?: FieldAudit;
+};
+
+// pf_fichas — every editable column. nullable in DB; UI keeps undefined.
+export type PfModel = {
+  birth_date?: string | null;
+  idade?: string | number | null;
+  naturalidade?: string;
+  uf_naturalidade?: string;
+  do_ps?: string;
+  cond?: string;
+  endereco_do_ps?: string;
+  tempo_endereco?: string;
+  tipo_moradia?: string | null;
+  tipo_moradia_obs?: string;
+  unica_no_lote?: boolean | null;
+  unica_no_lote_obs?: string;
+  com_quem_reside?: string;
+  nas_outras?: string | null;
+  tem_contrato?: boolean | null;
+  enviou_contrato?: boolean | null;
+  nome_de?: string;
+  enviou_comprovante?: boolean | null;
+  tipo_comprovante?: string | null;
+  nome_comprovante?: string;
+  nome_locador?: string;
+  telefone_locador?: string;
+  tem_internet_fixa?: boolean | null;
+  empresa_internet?: string;
+  plano_internet?: string;
+  valor_internet?: string;
+  observacoes?: string;
+  profissao?: string;
+  empresa?: string;
+  vinculo?: string | null;
+  vinculo_obs?: string;
+  emprego_do_ps?: string;
+  estado_civil?: string | null;
+  conjuge_obs?: string;
+  conjuge_nome?: string;
+  conjuge_telefone?: string;
+  conjuge_whatsapp?: string;
+  conjuge_cpf?: string;
+  conjuge_naturalidade?: string;
+  conjuge_uf?: string;
+  conjuge_idade?: string | number | null;
+  conjuge_do_ps?: string;
+  pai_nome?: string;
+  pai_reside?: string;
+  pai_telefone?: string;
+  mae_nome?: string;
+  mae_reside?: string;
+  mae_telefone?: string;
+  ref1_nome?: string;
+  ref1_parentesco?: string;
+  ref1_reside?: string;
+  ref1_telefone?: string;
+  ref2_nome?: string;
+  ref2_parentesco?: string;
+  ref2_reside?: string;
+  ref2_telefone?: string;
+};
+
+// pj_fichas — every editable column.
+export type PjModel = {
+  data_abertura?: string | null;
+  nome_fantasia?: string;
+  nome_fachada?: string;
+  area_atuacao?: string;
+  tipo_imovel?: string | null;
+  obs_tipo_imovel?: string;
+  tempo_endereco?: string;
+  tipo_estabelecimento?: string | null;
+  obs_estabelecimento?: string;
+  end_ps?: string;
+  fones_ps?: string;
+  enviou_comprovante?: boolean | null;
+  tipo_comprovante?: string | null;
+  nome_comprovante?: string;
+  possui_internet?: boolean | null;
+  operadora_internet?: string;
+  plano_internet?: string;
+  valor_internet?: string;
+  contrato_social?: boolean | null;
+  obs_contrato_social?: string;
+  socio1_nome?: string;
+  socio1_cpf?: string;
+  socio1_telefone?: string;
+  socio2_nome?: string;
+  socio2_cpf?: string;
+  socio2_telefone?: string;
+  socio3_nome?: string;
+  socio3_cpf?: string;
+  socio3_telefone?: string;
+};
+
+export type ExpandedCard = {
+  id: string;
+  created_at: string;
+  due_at: string | null;
+  hora_at: string[] | null;
+  periodo: 'manha' | 'tarde' | null;
+  stage: string;
+  vendor_id?: string | null;
+};
+
+export type FieldStatus = 'idle' | 'pending' | 'error';

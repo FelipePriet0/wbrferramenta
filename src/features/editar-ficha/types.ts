@@ -1,0 +1,33 @@
+export type AppModel = {
+  primary_name?: string;
+  cpf_cnpj?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address_line?: string;
+  address_number?: string;
+  address_complement?: string;
+  cep?: string;
+  bairro?: string;
+  plano_acesso?: string;
+  venc?: string | number | null;
+  carne_impresso?: boolean;
+  sva_avulso?: string;
+};
+
+export type Opt = string | { label: string; value: string; disabled?: boolean };
+
+/**
+ * Patch shape emitted by the modal back to the kanban board so it can
+ * update the on-screen card without a full refetch.
+ */
+export type CardSnapshotPatch = {
+  id: string;
+  applicantName?: string;
+  cpfCnpj?: string;
+  phone?: string;
+  whatsapp?: string;
+  bairro?: string;
+  dueAt?: string | null;
+  horaAt?: string | null;
+};

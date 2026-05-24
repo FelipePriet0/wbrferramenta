@@ -1,0 +1,37 @@
+import { DemoRoles } from '@/components/docs/DemoRoles';
+import { Callout } from '@/components/docs/Callout';
+
+# Perfis de acesso
+
+Cada usuário na ferramenta tem um **perfil** que determina o que ele pode ver e fazer. Existem 4 perfis: Vendedor, Analista, Gestor e Leitor.
+
+Entender o perfil de quem vai usar a ferramenta é o primeiro passo — ele define qual Kanban aparece, quais botões ficam visíveis e quais ações são permitidas.
+
+## Explore os perfis
+
+Clique em cada perfil para ver exatamente o que ele pode ou não fazer.
+
+<DemoRoles />
+
+## Quando cada perfil é usado
+
+**Vendedor** — é o perfil de quem está na linha de frente captando clientes. Ele cria fichas, preenche dados e move cards até o ponto de transferência para análise. Não tem acesso às decisões de aprovação.
+
+**Analista** — recebe as fichas do Vendedor e é responsável pela decisão final. Pode escrever pareceres com `/aprovado`, `/negado` ou `/reanalise`, aplicar etiquetas e cancelar cards.
+
+**Gestor** — tem as mesmas permissões do Analista, com a capacidade adicional de reatribuir analistas. Indicado para quem coordena a equipe de análise.
+
+**Leitor** — acesso total de visualização, zero edição. Ideal para auditoria, acompanhamento externo ou treinamento de novos membros sem risco de alterações acidentais.
+
+<Callout type="tip">
+  O perfil é definido no banco de dados por um administrador. Se você está vendo menos opções do que esperava, verifique com o gestor qual perfil está atribuído à sua conta.
+</Callout>
+
+## Como o perfil afeta a interface
+
+O sistema adapta a interface automaticamente ao perfil:
+
+- **Kanban Análise** só aparece na sidebar para Analista e Gestor
+- Botões de ação (cancelar, transferir, parecer) ficam ocultos para Vendedor e Leitor
+- Campos de formulário aparecem desabilitados para Leitor
+- O Leitor vê tudo que os outros veem, mas não consegue clicar em nada que altere dados
