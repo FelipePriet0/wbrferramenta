@@ -380,6 +380,13 @@ export default function ExpandedPjPage() {
   }, [applicantId, preferCardId, authLoading, user?.id]);
 
   const cardId = card?.id ?? '';
+
+  useFichaSync('card', cardId, (patch) => {
+    if (patch.reanalysis_notes) {
+      setPareceres(patch.reanalysis_notes as ParecerNote[]);
+    }
+  });
+
   const refreshPareceres = useCallback(async () => {
     if (!cardId) return;
     try {
@@ -393,7 +400,9 @@ export default function ExpandedPjPage() {
           .maybeSingle(),
       ]);
       setAttachments(atts);
-      setPareceres((notesRes.data?.reanalysis_notes ?? []) as ParecerNote[]);
+      const notes = (notesRes.data?.reanalysis_notes ?? []) as ParecerNote[];
+      setPareceres(notes);
+      if (notes.length > 0) broadcastFichaPatch('card', cardId, { reanalysis_notes: notes });
     } catch (e) {
       console.error('[expanded-pj] refreshPareceres', e);
     }
@@ -486,14 +495,6 @@ export default function ExpandedPjPage() {
     }
   }, [zoom]);
 
-  useEffect(() => {
-    if (!app.primary_name) return;
-    document.title = `${app.primary_name} — WBRFerramenta`;
-  }, [app.primary_name]);
-
-  useEffect(() => {
-    return () => { document.title = 'WBR'; };
-  }, []);
 
   useEffect(() => {
     const flushNow = () => {
@@ -649,6 +650,7 @@ export default function ExpandedPjPage() {
   return (
     <PresenceProvider cardId={cardId} userId={user?.id} userName={profile?.full_name}>
     <AuditProvider applicantId={applicantId}>
+    {app.primary_name && <title>{app.primary_name} — WBRFerramenta</title>}
     <PjPresenceCursors />
     <div className="form-zoom-wrap flex h-full flex-col overflow-x-hidden">
       <FreshFichaConfetti />
