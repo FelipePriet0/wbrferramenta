@@ -62,10 +62,13 @@ CREATE TRIGGER trg_kanban_normalize_stage
   FOR EACH ROW EXECUTE FUNCTION public.trg_kanban_normalize();
 
 -- auth.users → profiles sync
+-- DROP IF EXISTS makes these idempotent (branch-safe).
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+DROP TRIGGER IF EXISTS on_auth_user_updated ON auth.users;
 CREATE TRIGGER on_auth_user_updated
   AFTER UPDATE ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.sync_profile_from_auth();
