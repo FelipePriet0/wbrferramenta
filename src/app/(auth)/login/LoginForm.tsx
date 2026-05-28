@@ -8,7 +8,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { homeForRole } from '@/lib/redirectByRole';
 import { AnimatedGridPattern } from '@/components/ui/animated-grid-pattern';
 import { MagicCard } from '@/components/ui/magic-card';
-import { WELCOME_CONFETTI_KEY } from '@/components/effects/welcome-confetti';
+import { markWelcomeConfettiPending } from '@/components/effects/welcome-confetti';
 import { cn } from '@/lib/utils';
 
 function GlassInputWrapper({ children }: { children: React.ReactNode }) {
@@ -64,13 +64,9 @@ export default function LoginForm() {
       setSubmitting(false);
       return;
     }
-    // Mark this as a fresh login so WelcomeConfetti fires once on the first
+    // Mark this as a fresh login so WelcomeConfetti fires on the first
     // authenticated page the user lands on (consumed on read).
-    try {
-      window.sessionStorage.setItem(WELCOME_CONFETTI_KEY, '1');
-    } catch {
-      // sessionStorage disabled — silently skip; non-blocking.
-    }
+    markWelcomeConfettiPending();
     // The effect above handles the redirect via homeForRole.
   }
 
@@ -81,8 +77,8 @@ export default function LoginForm() {
         <div className="w-full max-w-md">
           <MagicCard
             mode="orb"
-            glowFrom="#6ee7b7"
-            glowTo="#ffffff"
+            glowFrom="#0B42C6"
+            glowTo="#FF6600"
             glowSize={600}
             glowBlur={80}
             glowOpacity={0.55}
@@ -167,7 +163,8 @@ export default function LoginForm() {
               <button
                 type="submit"
                 disabled={submitting || !email || !password}
-                className="animate-element animate-delay-500 w-full rounded-2xl bg-emerald-600 py-4 font-semibold text-white shadow-md transition-all hover:bg-emerald-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                className="animate-element animate-delay-500 w-full rounded-2xl py-4 font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ backgroundColor: '#0B42C6' }}
               >
                 {submitting ? 'Entrando…' : 'Entrar'}
               </button>
@@ -180,7 +177,7 @@ export default function LoginForm() {
       {/* Coluna esquerda — hero visual (escondido no mobile) */}
       <section className="relative hidden flex-1 p-4 md:block">
         <div className="animate-slide-right animate-delay-300 absolute inset-4 overflow-hidden rounded-3xl bg-cover bg-center shadow-lg shadow-white/10 transition-shadow duration-300 hover:shadow-white/20">
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-zinc-900 to-emerald-600">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0B42C6] via-zinc-900 to-[#FF6600]">
             <AnimatedGridPattern
               numSquares={30}
               maxOpacity={0.15}
@@ -188,7 +185,7 @@ export default function LoginForm() {
               repeatDelay={1}
               className={cn(
                 'inset-x-0 inset-y-[-30%] h-[200%] skew-y-12',
-                'text-emerald-300/60 fill-emerald-300/30 stroke-emerald-300/30',
+                'text-blue-300/60 fill-blue-300/30 stroke-blue-300/30',
               )}
               style={{
                 WebkitMaskImage:
@@ -199,9 +196,9 @@ export default function LoginForm() {
             />
 
             <div className="absolute inset-0">
-              <div className="absolute left-0 top-0 h-96 w-96 animate-pulse rounded-full bg-emerald-500 opacity-20 blur-3xl" />
+              <div className="absolute left-0 top-0 h-96 w-96 animate-pulse rounded-full bg-[#0B42C6] opacity-20 blur-3xl" />
               <div
-                className="absolute bottom-0 right-0 h-96 w-96 animate-pulse rounded-full bg-zinc-800 opacity-20 blur-3xl"
+                className="absolute bottom-0 right-0 h-96 w-96 animate-pulse rounded-full bg-[#FF6600] opacity-20 blur-3xl"
                 style={{ animationDelay: '1s' }}
               />
             </div>

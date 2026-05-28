@@ -1,22 +1,27 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import confetti from 'canvas-confetti';
 
 /**
- * Storage key for the "fresh login" flag.
+ * Module-level flag — set by LoginForm immediately after signIn succeeds,
+ * cleared on first read by WelcomeConfetti. Faster and more reliable than
+ * sessionStorage: no I/O, no timing race with Next.js App Router navigation.
  *
- * Set by LoginForm right after a successful signIn (still on /login, before
- * the redirect). Read once when the user lands on any authenticated page —
- * the flag is consumed (removed) on read so the confetti only ever fires
- * once per login session, on the very first landing page.
- *
- * Lives on sessionStorage so it dies with the tab (matches our auth model).
+ * We keep WELCOME_CONFETTI_KEY exported so LoginForm's import doesn't break.
  */
-export const WELCOME_CONFETTI_KEY = 'mz.welcome-confetti.pending';
+export const WELCOME_CONFETTI_KEY = 'wbr.welcome-confetti.pending'; // kept for compat
 
-const COLORS = ['#10b981', '#a786ff', '#fd8bbc', '#eca184', '#f8deb1'];
+let _welcomePending = false;
+
+export function markWelcomeConfettiPending() {
+  _welcomePending = true;
+  // Fallback to sessionStorage so a hard-navigate (rare) still works
+  try { window.sessionStorage.setItem(WELCOME_CONFETTI_KEY, '1'); } catch { /* noop */ }
+}
+
+const COLORS = ['#0B42C6', '#FF6600', '#a786ff', '#fd8bbc', '#f8deb1'];
 
 /**
  * Side-cannon confetti animation (3s, two cannons firing from the left and
@@ -53,16 +58,31 @@ export function fireSideCannonConfetti(durationMs = 3000) {
 /**
  * Mount once inside the authenticated shell. If a "fresh login" flag is set,
  * fires the side-cannon confetti effect (3s).
+ *
+ * Uses `pathname` as dependency so it re-checks on every client-side navigation
+ * within the (app) layout — this covers the race where the layout was already
+ * mounted before the sessionStorage key was written (Next.js App Router keeps
+ * the layout instance alive across navigations within the same segment group).
  */
 export function WelcomeConfetti() {
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (window.sessionStorage.getItem(WELCOME_CONFETTI_KEY) !== '1') return;
-    // Consume immediately so it never fires twice (HMR, re-renders, etc.)
-    window.sessionStorage.removeItem(WELCOME_CONFETTI_KEY);
+  const pathname = usePathname();
 
-    fireSideCannonConfetti();
-  }, []);
+  useEffect(() => {
+    // Check in-memory flag first (fast path — same JS context)
+    if (_welcomePending) {
+      _welcomePending = false;
+      try { window.sessionStorage.removeItem(WELCOME_CONFETTI_KEY); } catch { /* noop */ }
+      fireSideCannonConfetti();
+      return;
+    }
+    // Fallback: sessionStorage (hard-navigate / page reload edge case)
+    try {
+      if (window.sessionStorage.getItem(WELCOME_CONFETTI_KEY) === '1') {
+        window.sessionStorage.removeItem(WELCOME_CONFETTI_KEY);
+        fireSideCannonConfetti();
+      }
+    } catch { /* noop */ }
+  }, [pathname]);
 
   return null;
 }

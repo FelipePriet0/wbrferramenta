@@ -3,7 +3,7 @@ import type { KanbanArea, KanbanDecisionStatus } from '@/lib/types';
 import type { KanbanCard } from '@/features/kanban/types';
 
 export interface ListCardsOpts {
-  hora?: string;
+  hora?: string[];
   dateStart?: string;
   dateEnd?: string;
   responsaveis?: string[];
@@ -157,13 +157,15 @@ export async function listCards(
   // supabase-js .contains()/.filter('cs',...) does not reliably escape ':'
   // for PostgREST's array literal parser. A linear scan over a board with
   // a few hundred rows is sub-millisecond and bypasses the encoder issue.
-  if (opts.hora) {
-    // The filter passes 'HH:MM' (5 chars, 2 segments). Stored values are
-    // 'HH:MM:SS' (3 segments). Count segments — terminating-anchor regexes
-    // are misleading here because 'HH:MM' also ends with ':DD'.
-    const horaWithSeconds =
-      opts.hora.split(':').length >= 3 ? opts.hora : `${opts.hora}:00`;
-    rows = rows.filter((r) => r.hora_at?.includes(horaWithSeconds) ?? false);
+  if (opts.hora && opts.hora.length > 0) {
+    // Each selected time is 'HH:MM'; stored values are 'HH:MM:SS'. Normalize
+    // to 3-segment form and keep cards that contain ANY of the selected times.
+    const horasWithSeconds = opts.hora.map((h) =>
+      h.split(':').length >= 3 ? h : `${h}:00`,
+    );
+    rows = rows.filter(
+      (r) => r.hora_at?.some((t) => horasWithSeconds.includes(t)) ?? false,
+    );
   }
 
   return rows.map(rowToCard);

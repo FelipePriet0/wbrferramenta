@@ -32,9 +32,10 @@ Leia este arquivo inteiro antes de qualquer ação. Ele é o briefing completo d
 - 80 arquivos sincronizados, branding WBR aplicado, paleta de cores trocada
 
 ### Banco (Supabase WBR)
-- **PENDENTE** — projeto Supabase WBR ainda não foi criado
-- Quando criado: rodar todas as migrations em `supabase/migrations/` do zero
-- As migrations já estão na pasta, prontas para aplicar
+- **Project Ref:** `sqsupskuhqsxjbtdilnx`
+- **MCP:** `supabase-wbr` (configurado em `~/.claude/settings.json`)
+- Projeto criado em **2026-05-28** — migrations ainda não rodadas
+- Rodar todas as migrations em `supabase/migrations/` do zero via MCP `supabase-wbr`
 
 ### Deploy (Vercel)
 - **PENDENTE** — aguarda banco criado

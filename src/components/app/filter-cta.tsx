@@ -47,7 +47,7 @@ type CachedResponsavel = {
 export type AppliedFilters = {
   responsaveis: string[];
   prazo?: { start: string; end?: string };
-  hora?: string;
+  hora?: string[];
   myMentions?: boolean;
   searchTerm?: string;
 };
@@ -105,7 +105,7 @@ export function FilterCTA({
         id: 'hora',
         type: FilterType.HORARIO,
         operator: FilterOperator.IS,
-        value: [hora.length === 5 ? hora : hora.slice(0, 5)],
+        value: hora.split(',').map((h) => (h.length === 5 ? h : h.slice(0, 5))),
       });
     }
     if (prazoInicio) {
@@ -311,7 +311,7 @@ export function FilterCTA({
     const params = new URLSearchParams(searchParamsStr);
 
     const horaFilter = filters.find((f) => f.type === FilterType.HORARIO);
-    const hora = horaFilter?.value?.[0];
+    const horas = (horaFilter?.value ?? []).filter(Boolean);
 
     const responsavelFilter = filters.find((f) => f.type === FilterType.RESPONSAVEL);
     const responsavelIds = Array.from(
@@ -325,7 +325,7 @@ export function FilterCTA({
       prazo: prazoStartValue
         ? { start: prazoStartValue, end: prazoEndValue }
         : undefined,
-      hora,
+      hora: horas.length > 0 ? horas : undefined,
       myMentions,
       searchTerm: activeSearchTerm && activeSearchTerm.length > 0 ? activeSearchTerm : undefined,
     });
@@ -338,7 +338,7 @@ export function FilterCTA({
     params.delete('busca');
     params.delete('minhas_mencoes');
 
-    if (hora) params.set('hora', hora);
+    if (horas.length > 0) params.set('hora', horas.join(','));
     if (prazoStartValue) {
       params.set('prazo', prazoStartValue);
       if (prazoEndValue && prazoEndValue !== prazoStartValue) {

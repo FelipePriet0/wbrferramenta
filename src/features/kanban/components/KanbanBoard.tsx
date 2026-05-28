@@ -379,6 +379,7 @@ export function KanbanBoard({
       {!readOnly && (
         <>
           <MoveModal
+            key={move?.id ?? 'none'}
             open={!!move}
             onClose={() => setMove(null)}
             cardId={move?.id ?? ''}

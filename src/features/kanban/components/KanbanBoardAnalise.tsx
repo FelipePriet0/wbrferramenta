@@ -75,7 +75,7 @@ export function KanbanBoardAnalise({
   const [cards, setCards] = useState<KanbanCard[]>([]);
   const [fetching, setFetching] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [move, setMove] = useState<{ id: string } | null>(null);
+  const [move, setMove] = useState<{ id: string; currentStage?: string } | null>(null);
   const [cancel, setCancel] = useState<{ id: string } | null>(null);
   const [revert, setRevert] = useState<{
     id: string;
@@ -272,7 +272,7 @@ export function KanbanBoardAnalise({
   const openMove = useCallback(
     (c: KanbanCard) => {
       if (readOnly) return;
-      setMove({ id: c.id });
+      setMove({ id: c.id, currentStage: c.stage });
     },
     [readOnly],
   );
@@ -427,9 +427,11 @@ export function KanbanBoardAnalise({
       {!readOnly && (
         <>
           <MoveModal
+            key={move?.id ?? 'none'}
             open={!!move}
             onClose={() => setMove(null)}
             cardId={move?.id ?? ''}
+            currentStage={move?.currentStage}
             presetArea="analise"
             onMoved={reload}
           />
