@@ -71,9 +71,10 @@ export function useCursorSync(
     });
   }, [peers]);
 
-  // Supabase Broadcast channel.
+  // Supabase Broadcast channel — only open when at least one peer is present.
+  // With no peers, skipping the channel eliminates both cursor traffic and heartbeats.
   useEffect(() => {
-    if (!cardId || !selfUserId) return;
+    if (!cardId || !selfUserId || peers.length === 0) return;
 
     const ch = supabase.channel(`cursor:${cardId}`);
     ch.on('broadcast', { event: 'move' }, ({ payload }: { payload: CursorPayload }) => {
@@ -85,7 +86,7 @@ export function useCursorSync(
       void supabase.removeChannel(ch);
       channelRef.current = null;
     };
-  }, [cardId, selfUserId, applyPosition]);
+  }, [cardId, selfUserId, peers.length, applyPosition]);
 
   // BroadcastChannel (same browser, 0ms).
   useEffect(() => {

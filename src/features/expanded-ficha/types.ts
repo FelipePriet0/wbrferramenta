@@ -135,6 +135,7 @@ export type ExpandedCard = {
   periodo: 'manha' | 'tarde' | null;
   stage: string;
   vendor_id?: string | null;
+  archived_at?: string | null;
 };
 
 export type FieldStatus = 'idle' | 'pending' | 'error';

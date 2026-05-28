@@ -36,9 +36,7 @@ function defaultRange(): DateRangeValue {
   const fmt = (d: Date) =>
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const now = new Date();
-  const start = new Date(now);
-  start.setDate(now.getDate() - 6);
-  start.setHours(0, 0, 0, 0);
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
   return { start: fmt(start), end: fmt(now) };
 }
 
@@ -67,22 +65,20 @@ export default function MetricasPage() {
   const [kpi, setKpi] = useState<KPISnapshot>({});
   const [kpiLoading, setKpiLoading] = useState(true);
 
-  const [gamRefreshKey, setGamRefreshKey] = useState(0);
-
   const [timeSeries, setTimeSeries] = useState<BarPoint[]>([]);
   const [tsLoading, setTsLoading] = useState(true);
 
   const loadKPI = useCallback(async () => {
     setKpiLoading(true);
     try {
-      const data = await getKPISnapshot(tab, vendorId || undefined);
+      const data = await getKPISnapshot(tab, vendorId || undefined, dateRange);
       setKpi(data);
     } catch (e) {
       console.error('[metricas] kpi', e);
     } finally {
       setKpiLoading(false);
     }
-  }, [tab, vendorId]);
+  }, [tab, vendorId, dateRange]);
 
   const loadTimeSeries = useCallback(async () => {
     setTsLoading(true);
@@ -120,14 +116,13 @@ export default function MetricasPage() {
       const { loadKPI: kpi, loadTimeSeries: ts } = loadersRef.current;
       void kpi();
       void ts();
-      setGamRefreshKey((k) => k + 1);
     }, 300);
   }, []);
 
   useEffect(() => {
     if (role !== 'gestor') return;
     const channel = supabase
-      .channel('metricas-kanban-cards')
+      .channel('metricas-kpi-ts')
       .on(
         'postgres_changes' as never,
         { event: '*', schema: 'public', table: 'kanban_cards' } as never,
@@ -239,40 +234,26 @@ export default function MetricasPage() {
           />
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <KPICard
             title="Recebidos"
             value={kpiLoading ? '—' : (kpi.recebidos ?? 0)}
-            subtitle="Aguardando triagem"
+            subtitle="Total recebido pela análise"
             icon={Inbox}
             tone="featured"
           />
           <KPICard
-            title="Preenchidas"
-            value={kpiLoading ? '—' : (kpi.preenchidas ?? 0)}
-            subtitle="Ficha completa"
-            icon={FileText}
-            tone="neutral"
-          />
-          <KPICard
-            title="Em Análise"
-            value={kpiLoading ? '—' : (kpi.em_analise ?? 0)}
-            subtitle="Sendo avaliadas"
-            icon={FileCheck}
-            tone="neutral"
-          />
-          <KPICard
-            title="Reanálise"
-            value={kpiLoading ? '—' : (kpi.reanalise ?? 0)}
-            subtitle="Aguardando revisão"
-            icon={Clock4}
-            tone="warn"
+            title="Canceladas"
+            value={kpiLoading ? '—' : (kpi.canceladas_analise ?? 0)}
+            subtitle="Canceladas durante análise"
+            icon={Ban}
+            tone="bad"
           />
           <KPICard
             title="Negadas"
             value={kpiLoading ? '—' : (kpi.negados ?? 0)}
             subtitle="Clique para ver no histórico"
-            icon={Ban}
+            icon={FileCheck}
             tone="bad"
             onClick={() => router.push(buildHistoricoUrl('negados', dateRange))}
           />
@@ -293,14 +274,14 @@ export default function MetricasPage() {
           <div className="flex flex-col gap-4 lg:col-span-2">
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <FichasBarChart data={timeSeries} loading={tsLoading} />
+                <FichasBarChart data={timeSeries} loading={tsLoading} area={tab} />
               </div>
               <ConversaoGauge kpi={kpi} loading={kpiLoading} area={tab} />
             </div>
-            <LiveKanbanTable area={tab} />
+            <LiveKanbanTable area={tab} vendorId={vendorId} dateRange={dateRange} />
           </div>
           <div className="self-start">
-            <GamificacaoTable area={tab} vendorId={vendorId} refreshKey={gamRefreshKey} />
+            <GamificacaoTable area={tab} dateRange={dateRange} />
           </div>
         </div>
       ) : (
@@ -308,11 +289,11 @@ export default function MetricasPage() {
         <>
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <FichasBarChart data={timeSeries} loading={tsLoading} />
+              <FichasBarChart data={timeSeries} loading={tsLoading} area={tab} />
             </div>
             <ConversaoGauge kpi={kpi} loading={kpiLoading} area={tab} />
           </div>
-          <LiveKanbanTable area={tab} />
+          <LiveKanbanTable area={tab} dateRange={dateRange} />
         </>
       )}
     </div>

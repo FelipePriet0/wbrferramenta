@@ -17,7 +17,7 @@ type Preset = 'dia' | 'semana' | 'mes' | 'ano';
 const PRESETS: { value: Preset; label: string }[] = [
   { value: 'dia', label: 'Hoje' },
   { value: 'semana', label: 'Semana' },
-  { value: 'mes', label: 'Mês' },
+  { value: 'mes', label: 'Este mês' },
   { value: 'ano', label: 'Ano' },
 ];
 
@@ -28,10 +28,18 @@ function presetRange(preset: Preset): DateRangeValue {
   const now = new Date();
   const end = fmt(now);
   if (preset === 'dia') return { start: end, end };
+  if (preset === 'semana') {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+    return { start: fmt(start), end };
+  }
+  if (preset === 'mes') {
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    return { start: fmt(start), end };
+  }
   const start = new Date(now);
-  if (preset === 'semana') start.setDate(now.getDate() - 6);
-  else if (preset === 'mes') start.setDate(now.getDate() - 29);
-  else start.setFullYear(now.getFullYear() - 1);
+  start.setFullYear(now.getFullYear() - 1);
   start.setHours(0, 0, 0, 0);
   return { start: fmt(start), end };
 }
@@ -62,6 +70,12 @@ export function PeriodFilter({ dateRange, onChange }: Props) {
     onChange(presetRange(preset));
   };
 
+  const handleClear = () => {
+    setActivePreset(null);
+    onChange({});
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -71,7 +85,7 @@ export function PeriodFilter({ dateRange, onChange }: Props) {
           style={{ background: 'var(--preto)', border: '1px solid var(--preto)' }}
         >
           <CalendarIcon className="h-4 w-4 text-white/70" />
-          {rangeLabel ?? 'Selecionar Período'}
+          {rangeLabel ?? 'Todo período'}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-auto border-0 p-0 shadow-xl" align="start">
@@ -92,6 +106,17 @@ export function PeriodFilter({ dateRange, onChange }: Props) {
                 {o.label}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={handleClear}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                !activePreset && !dateRange.start
+                  ? 'bg-zinc-800 text-white'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+              }`}
+            >
+              Todo período
+            </button>
           </div>
 
           {/* Full calendar */}

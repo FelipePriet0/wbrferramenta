@@ -75,7 +75,6 @@ function buildResponsavelOptions(profiles: CachedResponsavel[]): FilterOption[] 
   return unique.map((profile) => ({
     name: profile.full_name ?? '—',
     icon: getResponsavelIcon(profile.full_name ?? undefined),
-    label: profile.role ?? undefined,
     value: profile.id ?? undefined,
   }));
 }

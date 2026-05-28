@@ -17,7 +17,6 @@ import {
   listHistorico,
   type HistoricoRow,
 } from '@/services/historico';
-import { EditarFichaModal } from '@/features/editar-ficha/EditarFichaModal';
 import { RestaurarFichaModal } from '@/features/historico/RestaurarFichaModal';
 import {
   HistoricoFilterCTA,
@@ -113,10 +112,6 @@ function HistoricoPageInner() {
   const [error, setError] = useState<string | null>(null);
 
   // Modals
-  const [view, setView] = useState<{
-    cardId: string;
-    applicantId: string;
-  } | null>(null);
   const [restore, setRestore] = useState<{
     cardId: string;
     name: string | null;
@@ -329,9 +324,14 @@ function HistoricoPageInner() {
                     <td className="px-3 py-2.5">
                       <button
                         type="button"
-                        onClick={() =>
-                          setView({ cardId: row.id, applicantId: row.applicant_id })
-                        }
+                        onClick={() => {
+                          const type = row.person_type === 'PJ' ? 'pj' : 'pf';
+                          window.open(
+                            `/ficha/${type}/${row.applicant_id}?card=${row.id}`,
+                            '_blank',
+                            'noopener,noreferrer',
+                          );
+                        }}
                         className="inline-flex h-7 w-7 items-center justify-center rounded-md text-zinc-600 hover:bg-emerald-100 hover:text-emerald-700"
                         aria-label={`Ver detalhes de ${row.applicant_name ?? 'ficha'}`}
                         title="Ver detalhes"
@@ -418,15 +418,6 @@ function HistoricoPageInner() {
           )}
         </table>
       </div>
-
-      {/* Modal "Ver detalhes" — reusa EditarFichaModal em historicoMode */}
-      <EditarFichaModal
-        open={!!view}
-        onClose={() => setView(null)}
-        cardId={view?.cardId ?? ''}
-        applicantId={view?.applicantId ?? ''}
-        historicoMode
-      />
 
       {/* Popover "Restaurar" */}
       <RestaurarFichaModal

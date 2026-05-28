@@ -315,11 +315,6 @@ export function HistoricoFilterCTA({
                       <span className="text-sm font-medium">
                         {p.full_name ?? '—'}
                       </span>
-                      {p.role && (
-                        <span className="ml-auto text-xs text-muted-foreground">
-                          {p.role}
-                        </span>
-                      )}
                     </CommandItem>
                   ))}
                 </CommandGroup>

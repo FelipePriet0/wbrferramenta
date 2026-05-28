@@ -164,7 +164,7 @@ export function ParecerComposer({
         setRevertPrompt(val);
         return;
       }
-      const payloadText = (decision && !text ? decisionPlaceholder(decision) : text).toUpperCase();
+      const payloadText = decision && !text ? decisionPlaceholder(decision) : text.toUpperCase();
       const filesToUpload = pendingFiles.slice();
       setSubmitting(true);
       try {
@@ -198,6 +198,13 @@ export function ParecerComposer({
             mentions: mentionList,
           });
           resolvedNoteId = noteId;
+        }
+
+        // Apply decision explicitly from the frontend so the card stage
+        // change is always triggered, regardless of whether add_parecer's
+        // internal set_card_decision call ran or not.
+        if (decision) {
+          await setCardDecision(capturedCardId, decision as KanbanDecisionStatus);
         }
 
         if (filesToUpload.length > 0 && resolvedNoteId) {
@@ -284,6 +291,9 @@ export function ParecerComposer({
             mentions: mentionList,
           });
           resolvedNoteId = noteId;
+        }
+        if (decision) {
+          await setCardDecision(capturedCardId, decision as KanbanDecisionStatus);
         }
         const filesToUpload = pendingFiles.slice();
         if (filesToUpload.length > 0 && resolvedNoteId) {

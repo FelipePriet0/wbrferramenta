@@ -102,9 +102,6 @@ export function ColaboradorFilter({ value, label, area, onChange }: Props) {
                 >
                   <UserAvatar name={p.full_name ?? '—'} size="xs" />
                   <span className="text-sm font-medium">{p.full_name ?? '—'}</span>
-                  <span className="ml-auto text-xs text-muted-foreground capitalize">
-                    {p.role}
-                  </span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -17,6 +17,7 @@ const FRIENDLY: Record<string, string> = {
   not_author: 'Você só pode editar pareceres criados por você.',
   note_not_found: 'Parecer não encontrado.',
   applicant_not_found: 'Cadastro não encontrado.',
+  text_too_long: 'O texto é longo demais. Reduza e tente novamente.',
 };
 
 /**
@@ -35,10 +36,10 @@ export function friendlyError(error: unknown, fallback = 'Algo deu errado. Tente
       .replace(/\.$/, '')
       .trim();
     if (FRIENDLY[stripped]) return FRIENDLY[stripped];
-    return msg || fallback;
+    return fallback;
   }
   if (typeof error === 'string' && error) {
-    return FRIENDLY[error] ?? error;
+    return FRIENDLY[error] ?? fallback;
   }
   return fallback;
 }

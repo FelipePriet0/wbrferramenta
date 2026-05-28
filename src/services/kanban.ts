@@ -65,6 +65,12 @@ function rowToCard(row: CardRow): KanbanCard {
  * escape character. We backslash-escape all three so a search for "10%"
  * matches the literal "10%", not "10<anything>".
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUuid(s: string): boolean {
+  return UUID_RE.test(s);
+}
+
 function escapeIlike(term: string): string {
   return term.replace(/[\\%_]/g, '\\$&');
 }
@@ -128,11 +134,11 @@ export async function listCards(
     q = q.or(ors.join(','), { referencedTable: 'applicants' });
   }
   if (opts.responsaveis && opts.responsaveis.length > 0) {
-    // vendor_id is the current operational owner (mutable via transfer).
-    // created_by is the immutable audit trail — wrong column to filter on
-    // after a transfer. assignee_id covers the analysis side.
-    const csv = opts.responsaveis.join(',');
-    q = q.or(`assignee_id.in.(${csv}),vendor_id.in.(${csv})`);
+    const safe = opts.responsaveis.filter(isUuid);
+    if (safe.length > 0) {
+      const csv = safe.join(',');
+      q = q.or(`assignee_id.in.(${csv}),vendor_id.in.(${csv})`);
+    }
   }
   // due_at is timestamptz; the filter passes 'YYYY-MM-DD' (local Brasília
   // calendar day). Expand to the full BRT day so any timestamp on that
@@ -167,12 +173,15 @@ export async function listCards(
  * Move a card across stages. The RPC handles all the side effects
  * (promotion to análise, cancellation timestamps, finalization, etc.).
  */
+const MAX_REASON_LENGTH = 1_000;
+
 export async function changeStage(
   cardId: string,
   area: KanbanArea,
   stage: string,
   reason?: string,
 ): Promise<void> {
+  if (reason && reason.length > MAX_REASON_LENGTH) throw new Error('text_too_long');
   const { error } = await supabase.rpc('change_stage', {
     p_card_id: cardId,
     p_area: area,
@@ -203,6 +212,7 @@ export async function setCardDecision(
  * Soft-delete a card. Hard DELETE is blocked by RLS.
  */
 export async function softDeleteCard(cardId: string, reason?: string): Promise<void> {
+  if (reason && reason.length > MAX_REASON_LENGTH) throw new Error('text_too_long');
   const { error } = await supabase.rpc('soft_delete_card', {
     p_card_id: cardId,
     p_reason: reason ?? null,
@@ -218,11 +228,15 @@ export async function softDeleteCard(cardId: string, reason?: string): Promise<v
  */
 export async function dashboardKanbanCounts(
   area: KanbanArea,
+  dateRange?: { start?: string; end?: string },
 ): Promise<Record<string, number>> {
-  const { data, error } = await supabase.rpc('dashboard_kanban_counts', {
+  const params: Record<string, string> = {
     p_area: area,
     p_now: new Date().toISOString(),
-  });
+  };
+  if (dateRange?.start) params.p_start = new Date(`${dateRange.start}T00:00:00`).toISOString();
+  if (dateRange?.end)   params.p_end   = new Date(`${dateRange.end}T23:59:59`).toISOString();
+  const { data, error } = await supabase.rpc('dashboard_kanban_counts', params);
   if (error) throw new Error(error.message);
   return (data as Record<string, number> | null) ?? {};
 }

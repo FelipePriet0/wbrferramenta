@@ -17,7 +17,7 @@ import { PresenceFieldHighlight } from '@/components/ui/PresenceFieldHighlight';
 // shared on window to keep allocation cheap).
 function applyAutoShrink(el: HTMLInputElement, value: string) {
   const MAX = 13;
-  const MIN = 7;
+  const MIN = 1;
   const STEP = 0.5;
   el.style.setProperty('--field-fs', `${MAX}px`);
   if (!value || el.clientWidth === 0) return;
@@ -27,11 +27,14 @@ function applyAutoShrink(el: HTMLInputElement, value: string) {
   w.__mzMeasureCanvas ??= document.createElement('canvas');
   const ctx = w.__mzMeasureCanvas.getContext('2d');
   if (!ctx) return;
-  const fontFamily = getComputedStyle(el).fontFamily || 'sans-serif';
+  const computed = getComputedStyle(el);
+  const fontFamily = computed.fontFamily || 'sans-serif';
+  // Mede o texto como ele será renderizado (respeita text-transform: uppercase)
+  const displayValue = computed.textTransform === 'uppercase' ? value.toUpperCase() : value;
   let size = MAX;
   while (size > MIN) {
     ctx.font = `400 ${size}px ${fontFamily}`;
-    if (ctx.measureText(value).width <= available) break;
+    if (ctx.measureText(displayValue).width <= available) break;
     size = Math.max(MIN, size - STEP);
   }
   el.style.setProperty('--field-fs', `${size}px`);
@@ -86,7 +89,13 @@ auditField?: string;
   const fieldPeers = auditField && presence ? presence.getFieldPeers(auditField) : [];
   useEffect(() => {
     const el = inputRef.current;
-    if (el) applyAutoShrink(el, value);
+    if (!el) return;
+    applyAutoShrink(el, value);
+    // Re-aplica quando o elemento ganhar largura final (flex/grid responsivo
+    // pode não ter clientWidth correto no primeiro paint)
+    const ro = new ResizeObserver(() => applyAutoShrink(el, value));
+    ro.observe(el);
+    return () => ro.disconnect();
   }, [value]);
 
   const showTooltip = !!(title && hover);
@@ -101,7 +110,7 @@ auditField?: string;
       : requiredMark && !disabled
         ? 'border-emerald-500 bg-emerald-50 placeholder:text-emerald-600 placeholder:font-semibold'
         : 'border-zinc-400 bg-blue-100'
-  } px-1 text-[10px] outline-none focus:border-zinc-600 ${
+  } px-1 outline-none focus:border-zinc-600 ${
     disabled ? 'bg-zinc-100 text-zinc-400 cursor-not-allowed' : 'text-zinc-900'
   }${red && !disabled ? ' input-red' : ''}${noUppercase ? '' : ' uppercase'} font-[family-name:var(--font-arvo)]`;
 
@@ -141,6 +150,7 @@ auditField?: string;
           maxLength={maxLength}
           inputMode={inputMode}
           className={inputClass}
+          style={{ fontSize: 'var(--field-fs, 10px)' }}
           placeholder={
             requiredMark && !disabled ? 'Obrigatório' : (placeholder ?? '')
           }

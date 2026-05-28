@@ -192,7 +192,7 @@ export async function fetchExpandedPF(
   if (preferCardId) {
     const { data, error } = await supabase
       .from('kanban_cards')
-      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
       .eq('id', preferCardId)
       .is('deleted_at', null)
       .maybeSingle();
@@ -202,7 +202,7 @@ export async function fetchExpandedPF(
   if (!card) {
     const { data, error } = await supabase
       .from('kanban_cards')
-      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
       .eq('applicant_id', applicantId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
@@ -274,7 +274,7 @@ export async function fetchExpandedPJ(
   if (preferCardId) {
     const { data, error } = await supabase
       .from('kanban_cards')
-      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
       .eq('id', preferCardId)
       .is('deleted_at', null)
       .maybeSingle();
@@ -284,7 +284,7 @@ export async function fetchExpandedPJ(
   if (!card) {
     const { data, error } = await supabase
       .from('kanban_cards')
-      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
       .eq('applicant_id', applicantId)
       .is('deleted_at', null)
       .order('created_at', { ascending: false })

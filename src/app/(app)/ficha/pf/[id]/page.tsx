@@ -100,13 +100,14 @@ export default function ExpandedPfPage() {
 
   const { user, profile, role, loading: authLoading } = useAuth();
   const isLeitor = role === 'leitor';
-  const canWriteParecer =
-    !isLeitor && (role === 'analista' || role === 'gestor');
-  const readOnly = isLeitor;
 
   const [app, setApp] = useState<ExpandedAppModel>({});
   const [pf, setPf] = useState<PfModel>({});
   const [card, setCard] = useState<ExpandedCard | null>(null);
+
+  const readOnly = isLeitor || !!card?.archived_at;
+  const canWriteParecer =
+    !readOnly && (role === 'analista' || role === 'gestor');
   const [dueAt, setDueAt] = useState<string>('');
   const [horaArr, setHoraArr] = useState<string[]>([]);
   const [periodo, setPeriodo] = useState<'manha' | 'tarde' | null>(null);
@@ -190,9 +191,18 @@ export default function ExpandedPfPage() {
       if (pfKeys.length) ops.push(updatePfFicha(applicantId, pfPatch));
       if (cardKeys.length && card?.id) ops.push(updateCard(card.id, cardPatch));
       await Promise.all(ops);
-      dirtyApp.current.clear();
-      dirtyPf.current.clear();
-      dirtyCard.current.clear();
+      // Only remove dirty flags for keys NOT re-queued while the save was in-flight.
+      // Clearing unconditionally would drop the guard on fields the user is still
+      // typing, letting the realtime echo overwrite them and jump the cursor.
+      for (const k of appKeys) {
+        if (!(k in pendingApp.current)) dirtyApp.current.delete(k as keyof ExpandedAppModel);
+      }
+      for (const k of pfKeys) {
+        if (!(k in pendingPf.current)) dirtyPf.current.delete(k as keyof PfModel);
+      }
+      for (const k of cardKeys) {
+        if (!(k in pendingCard.current)) dirtyCard.current.delete(k as 'due_at' | 'hora_at' | 'periodo');
+      }
       [...appKeys, ...pfKeys, ...cardKeys].forEach((k) =>
         setFieldStatus(k, 'idle'),
       );
@@ -598,13 +608,6 @@ export default function ExpandedPfPage() {
     },
     [capturedCardId],
   );
-
-  const representanteName = useMemo(() => {
-    if (!app.representante_mz) return '';
-    return (
-      profiles.find((p) => p.id === app.representante_mz)?.full_name ?? ''
-    );
-  }, [app.representante_mz, profiles]);
 
   const vendorName = useMemo(() => {
     if (!card?.vendor_id) return '';
@@ -1457,12 +1460,6 @@ auditField="email"
                 <AdobeField
                   label="Vendedor"
                   value={vendorName}
-                  onChange={() => {}}
-                  disabled
-                />
-                <AdobeField
-                  label="Representante Mz"
-                  value={representanteName}
                   onChange={() => {}}
                   disabled
                 />

@@ -7,6 +7,7 @@ export interface HistoricoRow {
   applicant_id: string;
   applicant_name: string | null;
   cpf_cnpj: string | null;
+  person_type: 'PF' | 'PJ' | null;
   final_decision: string | null;
   finalized_at: string | null;
   archived_at: string | null;

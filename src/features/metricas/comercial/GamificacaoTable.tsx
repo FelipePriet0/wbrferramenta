@@ -1,19 +1,16 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/avatar';
 import { getLiveTableData, type GamificacaoRow } from '@/services/metricas';
 import type { KanbanArea } from '@/lib/types';
+import type { DateRangeValue } from '@/components/ui/date-range-popover';
+import { useTableChanges } from '@/components/providers/RealtimeProvider';
 
 type Props = {
   area: KanbanArea;
-  vendorId?: string;
-  refreshKey?: number;
+  dateRange: DateRangeValue;
 };
-
-const pad = (n: number) => String(n).padStart(2, '0');
-const fmtDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
@@ -23,69 +20,39 @@ const ROW_BG: Record<number, string> = {
   2: 'bg-orange-50 hover:bg-orange-100/70',
 };
 
-export function GamificacaoTable({ area, vendorId, refreshKey }: Props) {
-  const [monthOffset, setMonthOffset] = useState(0);
+export function GamificacaoTable({ area, dateRange }: Props) {
   const [rows, setRows] = useState<GamificacaoRow[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const now = new Date();
-  const selectedDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-  const isCurrentMonth = monthOffset === 0;
-
-  const monthLabel = new Intl.DateTimeFormat('pt-BR', { month: 'long' })
-    .format(selectedDate)
-    .replace(/^\w/, (c) => c.toUpperCase());
-
-  const rangeStart = fmtDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
-  const rangeEnd = fmtDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0));
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getLiveTableData(area, vendorId || undefined, { start: rangeStart, end: rangeEnd });
+      const data = await getLiveTableData(area, undefined, dateRange.start ? dateRange : undefined);
       setRows(data);
     } catch (e) {
       console.error('[GamificacaoTable]', e);
     } finally {
       setLoading(false);
     }
-  }, [area, vendorId, rangeStart, rangeEnd]);
+  }, [area, dateRange]);
 
   useEffect(() => {
     void load();
-  }, [load, refreshKey]);
+  }, [load]);
+
+  useTableChanges({
+    channelName: `gamificacao-${area}`,
+    table: 'kanban_cards',
+    onChange: () => void load(),
+  });
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white shadow-sm">
       {/* Header */}
       <div className="rounded-t-xl px-4 py-3" style={{ background: 'var(--preto)' }}>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xl leading-none">🏆</span>
-            <h3 className="text-base font-bold text-white">Ranking Mensal WBR</h3>
-          </div>
-
-          {/* Navegação de mês */}
-          <div className="flex items-center gap-0.5">
-            <button
-              type="button"
-              onClick={() => setMonthOffset((o) => o - 1)}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-white/80 transition hover:bg-white/20 hover:text-white"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <span className="min-w-[72px] text-center text-sm font-semibold text-white">
-              {monthLabel}
-            </span>
-            <button
-              type="button"
-              onClick={() => setMonthOffset((o) => o + 1)}
-              disabled={isCurrentMonth}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-white/80 transition hover:bg-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xl leading-none">🏆</span>
+          <h3 className="text-base font-bold text-white">Ranking WBR</h3>
         </div>
       </div>
 
@@ -97,7 +64,7 @@ export function GamificacaoTable({ area, vendorId, refreshKey }: Props) {
           </div>
         ) : rows.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-xs text-zinc-400">
-            Nenhuma ficha concluída em {monthLabel}.
+            Nenhuma ficha concluída no período.
           </div>
         ) : (
           <ul>

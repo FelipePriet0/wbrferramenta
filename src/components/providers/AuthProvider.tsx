@@ -52,13 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     (async () => {
-      const { data } = await supabase.auth.getSession();
-      if (!mounted) return;
-      const s = data.session ?? null;
-      setSession(s);
-      lastUserIdRef.current = s?.user.id ?? null;
-      await loadProfile(s?.user.id ?? null);
-      setLoading(false);
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        const s = data.session ?? null;
+        setSession(s);
+        lastUserIdRef.current = s?.user.id ?? null;
+        await loadProfile(s?.user.id ?? null);
+      } catch {
+        // Supabase unreachable (e.g. no backend yet) — render unauthenticated
+      } finally {
+        if (mounted) setLoading(false);
+      }
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => {

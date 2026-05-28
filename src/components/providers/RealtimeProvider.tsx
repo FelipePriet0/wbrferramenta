@@ -97,7 +97,10 @@ export function useRealtime(): RealtimeAPI {
 
 /**
  * Convenience hook: subscribe + cleanup in one call.
- * Pass a stable handler (useCallback) or accept that re-renders rebind it.
+ * The channel only re-subscribes when channelName/table/schema/filter/enabled
+ * change — NOT when the onChange handler reference changes. onChange is kept
+ * in a ref so the latest version is always called without triggering a
+ * close/reopen cycle on every render.
  */
 export function useTableChanges<T extends Record<string, unknown>>(args: {
   channelName: string;
@@ -108,11 +111,20 @@ export function useTableChanges<T extends Record<string, unknown>>(args: {
   enabled?: boolean;
 }) {
   const { subscribeTable } = useRealtime();
-  const { enabled = true, ...rest } = args;
+  const { enabled = true, channelName, table, schema, filter, onChange } = args;
+
+  const onChangeRef = useRef<ChangeHandler<T>>(onChange);
+  useEffect(() => { onChangeRef.current = onChange; });
+
   useEffect(() => {
     if (!enabled) return;
-    const unsub = subscribeTable<T>(rest);
+    const unsub = subscribeTable<T>({
+      channelName,
+      table,
+      schema,
+      filter,
+      onChange: (payload) => onChangeRef.current(payload),
+    });
     return unsub;
-    // We intentionally re-subscribe whenever channelName/table/filter change.
-  }, [subscribeTable, enabled, rest]);
+  }, [subscribeTable, enabled, channelName, table, schema, filter]);
 }
