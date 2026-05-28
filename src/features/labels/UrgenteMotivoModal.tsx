@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Quote } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { MoreHorizontal, Quote } from 'lucide-react';
 import { Modal } from '@/features/kanban/components/Modal';
 import {
   assignUrgentWithReason,
@@ -12,6 +13,55 @@ import { friendlyError } from '@/lib/errors';
 import { pasteNormalizeSpaces } from '@/lib/utils';
 
 type Mode = 'create' | 'view' | 'edit';
+
+function UrgenteReasonMenu({ onEdit }: { onEdit: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+
+  const handleToggle = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((v) => !v);
+  };
+
+  return (
+    <div>
+      <button
+        ref={btnRef}
+        type="button"
+        aria-label="Mais ações"
+        onClick={handleToggle}
+        className="rounded-full p-1 hover:bg-zinc-100 transition-colors"
+      >
+        <MoreHorizontal className="h-4 w-4 text-zinc-500" strokeWidth={2} />
+      </button>
+      {open && pos && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={() => setOpen(false)} />
+          <div
+            className="fixed z-[9999] w-40 bg-white rounded-lg shadow-lg border border-zinc-200 py-1 overflow-hidden"
+            style={{ top: pos.top, right: pos.right }}
+          >
+            <button
+              type="button"
+              className="flex items-center gap-3 w-full px-4 py-3 text-left text-sm text-zinc-700 hover:bg-zinc-50 transition-colors"
+              onClick={() => { setOpen(false); onEdit(); }}
+            >
+              <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
+            </button>
+          </div>
+        </>,
+        document.body,
+      )}
+    </div>
+  );
+}
 
 export function UrgenteMotivoModal({
   open,
@@ -157,17 +207,24 @@ export function UrgenteMotivoModal({
         )}
         {mode === 'view' && !loading && (
           <>
-            <blockquote className="relative border-l-4 border-red-400 bg-red-50/40 pl-8 pr-3 py-2.5 text-sm italic text-zinc-800 whitespace-pre-wrap">
-              <Quote
-                aria-hidden
-                className="absolute left-2 top-2 h-4 w-4 text-red-300"
-              />
-              {reason || (
-                <span className="not-italic text-zinc-400">
-                  (sem motivo registrado)
-                </span>
+            <div className="relative">
+              <blockquote className="relative border-l-4 border-red-400 bg-red-50/40 pl-8 pr-8 py-2.5 text-sm italic text-zinc-800 whitespace-pre-wrap">
+                <Quote
+                  aria-hidden
+                  className="absolute left-2 top-2 h-4 w-4 text-red-300"
+                />
+                {reason || (
+                  <span className="not-italic text-zinc-400">
+                    (sem motivo registrado)
+                  </span>
+                )}
+              </blockquote>
+              {canEdit && (
+                <div className="absolute top-1 right-1">
+                  <UrgenteReasonMenu onEdit={() => setMode('edit')} />
+                </div>
               )}
-            </blockquote>
+            </div>
             <p className="text-xs text-zinc-500">
               {authorName ? <>Marcado por <strong>{authorName}</strong></> : null}
               {at ? (
@@ -188,15 +245,6 @@ export function UrgenteMotivoModal({
           />
         )}
         <div className="flex items-center justify-end gap-2">
-          {mode === 'view' && canEdit && (
-            <button
-              onClick={() => setMode('edit')}
-              className="h-9 rounded-[8px] border border-zinc-300 px-4 text-sm font-semibold text-zinc-700 hover:bg-zinc-50"
-              type="button"
-            >
-              Editar
-            </button>
-          )}
           {mode === 'edit' && (
             <button
               onClick={() => {

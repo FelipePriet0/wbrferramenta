@@ -250,7 +250,9 @@ export function EditarFichaModal({
           .single(),
       ]);
       setAttachments(atts);
-      setPareceres((noteRes.data?.reanalysis_notes ?? []) as ParecerNote[]);
+      const notes = (noteRes.data?.reanalysis_notes ?? []) as ParecerNote[];
+      setPareceres(notes);
+      if (notes.length > 0) broadcastFichaPatch('card', cardId, { reanalysis_notes: notes });
     } catch (e) {
       console.error('[editar-ficha] refreshPareceres', e);
     }
@@ -351,6 +353,7 @@ export function EditarFichaModal({
     onChange: (payload) => {
       const next = payload.new as
         | {
+            reanalysis_notes?: ParecerNote[];
             due_at?: string | null;
             hora_at?: string[] | null;
             periodo?: 'manha' | 'tarde' | null;
@@ -359,6 +362,9 @@ export function EditarFichaModal({
           }
         | null;
       if (!next) return;
+      if (next.reanalysis_notes !== undefined) {
+        setPareceres(next.reanalysis_notes as ParecerNote[]);
+      }
       if (!dirtyCard.current.has('due_at') && next.due_at !== undefined) {
         setDueAt(
           next.due_at
@@ -461,6 +467,13 @@ export function EditarFichaModal({
     },
     [readOnly, scheduleAutosave, cardId],
   );
+
+  // Listen for parecer updates broadcast by ParecerComposer in other tabs/views.
+  useFichaSync('card', cardId ?? '', (patch) => {
+    if (patch.reanalysis_notes) {
+      setPareceres(patch.reanalysis_notes as ParecerNote[]);
+    }
+  });
 
   // Listen for cross-tab edits from Expanded PF/PJ open on the same applicant.
   useFichaSync('app', applicantId, (patch) => {
