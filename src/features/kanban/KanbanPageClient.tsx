@@ -163,7 +163,7 @@ function KanbanPageInner() {
               const qs = params.toString();
               router.push(`/kanban/analise${qs ? `?${qs}` : ''}`);
             }}
-            className="rounded-md px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-[#FF6600] hover:text-white"
+            className="rounded-md px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors"
           >
             Análise
           </button>

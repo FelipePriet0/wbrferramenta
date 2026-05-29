@@ -167,14 +167,14 @@ export default function MetricasPage() {
         <div className="flex gap-1 rounded-lg border border-zinc-200 bg-zinc-100 p-0.5">
           {(['comercial', 'analise'] as Tab[]).map((t) => {
             const isActive = tab === t;
-            const activeBg = t === 'comercial' ? 'var(--color-primary)' : 'var(--preto)';
+            const activeBg = t === 'comercial' ? 'var(--color-primary)' : '#FF6600';
             return (
               <button
                 key={t}
                 type="button"
                 onClick={() => { setTab(t); setVendorId(''); setVendorName(''); }}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                  isActive ? 'shadow-sm' : t === 'comercial' ? 'text-zinc-500 hover:bg-[#0B42C6] hover:text-white' : 'text-zinc-500 hover:bg-[#FF6600] hover:text-white'
+                  isActive ? 'shadow-sm' : 'text-zinc-500'
                 }`}
                 style={isActive ? { backgroundColor: activeBg, color: 'white' } : undefined}
               >
