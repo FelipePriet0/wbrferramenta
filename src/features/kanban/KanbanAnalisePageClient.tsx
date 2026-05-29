@@ -150,7 +150,7 @@ function KanbanAnalisePageInner() {
               const qs = params.toString();
               router.push(`/kanban${qs ? `?${qs}` : ''}`);
             }}
-            className="rounded-md px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:text-zinc-700"
+            className="rounded-md px-4 py-1.5 text-sm font-medium text-zinc-500 transition-colors hover:bg-[#0B42C6] hover:text-white"
           >
             Comercial
           </button>

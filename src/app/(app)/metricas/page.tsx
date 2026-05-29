@@ -174,7 +174,7 @@ export default function MetricasPage() {
                 type="button"
                 onClick={() => { setTab(t); setVendorId(''); setVendorName(''); }}
                 className={`rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
-                  isActive ? 'shadow-sm' : 'text-zinc-500 hover:text-zinc-700'
+                  isActive ? 'shadow-sm' : t === 'comercial' ? 'text-zinc-500 hover:bg-[#0B42C6] hover:text-white' : 'text-zinc-500 hover:bg-[#FF6600] hover:text-white'
                 }`}
                 style={isActive ? { backgroundColor: activeBg, color: 'white' } : undefined}
               >
