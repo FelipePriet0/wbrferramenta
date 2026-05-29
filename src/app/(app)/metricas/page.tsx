@@ -240,7 +240,7 @@ export default function MetricasPage() {
             value={kpiLoading ? '—' : (kpi.recebidos ?? 0)}
             subtitle="Total recebido pela análise"
             icon={Inbox}
-            tone="featured"
+            tone="featured-secondary"
           />
           <KPICard
             title="Canceladas"
