@@ -67,7 +67,7 @@ export function KPICard({ title, value, subtitle, icon: Icon, tone = 'neutral', 
         isFeatured
           ? {
               background:
-                'linear-gradient(135deg, var(--color-primary) 0%, color-mix(in srgb, var(--color-primary) 55%, black) 100%)',
+                'linear-gradient(135deg, #FF6600 0%, #ffffff 100%)',
             }
           : undefined
       }
