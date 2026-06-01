@@ -56,6 +56,7 @@ import { AdobeField } from '@/features/expanded-ficha/components/AdobeField';
 import { AdobeTextarea } from '@/features/expanded-ficha/components/AdobeTextarea';
 import { AdobeCard } from '@/features/expanded-ficha/components/AdobeCard';
 import { AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
+import { VeiculoPopover } from '@/features/expanded-ficha/components/VeiculoPopover';
 import { AuditProvider } from '@/features/expanded-ficha/AuditContext';
 import {
   MEIO,
@@ -1149,7 +1150,7 @@ auditField="email"
                   disabled
                 />
                 <AdobeField
-                  label="Protocolo MK"
+                  label="MK"
                   value={app.protocolo_mk ?? ''}
                   onChange={(v) => queueApp('protocolo_mk', v)}
                   status={s('protocolo_mk')}
@@ -1157,7 +1158,7 @@ auditField="email"
                 />
                 <AdobeField
                   className="col-span-2"
-                  label="Responsável Equipe Comercial"
+                  label="Resp Comercial"
                   value={vendorName}
                   onChange={() => {}}
                   disabled
@@ -1182,7 +1183,7 @@ auditField="email"
                     queueCard('due_at', utc);
                   }}
                   disablePast
-                  triggerClassName="h-[21px] w-full rounded-[2px] border border-zinc-400 bg-blue-100 px-1 text-[10px] text-zinc-900 outline-none focus:border-zinc-600"
+                  triggerClassName="h-[27px] w-full rounded-[2px] border border-zinc-400 bg-blue-100 px-1 text-[10px] text-zinc-900 outline-none focus:border-zinc-600"
                 />
               </div>
               <label className="shrink-0 text-[9px] font-bold uppercase tracking-wide leading-none text-zinc-600">
@@ -1191,6 +1192,7 @@ auditField="email"
               <div className="flex-1 min-w-0">
                 <TimeMultiSelect
                   label=""
+                  labelClassName="hidden"
                   times={HORA_SLOTS}
                   value={horaArr}
                   onChange={(v) => {
@@ -1216,9 +1218,15 @@ auditField="email"
                       queueCard('hora_at', null);
                     }
                   }}
-                  triggerClassName="h-[21px] w-full rounded-[2px] border border-zinc-400 bg-blue-100 px-1 text-[10px] text-zinc-900 outline-none focus:border-zinc-600"
+                  triggerClassName="h-[27px] w-full rounded-[2px] border border-zinc-400 bg-blue-100 px-1 text-[10px] text-zinc-900 outline-none focus:border-zinc-600"
                   date={dueAt}
                 />
+              </div>
+              <label className="shrink-0 text-[9px] font-bold uppercase tracking-wide leading-none text-zinc-600">
+                Veículo
+              </label>
+              <div className="flex-1 min-w-0">
+                <VeiculoPopover disabled={readOnly} />
               </div>
             </div>
 
