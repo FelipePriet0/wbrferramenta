@@ -147,6 +147,7 @@ auditField?: string;
           readOnly={disabled}
           tabIndex={disabled ? -1 : undefined}
           aria-disabled={disabled || undefined}
+          data-field-key={auditField}
           maxLength={maxLength}
           inputMode={inputMode}
           className={inputClass}

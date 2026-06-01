@@ -783,7 +783,7 @@ auditField="email"
                   >
                     <div className="pointer-events-none">
                       <Field
-                        label="Vendedor"
+                        label="Responsável Equipe Comercial"
                         disabled
                         value={vendorName}
                         onChange={() => {}}
@@ -809,7 +809,7 @@ auditField="email"
                   >
                     <div className="pointer-events-none">
                       <Field
-                        label="Analistas"
+                        label="Responsável Equipe Cadastro"
                         disabled
                         value={analystName}
                         onChange={() => {}}

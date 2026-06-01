@@ -415,10 +415,12 @@ export default function ExpandedPjPage() {
     onChange: (payload) => {
       const next = payload.new as Partial<ExpandedAppModel> | null;
       if (!next) return;
+      const focusedKey = (document.activeElement as HTMLElement)?.dataset?.fieldKey;
       setApp((prev) => {
         const merged: Record<string, unknown> = { ...prev };
         (Object.keys(next) as (keyof ExpandedAppModel)[]).forEach((k) => {
           if (dirtyApp.current.has(k)) return;
+          if (k === focusedKey) return;
           if (typeof next[k] !== 'undefined') merged[k] = next[k];
         });
         return merged as ExpandedAppModel;
@@ -433,10 +435,12 @@ export default function ExpandedPjPage() {
     onChange: (payload) => {
       const next = payload.new as Partial<PjModel> | null;
       if (!next) return;
+      const focusedKey = (document.activeElement as HTMLElement)?.dataset?.fieldKey;
       setPj((prev) => {
         const merged: Record<string, unknown> = { ...prev };
         (Object.keys(next) as (keyof PjModel)[]).forEach((k) => {
           if (dirtyPj.current.has(k)) return;
+          if (k === focusedKey) return;
           if (typeof next[k] !== 'undefined') merged[k] = next[k];
         });
         return merged as PjModel;
@@ -1152,7 +1156,8 @@ auditField="email"
                   auditField="protocolo_mk"
                 />
                 <AdobeField
-                  label="Vendedor"
+                  className="col-span-2"
+                  label="Responsável Equipe Comercial"
                   value={vendorName}
                   onChange={() => {}}
                   disabled

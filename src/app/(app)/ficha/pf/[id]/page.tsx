@@ -426,10 +426,12 @@ export default function ExpandedPfPage() {
     onChange: (payload) => {
       const next = payload.new as Partial<ExpandedAppModel> | null;
       if (!next) return;
+      const focusedKey = (document.activeElement as HTMLElement)?.dataset?.fieldKey;
       setApp((prev) => {
         const merged: Record<string, unknown> = { ...prev };
         (Object.keys(next) as (keyof ExpandedAppModel)[]).forEach((k) => {
           if (dirtyApp.current.has(k)) return;
+          if (k === focusedKey) return;
           if (typeof next[k] !== 'undefined') merged[k] = next[k];
         });
         return merged as ExpandedAppModel;
@@ -444,10 +446,12 @@ export default function ExpandedPfPage() {
     onChange: (payload) => {
       const next = payload.new as Partial<PfModel> | null;
       if (!next) return;
+      const focusedKey = (document.activeElement as HTMLElement)?.dataset?.fieldKey;
       setPf((prev) => {
         const merged: Record<string, unknown> = { ...prev };
         (Object.keys(next) as (keyof PfModel)[]).forEach((k) => {
           if (dirtyPf.current.has(k)) return;
+          if (k === focusedKey) return;
           if (typeof next[k] !== 'undefined') merged[k] = next[k];
         });
         return merged as PfModel;
@@ -1460,7 +1464,8 @@ auditField="email"
                   auditField="protocolo_mk"
                 />
                 <AdobeField
-                  label="Vendedor"
+                  className="col-span-2"
+                  label="Responsável Equipe Comercial"
                   value={vendorName}
                   onChange={() => {}}
                   disabled

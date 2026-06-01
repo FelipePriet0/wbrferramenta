@@ -100,10 +100,7 @@ export function TransferOperatorModal({
     }
   }
 
-  const title =
-    role === 'vendor'
-      ? 'Transferir Vendedor'
-      : 'Transferir Analista';
+  const title = 'Transferir Cadastro';
 
   return (
     <Modal

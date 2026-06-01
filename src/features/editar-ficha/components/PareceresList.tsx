@@ -361,9 +361,6 @@ function NoteItem({
           <div className="leading-tight min-w-0">
             <div className="text-sm font-medium text-zinc-900 truncate">{node.author_name || "—"}</div>
             <div className="text-[11px] text-zinc-500">{new Date(node.created_at || "").toLocaleString()}</div>
-            {node.author_role && (
-              <div className="text-[11px] text-zinc-500 truncate">{node.author_role}</div>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-1">

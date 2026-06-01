@@ -138,7 +138,7 @@ export default function MetricasPage() {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 text-zinc-500">
         <LayoutDashboard className="h-10 w-10 text-zinc-300" />
-        <p className="text-sm">Acesso restrito a gestores.</p>
+        <p className="text-sm">Você não tem permissão para acessar esta página.</p>
       </div>
     );
   }

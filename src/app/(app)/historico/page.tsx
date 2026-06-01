@@ -279,10 +279,10 @@ function HistoricoPageInner() {
                 Status da análise
               </th>
               <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white">
-                Vendedor
+                Equipe Comercial
               </th>
               <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white">
-                Analista
+                Equipe Cadastro
               </th>
               <th className="px-3 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-white">
                 Data da Decisão

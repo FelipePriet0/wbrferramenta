@@ -123,9 +123,6 @@ export const SidebarUser = () => {
               <span className="truncate text-sm font-medium text-white">
                 {loading ? 'Carregando…' : displayName}
               </span>
-              <span className="truncate text-xs text-white/80">
-                {profile?.role ?? ''}
-              </span>
             </div>
             <div className="ml-auto text-white/80">
               {open ? (
@@ -160,9 +157,6 @@ export const SidebarUser = () => {
                   <div className="flex min-w-0 flex-col">
                     <span className="truncate text-sm font-medium">
                       {loading ? 'Carregando…' : displayName}
-                    </span>
-                    <span className="truncate text-xs text-zinc-500">
-                      {profile?.role ?? ''}
                     </span>
                   </div>
                 </div>
