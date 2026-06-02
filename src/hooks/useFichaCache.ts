@@ -13,6 +13,8 @@ export const fichaKeys = {
     ['expanded-pf', applicantId, cardId ?? 'auto'] as const,
   expandedPJ: (applicantId: string, cardId: string | null) =>
     ['expanded-pj', applicantId, cardId ?? 'auto'] as const,
+  expandedRural: (applicantId: string, cardId: string | null) =>
+    ['expanded-rural', applicantId, cardId ?? 'auto'] as const,
   profiles: () => ['profiles'] as const,
   cardAttachments: (cardId: string) => ['card-attachments', cardId] as const,
   cardPareceres: (cardId: string) => ['card-pareceres', cardId] as const,
