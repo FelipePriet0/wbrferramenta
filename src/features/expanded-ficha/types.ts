@@ -159,6 +159,7 @@ export type RuralModel = {
   observacoes?: string;
   profissao?: string;
   empresa?: string;
+  tel_empresa?: string;          // TEL (telefone do emprego)
   vinculo?: string | null;
   admissao?: string;             // ADMISSÃO (campo novo)
   vinculo_obs?: string;
