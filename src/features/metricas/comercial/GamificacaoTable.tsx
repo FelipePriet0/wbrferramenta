@@ -5,11 +5,10 @@ import { UserAvatar } from '@/components/ui/avatar';
 import { getLiveTableData, type GamificacaoRow } from '@/services/metricas';
 import type { KanbanArea } from '@/lib/types';
 import type { DateRangeValue } from '@/components/ui/date-range-popover';
-import { useTableChanges } from '@/components/providers/RealtimeProvider';
-
 type Props = {
   area: KanbanArea;
   dateRange: DateRangeValue;
+  refreshKey?: number;
 };
 
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -20,7 +19,7 @@ const ROW_BG: Record<number, string> = {
   2: 'bg-orange-50 hover:bg-orange-100/70',
 };
 
-export function GamificacaoTable({ area, dateRange }: Props) {
+export function GamificacaoTable({ area, dateRange, refreshKey }: Props) {
   const [rows, setRows] = useState<GamificacaoRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -34,17 +33,11 @@ export function GamificacaoTable({ area, dateRange }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [area, dateRange]);
+  }, [area, dateRange, refreshKey]);
 
   useEffect(() => {
     void load();
   }, [load]);
-
-  useTableChanges({
-    channelName: `gamificacao-${area}`,
-    table: 'kanban_cards',
-    onChange: () => void load(),
-  });
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-zinc-200 bg-white shadow-sm">
@@ -52,7 +45,7 @@ export function GamificacaoTable({ area, dateRange }: Props) {
       <div className="rounded-t-xl px-4 py-3" style={{ background: 'var(--preto)' }}>
         <div className="flex items-center gap-2">
           <span className="text-xl leading-none">🏆</span>
-          <h3 className="text-base font-bold text-white">Ranking WBR</h3>
+          <h3 className="text-base font-bold text-white">Ranking Mznet</h3>
         </div>
       </div>
 

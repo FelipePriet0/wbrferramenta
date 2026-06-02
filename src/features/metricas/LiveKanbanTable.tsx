@@ -6,13 +6,11 @@ import type { KanbanArea } from '@/lib/types';
 import type { DateRangeValue } from '@/components/ui/date-range-popover';
 import { getLivePipelineData, type GamificacaoRow } from '@/services/metricas';
 import { UserAvatar } from '@/components/ui/avatar';
-import { useTableChanges } from '@/components/providers/RealtimeProvider';
-
-type Props = { area: KanbanArea; vendorId?: string; dateRange: DateRangeValue };
+type Props = { area: KanbanArea; vendorId?: string; dateRange: DateRangeValue; refreshKey?: number };
 
 const COLSPAN = { comercial: 7, analise: 8 } as const;
 
-export function LiveKanbanTable({ area, vendorId, dateRange }: Props) {
+export function LiveKanbanTable({ area, vendorId, dateRange, refreshKey }: Props) {
   const [rows, setRows] = useState<GamificacaoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const colSpan = COLSPAN[area];
@@ -26,18 +24,11 @@ export function LiveKanbanTable({ area, vendorId, dateRange }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [area, vendorId, dateRange]);
+  }, [area, vendorId, dateRange, refreshKey]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
-
-  useTableChanges({
-    channelName: `live-kanban-${area}`,
-    table: 'kanban_cards',
-    filter: `area=eq.${area}`,
-    onChange: () => void refresh(),
-  });
 
   return (
     <div className="rounded-xl border border-zinc-200 bg-white shadow-sm">

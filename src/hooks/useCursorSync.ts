@@ -15,7 +15,7 @@ export interface PeerCursorState {
 
 type CursorPayload = { userId: string; x: number; y: number };
 
-const THROTTLE_MS = 32; // ~30fps
+const THROTTLE_MS = 64; // ~15fps
 
 /**
  * Two-lane cursor sync:
@@ -104,9 +104,9 @@ export function useCursorSync(
     };
   }, [cardId, selfUserId, applyPosition]);
 
-  // Mouse tracker — throttled to ~30fps, sends via both lanes.
+  // Mouse tracker — só ativo quando há peers; throttled, envia via ambas as lanes.
   useEffect(() => {
-    if (!cardId || !selfUserId) return;
+    if (!cardId || !selfUserId || peers.length === 0) return;
 
     const sendPosition = (clientX: number, clientY: number) => {
       const now = Date.now();
@@ -142,7 +142,7 @@ export function useCursorSync(
       window.removeEventListener('pointermove', onMove);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [cardId, selfUserId]);
+  }, [cardId, selfUserId, peers.length]);
 
   return Object.values(peerCursors);
 }

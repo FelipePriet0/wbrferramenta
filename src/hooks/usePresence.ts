@@ -55,6 +55,8 @@ export function usePresence(
   const [editingFields, setEditingFields] = useState<Record<string, string | null>>({});
   const channelRef = useRef<RealtimeChannel | null>(null);
   const bcRef = useRef<BroadcastChannel | null>(null);
+  const selfNameRef = useRef(selfName);
+  useEffect(() => { selfNameRef.current = selfName; }, [selfName]);
 
   // Merge base peers with real-time editingField state.
   const peers = useMemo<PresencePeer[]>(
@@ -125,7 +127,7 @@ export function usePresence(
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({ userId: selfUserId, fullName: selfName ?? 'Eu' } satisfies PresencePayload);
+          await channel.track({ userId: selfUserId, fullName: selfNameRef.current ?? 'Eu' } satisfies PresencePayload);
         }
       });
 
@@ -137,7 +139,14 @@ export function usePresence(
       void supabase.removeChannel(channel);
       channelRef.current = null;
     };
-  }, [channelKey, selfUserId, selfName, syncBasePeers, applyFieldUpdate]);
+  }, [channelKey, selfUserId, syncBasePeers, applyFieldUpdate]);
+
+  // Re-track quando o nome carrega — sem recriar o canal.
+  useEffect(() => {
+    const ch = channelRef.current;
+    if (!ch || !selfUserId || !selfName) return;
+    void ch.track({ userId: selfUserId, fullName: selfName } satisfies PresencePayload);
+  }, [selfName, selfUserId]);
 
   const trackField = useCallback(
     (field: string | null) => {

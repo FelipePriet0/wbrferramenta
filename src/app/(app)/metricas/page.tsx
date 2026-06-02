@@ -68,6 +68,8 @@ export default function MetricasPage() {
   const [timeSeries, setTimeSeries] = useState<BarPoint[]>([]);
   const [tsLoading, setTsLoading] = useState(true);
 
+  const [childRefreshKey, setChildRefreshKey] = useState(0);
+
   const loadKPI = useCallback(async () => {
     setKpiLoading(true);
     try {
@@ -116,6 +118,7 @@ export default function MetricasPage() {
       const { loadKPI: kpi, loadTimeSeries: ts } = loadersRef.current;
       void kpi();
       void ts();
+      setChildRefreshKey((k) => k + 1);
     }, 300);
   }, []);
 
@@ -278,10 +281,10 @@ export default function MetricasPage() {
               </div>
               <ConversaoGauge kpi={kpi} loading={kpiLoading} area={tab} />
             </div>
-            <LiveKanbanTable area={tab} vendorId={vendorId} dateRange={dateRange} />
+            <LiveKanbanTable area={tab} vendorId={vendorId} dateRange={dateRange} refreshKey={childRefreshKey} />
           </div>
           <div className="self-start">
-            <GamificacaoTable area={tab} dateRange={dateRange} />
+            <GamificacaoTable area={tab} dateRange={dateRange} refreshKey={childRefreshKey} />
           </div>
         </div>
       ) : (
@@ -293,7 +296,7 @@ export default function MetricasPage() {
             </div>
             <ConversaoGauge kpi={kpi} loading={kpiLoading} area={tab} />
           </div>
-          <LiveKanbanTable area={tab} dateRange={dateRange} />
+          <LiveKanbanTable area={tab} dateRange={dateRange} refreshKey={childRefreshKey} />
         </>
       )}
     </div>
