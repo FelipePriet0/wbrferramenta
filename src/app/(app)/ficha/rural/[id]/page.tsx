@@ -925,7 +925,7 @@ auditField="email"
               <div className="flex gap-x-[5px]">
                 <AdobeField
                   label="Proprietário/Patrão"
-                  className="flex-[30] min-w-0"
+                  className="flex-[34] min-w-0"
                   value={rural.proprietario_patrao ?? ''}
                   onChange={(v) => queueRuralField('proprietario_patrao', v)}
                   status={s('proprietario_patrao')}
@@ -933,7 +933,7 @@ auditField="email"
                 />
                 <AdobeField
                   label="Tel"
-                  className="flex-[20] min-w-0"
+                  className="flex-[13] min-w-0"
                   value={rural.tel_proprietario ?? ''}
                   onChange={(v) => queueRuralField('tel_proprietario', v)}
                   inputMode="tel"
@@ -942,7 +942,7 @@ auditField="email"
                 />
                 <AdobeField
                   label="Obs"
-                  className="flex-[31] min-w-0"
+                  className="flex-[12] min-w-0"
                   value={rural.obs_moradia ?? ''}
                   onChange={(v) => queueRuralField('obs_moradia', v)}
                   status={s('obs_moradia')}
