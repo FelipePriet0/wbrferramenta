@@ -500,6 +500,18 @@ export default function ExpandedPjPage() {
     }
   }, [zoom]);
 
+  // Nome da aba do navegador = nome da ficha (reseta ao sair).
+  useEffect(() => {
+    if (!app.primary_name) return;
+    document.title = `${app.primary_name} — WBR`;
+  }, [app.primary_name]);
+
+  useEffect(() => {
+    return () => {
+      document.title = 'WBR';
+    };
+  }, []);
+
 
   useEffect(() => {
     const flushNow = () => {

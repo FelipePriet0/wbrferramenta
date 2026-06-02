@@ -512,6 +512,18 @@ export default function ExpandedRuralPage() {
     }
   }, [zoom]);
 
+  // Nome da aba do navegador = nome da ficha (reseta ao sair).
+  useEffect(() => {
+    if (!app.primary_name) return;
+    document.title = `${app.primary_name} — WBR`;
+  }, [app.primary_name]);
+
+  useEffect(() => {
+    return () => {
+      document.title = 'WBR';
+    };
+  }, []);
+
 
   // Flush pending writes on unmount, tab close, or visibility change so the
   // 1.8s autosave debounce never silently drops data.
