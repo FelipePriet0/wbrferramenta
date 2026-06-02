@@ -667,7 +667,6 @@ export default function ExpandedPjPage() {
   return (
     <PresenceProvider cardId={cardId} userId={user?.id} userName={profile?.full_name}>
     <AuditProvider applicantId={applicantId}>
-    {app.primary_name && <title>{app.primary_name} — WBRFerramenta</title>}
     <PjPresenceCursors />
     <div className="form-zoom-wrap flex h-full flex-col overflow-x-hidden">
       <FreshFichaConfetti />
