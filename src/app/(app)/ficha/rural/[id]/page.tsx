@@ -94,7 +94,7 @@ function normalizeHora(arr: string[] | null | undefined): string[] {
   return (arr ?? []).map((s) => s.slice(0, 5));
 }
 
-export default function ExpandedPfPage() {
+export default function ExpandedRuralPage() {
   const params = useParams<{ id: string }>();
   const search = useSearchParams();
   const applicantId = params.id;
@@ -104,7 +104,7 @@ export default function ExpandedPfPage() {
   const isLeitor = role === 'leitor';
 
   const [app, setApp] = useState<ExpandedAppModel>({});
-  const [pf, setRural] = useState<RuralModel>({});
+  const [rural, setRural] = useState<RuralModel>({});
   const [card, setCard] = useState<ExpandedCard | null>(null);
 
   const readOnly = isLeitor || !!card?.archived_at;
@@ -138,8 +138,8 @@ export default function ExpandedPfPage() {
   const { push: historyPush, undo: historyUndo, redo: historyRedo, canUndo, canRedo, isUndoRedo } = useFieldHistory();
   const appRef = useRef(app);
   appRef.current = app;
-  const pfRef = useRef(pf);
-  pfRef.current = pf;
+  const ruralRef = useRef(rural);
+  ruralRef.current = rural;
 
   const pendingApp = useRef<Partial<ExpandedAppModel>>({});
   const pendingRural = useRef<Partial<RuralModel>>({});
@@ -225,7 +225,7 @@ export default function ExpandedPfPage() {
           });
       }
     } catch (e) {
-      console.error('[expanded-pf] autosave', e);
+      console.error('[expanded-rural] autosave', e);
       [...appKeys, ...ruralKeys, ...cardKeys].forEach((k) =>
         setFieldStatus(k, 'error'),
       );
@@ -274,10 +274,10 @@ export default function ExpandedPfPage() {
 
   const queueRuralField = useCallback(
     <K extends keyof RuralModel>(key: K, value: RuralModel[K]) => {
-      const oldValue = pfRef.current[key];
+      const oldValue = ruralRef.current[key];
       queueRural({ [key]: value } as Partial<RuralModel>);
       historyPush(
-        `pf:${key as string}`,
+        `rural:${key as string}`,
         () => { if (!isUndoRedo.current) return; dirtyRural.current.add(key); (pendingRural.current as Record<string, unknown>)[key as string] = oldValue; setRural((prev) => ({ ...prev, [key]: oldValue })); setFieldStatus(key as string, 'pending'); scheduleAutosave(); },
         () => { if (!isUndoRedo.current) return; dirtyRural.current.add(key); (pendingRural.current as Record<string, unknown>)[key as string] = value; setRural((prev) => ({ ...prev, [key]: value })); setFieldStatus(key as string, 'pending'); scheduleAutosave(); },
       );
@@ -417,7 +417,7 @@ export default function ExpandedPfPage() {
       setPareceres(notes);
       if (notes.length > 0) broadcastFichaPatch('card', cardId, { reanalysis_notes: notes });
     } catch (e) {
-      console.error('[expanded-pf] refreshPareceres', e);
+      console.error('[expanded-rural] refreshPareceres', e);
     }
   }, [cardId, invalidateCard]);
 
@@ -662,11 +662,11 @@ export default function ExpandedPfPage() {
     <PresenceProvider cardId={cardId} userId={user?.id} userName={profile?.full_name}>
     <AuditProvider applicantId={applicantId}>
     {app.primary_name && <title>{app.primary_name} — WBRFerramenta</title>}
-    <PfPresenceCursors />
+    <RuralPresenceCursors />
     <div className="form-zoom-wrap flex h-full flex-col overflow-x-hidden">
       <FreshFichaConfetti />
       {zoomSlot && createPortal(zoomControls, zoomSlot)}
-      {presenceSlot && createPortal(<PfPresenceBadges />, presenceSlot)}
+      {presenceSlot && createPortal(<RuralPresenceBadges />, presenceSlot)}
       {undoSlot && createPortal(
         <>
           <button type="button" onClick={historyUndo} disabled={!canUndo} title="Desfazer" className="rounded-full p-1.5 text-zinc-600 hover:bg-zinc-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
@@ -720,7 +720,7 @@ export default function ExpandedPfPage() {
               <AdobeField
                 label="Nasc"
                 className="flex-[6] min-w-0"
-                value={(pf.birth_date as string | null | undefined) ?? ''}
+                value={(rural.birth_date as string | null | undefined) ?? ''}
                 onChange={(v) => queueRuralField('birth_date', formatDateBR(v))}
                 status={s('birth_date')}
                 inputMode="numeric"
@@ -729,7 +729,7 @@ export default function ExpandedPfPage() {
               <AdobeField
                 label="ID"
                 className="flex-[3] min-w-0"
-                value={pf.idade != null ? String(pf.idade) : ''}
+                value={rural.idade != null ? String(rural.idade) : ''}
                 onChange={(v) => {
                   setRural((prev) => ({ ...prev, idade: v }));
                   if (v === '') queueRuralField('idade', null);
@@ -767,7 +767,7 @@ export default function ExpandedPfPage() {
               <AdobeField
                 label="Do PS"
                 className="flex-[41] min-w-0"
-                value={pf.do_ps ?? ''}
+                value={rural.do_ps ?? ''}
                 onChange={(v) => queueRuralField('do_ps', v)}
                 red
                 status={s('do_ps')}
@@ -779,7 +779,7 @@ export default function ExpandedPfPage() {
               <AdobeField
                 label="Natural"
                 className="flex-[13] min-w-0"
-                value={pf.naturalidade ?? ''}
+                value={rural.naturalidade ?? ''}
                 onChange={(v) => queueRuralField('naturalidade', v)}
                 status={s('naturalidade')}
                 auditField="naturalidade"
@@ -787,7 +787,7 @@ export default function ExpandedPfPage() {
               <AdobeField
                 label="UF"
                 className="flex-[4] min-w-0"
-                value={pf.uf_naturalidade ?? ''}
+                value={rural.uf_naturalidade ?? ''}
                 onChange={(v) => queueRuralField('uf_naturalidade', v)}
                 status={s('uf_naturalidade')}
                 auditField="uf_naturalidade"
@@ -808,7 +808,7 @@ auditField="email"
               <AdobeField
                 label="Fazenda / Sítio / Chácara"
                 className="flex-[40] min-w-0"
-                value={pf.fazenda ?? ''}
+                value={rural.fazenda ?? ''}
                 onChange={(v) => queueRuralField('fazenda', v)}
                 status={s('fazenda')}
                 auditField="fazenda"
@@ -816,7 +816,7 @@ auditField="email"
               <AdobeField
                 label="Localização"
                 className="flex-[20] min-w-0"
-                value={pf.localizacao ?? ''}
+                value={rural.localizacao ?? ''}
                 onChange={(v) => queueRuralField('localizacao', v)}
                 status={s('localizacao')}
                 auditField="localizacao"
@@ -834,14 +834,14 @@ auditField="email"
             <div className="mt-4 grid grid-cols-2 gap-4">
               <AdobeField
                 label="End. Urbano"
-                value={pf.end_urbano ?? ''}
+                value={rural.end_urbano ?? ''}
                 onChange={(v) => queueRuralField('end_urbano', v)}
                 status={s('end_urbano')}
                 auditField="end_urbano"
               />
               <AdobeField
                 label="Pertence a"
-                value={pf.pertence_a ?? ''}
+                value={rural.pertence_a ?? ''}
                 onChange={(v) => queueRuralField('pertence_a', v)}
                 status={s('pertence_a')}
                 auditField="pertence_a"
@@ -851,7 +851,7 @@ auditField="email"
             <div className="mt-4">
               <AdobeField
                 label="Do PS"
-                value={pf.endereco_do_ps ?? ''}
+                value={rural.endereco_do_ps ?? ''}
                 onChange={(v) => queueRuralField('endereco_do_ps', v)}
                 red
                 status={s('endereco_do_ps')}
@@ -865,7 +865,7 @@ auditField="email"
                 <AdobeSelect
                   className="flex-[13] min-w-0"
                   label="Moradia"
-                  value={RURAL_TIPO_MORADIA.fromCanonical(pf.tipo_moradia)}
+                  value={RURAL_TIPO_MORADIA.fromCanonical(rural.tipo_moradia)}
                   onChange={(ui) => onChangeTipoMoradia(RURAL_TIPO_MORADIA.toCanonical(ui))}
                   options={RURAL_TIPO_MORADIA.uiOptions}
                   status={s('tipo_moradia')}
@@ -874,7 +874,7 @@ auditField="email"
                 <AdobeField
                   label="Obs"
                   className="flex-[44] min-w-0"
-                  value={pf.tipo_moradia_obs ?? ''}
+                  value={rural.tipo_moradia_obs ?? ''}
                   onChange={(v) => queueRuralField('tipo_moradia_obs', v)}
                   status={s('tipo_moradia_obs')}
                   auditField="tipo_moradia_obs"
@@ -884,7 +884,7 @@ auditField="email"
                 <AdobeSelect
                   className="flex-[16] min-w-0"
                   label="Única no lote"
-                  value={SIM_NAO_BOOL.fromCanonical(pf.unica_no_lote)}
+                  value={SIM_NAO_BOOL.fromCanonical(rural.unica_no_lote)}
                   onChange={(ui) =>
                     queueRuralField('unica_no_lote', SIM_NAO_BOOL.toCanonical(ui))
                   }
@@ -895,7 +895,7 @@ auditField="email"
                 <AdobeField
                   label="Obs"
                   className="flex-[49] min-w-0"
-                  value={pf.unica_no_lote_obs ?? ''}
+                  value={rural.unica_no_lote_obs ?? ''}
                   onChange={(v) => queueRuralField('unica_no_lote_obs', v)}
                   status={s('unica_no_lote_obs')}
                   auditField="unica_no_lote_obs"
@@ -905,7 +905,7 @@ auditField="email"
                 <AdobeField
                   label="Reside com"
                   className="flex-[2] min-w-0"
-                  value={pf.com_quem_reside ?? ''}
+                  value={rural.com_quem_reside ?? ''}
                   onChange={(v) => queueRuralField('com_quem_reside', v)}
                   status={s('com_quem_reside')}
                   auditField="com_quem_reside"
@@ -913,7 +913,7 @@ auditField="email"
                 <AdobeSelect
                   className="flex-[1] min-w-0"
                   label="Nas outras"
-                  value={RURAL_NAS_OUTRAS.fromCanonical(pf.nas_outras)}
+                  value={RURAL_NAS_OUTRAS.fromCanonical(rural.nas_outras)}
                   onChange={(ui) =>
                     queueRuralField('nas_outras', RURAL_NAS_OUTRAS.toCanonical(ui))
                   }
@@ -926,7 +926,7 @@ auditField="email"
                 <AdobeField
                   label="Proprietário/Patrão"
                   className="flex-[30] min-w-0"
-                  value={pf.proprietario_patrao ?? ''}
+                  value={rural.proprietario_patrao ?? ''}
                   onChange={(v) => queueRuralField('proprietario_patrao', v)}
                   status={s('proprietario_patrao')}
                   auditField="proprietario_patrao"
@@ -934,7 +934,7 @@ auditField="email"
                 <AdobeField
                   label="Tel"
                   className="flex-[20] min-w-0"
-                  value={pf.tel_proprietario ?? ''}
+                  value={rural.tel_proprietario ?? ''}
                   onChange={(v) => queueRuralField('tel_proprietario', v)}
                   inputMode="tel"
                   status={s('tel_proprietario')}
@@ -943,7 +943,7 @@ auditField="email"
                 <AdobeField
                   label="Obs"
                   className="flex-[31] min-w-0"
-                  value={pf.obs_moradia ?? ''}
+                  value={rural.obs_moradia ?? ''}
                   onChange={(v) => queueRuralField('obs_moradia', v)}
                   status={s('obs_moradia')}
                   auditField="obs_moradia"
@@ -954,7 +954,7 @@ auditField="email"
                 <AdobeSelect
                   className="flex-[14] min-w-0"
                   label="Internet fixa"
-                  value={SIM_NAO_BOOL.fromCanonical(pf.tem_internet_fixa)}
+                  value={SIM_NAO_BOOL.fromCanonical(rural.tem_internet_fixa)}
                   onChange={(ui) =>
                     queueRuralField('tem_internet_fixa', SIM_NAO_BOOL.toCanonical(ui))
                   }
@@ -965,7 +965,7 @@ auditField="email"
                 <AdobeField
                   label="Empresa"
                   className="flex-[19] min-w-0"
-                  value={pf.empresa_internet ?? ''}
+                  value={rural.empresa_internet ?? ''}
                   onChange={(v) => queueRuralField('empresa_internet', v)}
                   status={s('empresa_internet')}
                   auditField="empresa_internet"
@@ -973,7 +973,7 @@ auditField="email"
                 <AdobeField
                   label="Obs"
                   className="flex-[21] min-w-0"
-                  value={pf.observacoes ?? ''}
+                  value={rural.observacoes ?? ''}
                   onChange={(v) => queueRuralField('observacoes', v)}
                   status={s('observacoes')}
                   auditField="observacoes"
@@ -986,21 +986,21 @@ auditField="email"
               <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <AdobeField
                   label="Profissão"
-                  value={pf.profissao ?? ''}
+                  value={rural.profissao ?? ''}
                   onChange={(v) => queueRuralField('profissao', v)}
                   status={s('profissao')}
                   auditField="profissao"
                 />
                 <AdobeField
                   label="Empresa"
-                  value={pf.empresa ?? ''}
+                  value={rural.empresa ?? ''}
                   onChange={(v) => queueRuralField('empresa', v)}
                   status={s('empresa')}
                   auditField="empresa"
                 />
                 <AdobeField
                   label="Tel"
-                  value={pf.tel_empresa ?? ''}
+                  value={rural.tel_empresa ?? ''}
                   onChange={(v) => queueRuralField('tel_empresa', v)}
                   inputMode="tel"
                   status={s('tel_empresa')}
@@ -1010,7 +1010,7 @@ auditField="email"
               <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <AdobeSelect
                   label="Vínculo"
-                  value={VINCULO.fromCanonical(pf.vinculo)}
+                  value={VINCULO.fromCanonical(rural.vinculo)}
                   onChange={(ui) =>
                     queueRuralField('vinculo', VINCULO.toCanonical(ui))
                   }
@@ -1020,14 +1020,14 @@ auditField="email"
                 />
                 <AdobeField
                   label="Admissão"
-                  value={pf.admissao ?? ''}
+                  value={rural.admissao ?? ''}
                   onChange={(v) => queueRuralField('admissao', v)}
                   status={s('admissao')}
                   auditField="admissao"
                 />
                 <AdobeField
                   label="Obs"
-                  value={pf.vinculo_obs ?? ''}
+                  value={rural.vinculo_obs ?? ''}
                   onChange={(v) => queueRuralField('vinculo_obs', v)}
                   status={s('vinculo_obs')}
                   auditField="vinculo_obs"
@@ -1035,7 +1035,7 @@ auditField="email"
               </div>
               <AdobeField
                 label="Do PS"
-                value={pf.emprego_do_ps ?? ''}
+                value={rural.emprego_do_ps ?? ''}
                 onChange={(v) => queueRuralField('emprego_do_ps', v)}
                 red
                 className="lg:col-span-4"
@@ -1048,7 +1048,7 @@ auditField="email"
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <AdobeSelect
                 label="Estado Civil"
-                value={ESTADO_CIVIL.fromCanonical(pf.estado_civil)}
+                value={ESTADO_CIVIL.fromCanonical(rural.estado_civil)}
                 onChange={(ui) =>
                   queueRuralField(
                     'estado_civil',
@@ -1062,7 +1062,7 @@ auditField="email"
               <AdobeField
                 label="Obs"
                 className="lg:col-span-3"
-                value={pf.conjuge_obs ?? ''}
+                value={rural.conjuge_obs ?? ''}
                 onChange={(v) => queueRuralField('conjuge_obs', v)}
                 status={s('conjuge_obs')}
                 auditField="conjuge_obs"
@@ -1070,49 +1070,49 @@ auditField="email"
               <AdobeField
                 label="Nome"
                 className="lg:col-span-2"
-                value={pf.conjuge_nome ?? ''}
+                value={rural.conjuge_nome ?? ''}
                 onChange={(v) => queueRuralField('conjuge_nome', v)}
                 status={s('conjuge_nome')}
                 auditField="conjuge_nome"
               />
               <AdobeField
                 label="Tel"
-                value={pf.conjuge_telefone ?? ''}
+                value={rural.conjuge_telefone ?? ''}
                 onChange={(v) => queueRuralField('conjuge_telefone', v)}
                 status={s('conjuge_telefone')}
                 auditField="conjuge_telefone"
               />
               <AdobeField
                 label="Whats"
-                value={pf.conjuge_whatsapp ?? ''}
+                value={rural.conjuge_whatsapp ?? ''}
                 onChange={(v) => queueRuralField('conjuge_whatsapp', v)}
                 status={s('conjuge_whatsapp')}
                 auditField="conjuge_whatsapp"
               />
               <AdobeField
                 label="CPF"
-                value={pf.conjuge_cpf ?? ''}
+                value={rural.conjuge_cpf ?? ''}
                 onChange={(v) => queueRuralField('conjuge_cpf', v)}
                 status={s('conjuge_cpf')}
                 auditField="conjuge_cpf"
               />
               <AdobeField
                 label="Natural"
-                value={pf.conjuge_naturalidade ?? ''}
+                value={rural.conjuge_naturalidade ?? ''}
                 onChange={(v) => queueRuralField('conjuge_naturalidade', v)}
                 status={s('conjuge_naturalidade')}
                 auditField="conjuge_naturalidade"
               />
               <AdobeField
                 label="UF"
-                value={pf.conjuge_uf ?? ''}
+                value={rural.conjuge_uf ?? ''}
                 onChange={(v) => queueRuralField('conjuge_uf', v)}
                 status={s('conjuge_uf')}
                 auditField="conjuge_uf"
               />
               <AdobeField
                 label="ID"
-                value={pf.conjuge_idade != null ? String(pf.conjuge_idade) : ''}
+                value={rural.conjuge_idade != null ? String(rural.conjuge_idade) : ''}
                 onChange={(v) => {
                   setRural((prev) => ({ ...prev, conjuge_idade: v }));
                   if (v === '') queueRuralField('conjuge_idade', null);
@@ -1128,7 +1128,7 @@ auditField="email"
               />
               <AdobeField
                 label="Do PS"
-                value={pf.conjuge_do_ps ?? ''}
+                value={rural.conjuge_do_ps ?? ''}
                 onChange={(v) => queueRuralField('conjuge_do_ps', v)}
                 red
                 className="lg:col-span-4"
@@ -1178,7 +1178,7 @@ auditField="email"
                 <AdobeField
                   label="Pai"
                   className="flex-[34] min-w-0"
-                  value={pf.pai_nome ?? ''}
+                  value={rural.pai_nome ?? ''}
                   onChange={(v) => queueRuralField('pai_nome', v)}
                   status={s('pai_nome')}
                   auditField="pai_nome"
@@ -1186,7 +1186,7 @@ auditField="email"
                 <AdobeField
                   label="Reside"
                   className="flex-[13] min-w-0"
-                  value={pf.pai_reside ?? ''}
+                  value={rural.pai_reside ?? ''}
                   onChange={(v) => queueRuralField('pai_reside', v)}
                   status={s('pai_reside')}
                   auditField="pai_reside"
@@ -1194,7 +1194,7 @@ auditField="email"
                 <AdobeField
                   label="Tel"
                   className="flex-[12] min-w-0"
-                  value={pf.pai_telefone ?? ''}
+                  value={rural.pai_telefone ?? ''}
                   onChange={(v) => queueRuralField('pai_telefone', v)}
                   status={s('pai_telefone')}
                   auditField="pai_telefone"
@@ -1204,7 +1204,7 @@ auditField="email"
                 <AdobeField
                   label="Mãe"
                   className="flex-[34] min-w-0"
-                  value={pf.mae_nome ?? ''}
+                  value={rural.mae_nome ?? ''}
                   onChange={(v) => queueRuralField('mae_nome', v)}
                   status={s('mae_nome')}
                   auditField="mae_nome"
@@ -1212,7 +1212,7 @@ auditField="email"
                 <AdobeField
                   label="Reside"
                   className="flex-[13] min-w-0"
-                  value={pf.mae_reside ?? ''}
+                  value={rural.mae_reside ?? ''}
                   onChange={(v) => queueRuralField('mae_reside', v)}
                   status={s('mae_reside')}
                   auditField="mae_reside"
@@ -1220,7 +1220,7 @@ auditField="email"
                 <AdobeField
                   label="Tel"
                   className="flex-[12] min-w-0"
-                  value={pf.mae_telefone ?? ''}
+                  value={rural.mae_telefone ?? ''}
                   onChange={(v) => queueRuralField('mae_telefone', v)}
                   status={s('mae_telefone')}
                   auditField="mae_telefone"
@@ -1243,7 +1243,7 @@ auditField="email"
                     <AdobeField
                       label=""
                       className="flex-[24] min-w-0"
-                      value={(pf[nomeKey] as string) ?? ''}
+                      value={(rural[nomeKey] as string) ?? ''}
                       onChange={(v) =>
                         queueRuralField(nomeKey, v as RuralModel[typeof nomeKey])
                       }
@@ -1253,7 +1253,7 @@ auditField="email"
                     <AdobeField
                       label=""
                       className="flex-[10] min-w-0"
-                      value={(pf[parKey] as string) ?? ''}
+                      value={(rural[parKey] as string) ?? ''}
                       onChange={(v) =>
                         queueRuralField(parKey, v as RuralModel[typeof parKey])
                       }
@@ -1263,7 +1263,7 @@ auditField="email"
                     <AdobeField
                       label="Tel"
                       className="flex-[16] min-w-0"
-                      value={(pf[telKey] as string) ?? ''}
+                      value={(rural[telKey] as string) ?? ''}
                       onChange={(v) =>
                         queueRuralField(telKey, v as RuralModel[typeof telKey])
                       }
@@ -1273,7 +1273,7 @@ auditField="email"
                     <AdobeField
                       label="Reside"
                       className="flex-[16] min-w-0"
-                      value={(pf[resKey] as string) ?? ''}
+                      value={(rural[resKey] as string) ?? ''}
                       onChange={(v) =>
                         queueRuralField(resKey, v as RuralModel[typeof resKey])
                       }
@@ -1566,12 +1566,12 @@ auditField="email"
   );
 }
 
-function PfPresenceBadges() {
+function RuralPresenceBadges() {
   const ctx = usePresenceContext();
   return <PresenceBadges peers={ctx?.peers ?? []} />;
 }
 
-function PfPresenceCursors() {
+function RuralPresenceCursors() {
   const ctx = usePresenceContext();
   return <PresenceCursors cursors={ctx?.peerCursors ?? []} />;
 }
