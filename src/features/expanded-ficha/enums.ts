@@ -52,6 +52,27 @@ export const NAS_OUTRAS = makeBimap([
   ['Não conhece', 'nao_conhece'],
 ]);
 
+// rural_tipo_moradia — igual a TIPO_MORADIA + "Arrendada" (só na ficha Rural).
+export const RURAL_TIPO_MORADIA = makeBimap([
+  ['Própria', 'propria'],
+  ['Alugada', 'alugada'],
+  ['Cedida', 'cedida'],
+  ['Outros', 'outros'],
+  ['Arrendada', 'arrendada'],
+]);
+
+// rural_nas_outras — igual a NAS_OUTRAS + "Proprietário do local" / "Demais
+// funcionários" (só na ficha Rural). XXXXX é placeholder de UI, não valor real.
+export const RURAL_NAS_OUTRAS = makeBimap([
+  ['XXXXX', null],
+  ['Parentes', 'parentes'],
+  ['Locador(a)', 'locador'],
+  ['Só conhecidos', 'so_conhecidos'],
+  ['Não conhece', 'nao_conhece'],
+  ['Proprietário do local', 'proprietario_local'],
+  ['Demais funcionários', 'demais_funcionarios'],
+]);
+
 // pf_tipo_comprovante — XXXXX is a UI placeholder, not a real value.
 export const TIPO_COMPROVANTE = makeBimap([
   ['XXXXX', null],

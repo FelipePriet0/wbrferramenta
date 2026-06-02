@@ -9,7 +9,7 @@ import type {
   CriarFichaResult,
   PessoaTipo,
 } from '@/features/cadastro/types';
-import { criarFichaPF, criarFichaPJ } from '@/services/cadastro';
+import { criarFichaPF, criarFichaPJ, criarFichaRural } from '@/services/cadastro';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { fireSideCannonConfetti } from '@/components/effects/welcome-confetti';
 import { formatCpf } from '@/lib/masks';
@@ -56,14 +56,20 @@ export function BasicInfoModal({
   const [pj, setPJ] = useState<BasicInfoPJ>({ razaoSocial: '' });
 
   const isPF = tipo === 'PF';
-  const headerTitle = isPF ? 'Dados Pessoais Básicos' : 'Dados Básicos - Ficha PJ';
-  const headerSubtitle = isPF
+  const isRural = tipo === 'Rural';
+  const isPessoa = isPF || isRural; // ambos usam nome + CPF
+  const headerTitle = isPessoa
+    ? isRural
+      ? 'Dados Básicos - Ficha Rural'
+      : 'Dados Pessoais Básicos'
+    : 'Dados Básicos - Ficha PJ';
+  const headerSubtitle = isPessoa
     ? 'Preencha as informações fundamentais do cliente'
     : 'Preencha as informações fundamentais da empresa';
 
   const canContinue = useMemo(() => {
     if (!open || !tipo) return false;
-    if (tipo === 'PF') return Boolean(pf.nome && pf.cpf);
+    if (tipo === 'PF' || tipo === 'Rural') return Boolean(pf.nome && pf.cpf);
     return Boolean(pj.razaoSocial);
   }, [open, tipo, pf, pj]);
 
@@ -91,7 +97,9 @@ export function BasicInfoModal({
     try {
       const res = isPF
         ? await criarFichaPF(pf, user.id)
-        : await criarFichaPJ(pj, user.id);
+        : isRural
+          ? await criarFichaRural(pf, user.id)
+          : await criarFichaPJ(pj, user.id);
       setOk('Ficha criada com sucesso.');
       // Notify the board so it can refetch / patch the list.
       try {
@@ -108,7 +116,8 @@ export function BasicInfoModal({
         /* event dispatch is best-effort */
       }
       try {
-        const path = `/ficha/${isPF ? 'pf' : 'pj'}/${res.applicantId}?welcome=1`;
+        const seg = isPF ? 'pf' : isRural ? 'rural' : 'pj';
+        const path = `/ficha/${seg}/${res.applicantId}?welcome=1`;
         window.open(path, '_blank', 'noopener,noreferrer');
         window.focus();
       } catch {
@@ -175,7 +184,7 @@ export function BasicInfoModal({
           </div>
 
           <div className="p-6">
-            {isPF ? (
+            {isPessoa ? (
               <div className="space-y-5">
                 <Section title="Informações Pessoais" dotColor="bg-blue-500">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

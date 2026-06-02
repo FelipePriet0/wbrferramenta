@@ -18,6 +18,8 @@ export type ExpandedAppModel = {
   plano_acesso?: string;
   venc?: string | number | null;
   sva_avulso?: string;
+  taxa_instalacao?: string;
+  via?: string;
   carne_impresso?: boolean;
   quem_solicitou?: string;
   telefone_solicitante?: string;
@@ -125,6 +127,67 @@ export type PjModel = {
   socio3_nome?: string;
   socio3_cpf?: string;
   socio3_telefone?: string;
+};
+
+// rural_fichas — every editable column. Espelha pf_fichas com endereço rural
+// (fazenda/localizacao/end_urbano), renomes (pertence_a/proprietario_patrao/
+// tel_proprietario/obs_moradia), campo novo (admissao) e sem comprovante/locador.
+export type RuralModel = {
+  birth_date?: string | null;
+  idade?: string | number | null;
+  naturalidade?: string;
+  uf_naturalidade?: string;
+  do_ps?: string;
+  fazenda?: string;          // FAZENDA / SÍTIO / CHÁCARA
+  localizacao?: string;      // LOCALIZAÇÃO
+  end_urbano?: string;       // END. URBANO
+  pertence_a?: string;       // PERTENCE A
+  tipo_moradia?: string | null;
+  tipo_moradia_obs?: string;
+  endereco_do_ps?: string;
+  unica_no_lote?: boolean | null;
+  unica_no_lote_obs?: string;
+  com_quem_reside?: string;
+  nas_outras?: string | null;
+  proprietario_patrao?: string;  // PROPRIETÁRIO/PATRÃO
+  tel_proprietario?: string;     // TEL
+  obs_moradia?: string;          // OBS
+  tem_internet_fixa?: boolean | null;
+  empresa_internet?: string;
+  plano_internet?: string;
+  valor_internet?: string;
+  observacoes?: string;
+  profissao?: string;
+  empresa?: string;
+  tel_empresa?: string;          // TEL (telefone do emprego)
+  vinculo?: string | null;
+  admissao?: string;             // ADMISSÃO (campo novo)
+  vinculo_obs?: string;
+  emprego_do_ps?: string;
+  estado_civil?: string | null;
+  conjuge_obs?: string;
+  conjuge_nome?: string;
+  conjuge_telefone?: string;
+  conjuge_whatsapp?: string;
+  conjuge_cpf?: string;
+  conjuge_naturalidade?: string;
+  conjuge_uf?: string;
+  conjuge_idade?: string | number | null;
+  conjuge_do_ps?: string;
+  pai_nome?: string;
+  pai_reside?: string;
+  pai_telefone?: string;
+  mae_nome?: string;
+  mae_reside?: string;
+  mae_telefone?: string;
+  ref1_nome?: string;
+  ref1_parentesco?: string;
+  ref1_reside?: string;
+  ref1_telefone?: string;
+  ref2_nome?: string;
+  ref2_parentesco?: string;
+  ref2_reside?: string;
+  ref2_telefone?: string;
 };
 
 export type ExpandedCard = {

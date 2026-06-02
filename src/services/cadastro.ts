@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type {
   BasicInfoPF,
   BasicInfoPJ,
+  BasicInfoRural,
   CriarFichaResult,
 } from '@/features/cadastro/types';
 import type { AppModel } from '@/features/editar-ficha/types';
@@ -10,6 +11,7 @@ import type {
   ExpandedCard,
   PfModel,
   PjModel,
+  RuralModel,
 } from '@/features/expanded-ficha/types';
 import type { PersonType } from '@/lib/types';
 import { formatCnpj, formatCpf } from '@/lib/masks';
@@ -85,7 +87,7 @@ export async function fetchApplicantCard(
       .select(
         'person_type, primary_name, cpf_cnpj, phone, whatsapp, email, ' +
           'address_line, address_number, address_complement, cep, bairro, ' +
-          'plano_acesso, venc, carne_impresso, sva_avulso',
+          'plano_acesso, venc, carne_impresso, sva_avulso, taxa_instalacao, via',
       )
       .eq('id', applicantId)
       .single(),
@@ -340,4 +342,116 @@ export async function criarFichaPJ(
     fichaId: obj.ficha_id,
     cardId: obj.card_id,
   };
+}
+
+/**
+ * Create Rural ficha atomically (applicants + rural_fichas + kanban_cards in
+ * feitas). Mirrors criarFichaPF — Rural usa CPF como a PF.
+ */
+export async function criarFichaRural(
+  input: BasicInfoRural,
+  userId: string,
+): Promise<CriarFichaResult> {
+  const { data, error } = await supabase.rpc('criar_ficha_rural_atomic', {
+    p_user_id: userId,
+    p_primary_name: input.nome.trim(),
+    p_cpf_cnpj: formatCpf(input.cpf),
+    p_phone: null,
+    p_whatsapp: null,
+    p_email: null,
+    p_birth_date: null,
+    p_naturalidade: null,
+    p_uf_naturalidade: null,
+  });
+
+  if (error) throw new Error(error.message);
+  const obj = data as { applicant_id: string; ficha_id: string; card_id: string };
+  return {
+    applicantId: obj.applicant_id,
+    fichaId: obj.ficha_id,
+    cardId: obj.card_id,
+  };
+}
+
+/**
+ * Read everything an Expanded Rural page needs: full applicant row (incl.
+ * taxa_instalacao + via) + rural_fichas + the active kanban card.
+ * Mirrors fetchExpandedPF.
+ */
+export async function fetchExpandedRural(
+  applicantId: string,
+  preferCardId?: string | null,
+): Promise<{
+  applicant: ExpandedAppModel;
+  rural: RuralModel;
+  card: ExpandedCard | null;
+}> {
+  const [appRes, ruralRes] = await Promise.all([
+    supabase
+      .from('applicants')
+      .select(
+        'primary_name, cpf_cnpj, phone, whatsapp, email, ' +
+          'address_line, address_number, address_complement, cep, bairro, ' +
+          'plano_acesso, venc, sva_avulso, taxa_instalacao, via, carne_impresso, ' +
+          'quem_solicitou, telefone_solicitante, protocolo_mk, meio, ' +
+          'info_spc, info_pesquisador, info_relevantes, info_mk, observacoes, ' +
+          'parecer_analise, representante_mz, created_at, field_audit',
+      )
+      .eq('id', applicantId)
+      .maybeSingle(),
+    supabase
+      .from('rural_fichas')
+      .select('*')
+      .eq('applicant_id', applicantId)
+      .is('deleted_at', null)
+      .maybeSingle(),
+  ]);
+  if (appRes.error) throw new Error(`applicants: ${appRes.error.message}`);
+  if (ruralRes.error) throw new Error(`rural_fichas: ${ruralRes.error.message}`);
+  if (!appRes.data) throw new Error(`Applicant ${applicantId} não encontrado`);
+
+  let card: ExpandedCard | null = null;
+  if (preferCardId) {
+    const { data, error } = await supabase
+      .from('kanban_cards')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
+      .eq('id', preferCardId)
+      .is('deleted_at', null)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    card = (data as ExpandedCard | null) ?? null;
+  }
+  if (!card) {
+    const { data, error } = await supabase
+      .from('kanban_cards')
+      .select('id, created_at, due_at, hora_at, periodo, stage, vendor_id, archived_at')
+      .eq('applicant_id', applicantId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    card = (data as ExpandedCard | null) ?? null;
+  }
+
+  return {
+    applicant: (appRes.data as ExpandedAppModel | null) ?? {},
+    rural: (ruralRes.data as RuralModel | null) ?? {},
+    card,
+  };
+}
+
+/**
+ * Patch a rural_fichas row. RLS only allows non-leitor roles.
+ */
+export async function updateRuralFicha(
+  applicantId: string,
+  patch: Partial<RuralModel>,
+): Promise<void> {
+  if (Object.keys(patch).length === 0) return;
+  const { error } = await supabase
+    .from('rural_fichas')
+    .update(patch)
+    .eq('applicant_id', applicantId);
+  if (error) throw new Error(error.message);
 }

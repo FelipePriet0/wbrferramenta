@@ -12,7 +12,7 @@ import { useEffect, useRef } from 'react';
 // purely a same-browser shortcut so the user never sees their own edit appear
 // "delayed" in a parallel tab.
 
-export type FichaScope = 'app' | 'pf' | 'pj' | 'card';
+export type FichaScope = 'app' | 'pf' | 'pj' | 'rural' | 'card';
 
 export type FichaSyncMessage = {
   scope: FichaScope;

@@ -43,9 +43,17 @@ import { supabase } from '@/lib/supabase';
 import { Field, Select } from './components/Fields';
 import { AuditProvider } from '@/features/expanded-ficha/AuditContext';
 import { PareceresList } from './components/PareceresList';
-import { PLANO_OPTIONS, SVA_OPTIONS, VENC_OPTIONS } from './constants';
+import {
+  PLANO_OPTIONS,
+  SVA_OPTIONS,
+  VENC_OPTIONS,
+  RURAL_PLANO_OPTIONS,
+  RURAL_SVA_OPTIONS,
+  TAXA_INST_OPTIONS,
+  VIA_OPTIONS,
+} from './constants';
 import type { AppModel, CardSnapshotPatch } from './types';
-import type { PersonType } from '@/lib/types';
+import { PERSON_TYPE_SEGMENT, type PersonType } from '@/lib/types';
 import { broadcastFichaPatch, useFichaSync } from '@/hooks/useFichaSync';
 import { friendlyError } from '@/lib/errors';
 import { fichaKeys, useFichaCache } from '@/hooks/useFichaCache';
@@ -55,7 +63,7 @@ import { PresenceProvider, usePresenceContext } from '@/features/presence/Presen
 
 const AUTOSAVE_DEBOUNCE_MS = 300;
 const FICHA_PATH = (pt: PersonType, id: string) =>
-  `/ficha/${pt === 'PF' ? 'pf' : 'pj'}/${id}`;
+  `/ficha/${PERSON_TYPE_SEGMENT[pt]}/${id}`;
 
 const HORA_SLOTS = ['08:00', '10:00', '13:00', '15:00', '17:00'] as const;
 // Pairs the user can pick together. Only 08↔10 and 13↔15 are valid combos;
@@ -152,6 +160,8 @@ export function EditarFichaModal({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isPF = personType === 'PF';
+  const isRural = personType === 'Rural';
+  const isPessoa = isPF || isRural; // ambos usam Nome/CPF
 
   // Lock body scroll while the modal is open.
   useEffect(() => {
@@ -599,14 +609,14 @@ export function EditarFichaModal({
 
                 <div className="grid gap-4 sm:grid-cols-[3fr_2fr]">
                   <Field
-                    label={isPF ? 'Nome do Cliente' : 'Razão Social'}
+                    label={isPessoa ? 'Nome do Cliente' : 'Razão Social'}
                     value={app.primary_name ?? ''}
                     onChange={(v) => queueAppPatch('primary_name', v)}
                     onBlur={() => void flushAutosave()}
                     auditField="primary_name"
                   />
                   <Field
-                    label={isPF ? 'CPF' : 'CNPJ'}
+                    label={isPessoa ? 'CPF' : 'CNPJ'}
                     value={app.cpf_cnpj ?? ''}
                     onChange={(v) => queueAppPatch('cpf_cnpj', v)}
                     onBlur={() => void flushAutosave()}
@@ -684,7 +694,7 @@ auditField="email"
                   <Select
                     label="Plano de Internet"
                     value={app.plano_acesso ?? ''}
-                    options={PLANO_OPTIONS}
+                    options={isRural ? RURAL_PLANO_OPTIONS : PLANO_OPTIONS}
                     onChange={(v) => queueAppPatch('plano_acesso', v)}
                   />
                   <Select
@@ -698,7 +708,7 @@ auditField="email"
                   <Select
                     label="SVA Avulso"
                     value={app.sva_avulso ?? ''}
-                    options={SVA_OPTIONS}
+                    options={isRural ? RURAL_SVA_OPTIONS : SVA_OPTIONS}
                     onChange={(v) => queueAppPatch('sva_avulso', v)}
                   />
                   <Select
@@ -707,6 +717,22 @@ auditField="email"
                     options={['Sim', 'Não']}
                     onChange={(v) => queueAppPatch('carne_impresso', v === 'Sim')}
                   />
+                  {isRural && (
+                    <>
+                      <Select
+                        label="Taxa Inst"
+                        value={app.taxa_instalacao ?? ''}
+                        options={TAXA_INST_OPTIONS}
+                        onChange={(v) => queueAppPatch('taxa_instalacao', v)}
+                      />
+                      <Select
+                        label="Via"
+                        value={app.via ?? ''}
+                        options={VIA_OPTIONS}
+                        onChange={(v) => queueAppPatch('via', v)}
+                      />
+                    </>
+                  )}
                 </div>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-3">

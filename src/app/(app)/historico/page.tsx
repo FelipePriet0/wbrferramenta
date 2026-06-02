@@ -325,7 +325,12 @@ function HistoricoPageInner() {
                       <button
                         type="button"
                         onClick={() => {
-                          const type = row.person_type === 'PJ' ? 'pj' : 'pf';
+                          const type =
+                            row.person_type === 'PJ'
+                              ? 'pj'
+                              : row.person_type === 'Rural'
+                                ? 'rural'
+                                : 'pf';
                           window.open(
                             `/ficha/${type}/${row.applicant_id}?card=${row.id}`,
                             '_blank',
