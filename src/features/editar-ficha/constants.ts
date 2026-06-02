@@ -44,24 +44,18 @@ export const PLANO_OPTIONS: Opt[] = [
 
 export const SVA_OPTIONS: Opt[] = [
   { label: 'XXXXX', value: 'XXXXX' },
-  { label: '— Streaming e TV —', value: '__hdr_stream', disabled: true },
+  { label: 'IP PÚBLICO - R$ 20,00', value: 'IP PÚBLICO - R$ 20,00' },
+  { label: 'IP FIXO - R$ 200,00', value: 'IP FIXO - R$ 200,00' },
+  { label: 'WIFI EXTEND - R$ 35,00 CADA PONTO', value: 'WIFI EXTEND - R$ 35,00 CADA PONTO' },
   {
-    label: 'MZ TV+ (MZPLAY PLUS - ITTV): R$ 29,90 (01 TELA)',
-    value: 'MZ TV+ (MZPLAY PLUS - ITTV): R$ 29,90 (01 TELA)',
+    label: 'ROKU TV - R$ 230,00 À VISTA / R$ 280,00 PARA DIVIDIR',
+    value: 'ROKU TV - R$ 230,00 À VISTA / R$ 280,00 PARA DIVIDIR',
   },
-  { label: 'DEZZER: R$ 15,00', value: 'DEZZER: R$ 15,00' },
-  { label: 'MZ CINE-PLAY: R$ 19,90', value: 'MZ CINE-PLAY: R$ 19,90' },
-  { label: '— Hardware e Equipamentos —', value: '__hdr_hw', disabled: true },
-  {
-    label: 'SETUP BOX MZNET: R$100,00 A VISTA OU R$120,00 EM ATÉ 3X NO CARTÃO',
-    value: 'SETUP BOX MZNET: R$100,00 A VISTA OU R$120,00 EM ATÉ 3X NO CARTÃO',
-  },
-  {
-    label: 'ROKU TV: R$200,00 A VISTA OU R$230,00 EM ATÉ 3X NO CARTÃO',
-    value: 'ROKU TV: R$200,00 A VISTA OU R$230,00 EM ATÉ 3X NO CARTÃO',
-  },
-  { label: '— Wi‑Fi Extend —', value: '__hdr_wifi', disabled: true },
-  { label: 'WIFI EXTEND - R$35', value: 'WIFI EXTEND - R$35' },
+  { label: '— Telefone Fixo —', value: '__hdr_tel', disabled: true },
+  { label: 'PLANO 150 MB + TEL. FIXO - R$ 79,90', value: 'PLANO 150 MB + TEL. FIXO - R$ 79,90' },
+  { label: 'PLANO 300 MB + TEL. FIXO - R$ 89,90', value: 'PLANO 300 MB + TEL. FIXO - R$ 89,90' },
+  { label: 'PLANO 600 MB + TEL. FIXO - R$ 99,90', value: 'PLANO 600 MB + TEL. FIXO - R$ 99,90' },
+  { label: 'PLANO 1.000 MB + TEL. FIXO - R$ 129,90', value: 'PLANO 1.000 MB + TEL. FIXO - R$ 129,90' },
 ];
 
 export const VENC_OPTIONS = ['5', '10', '15', '20', '25'] as const;
