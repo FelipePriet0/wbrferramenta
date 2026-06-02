@@ -1,6 +1,11 @@
-export type PessoaTipo = 'PF' | 'PJ';
+export type PessoaTipo = 'PF' | 'PJ' | 'Rural';
 
 export interface BasicInfoPF {
+  nome: string;
+  cpf: string;
+}
+
+export interface BasicInfoRural {
   nome: string;
   cpf: string;
 }

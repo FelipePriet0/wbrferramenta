@@ -13,6 +13,8 @@ export type AppModel = {
   venc?: string | number | null;
   carne_impresso?: boolean;
   sva_avulso?: string;
+  taxa_instalacao?: string;
+  via?: string;
 };
 
 export type Opt = string | { label: string; value: string; disabled?: boolean };

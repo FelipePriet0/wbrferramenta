@@ -7,7 +7,7 @@ export interface HistoricoRow {
   applicant_id: string;
   applicant_name: string | null;
   cpf_cnpj: string | null;
-  person_type: 'PF' | 'PJ' | null;
+  person_type: 'PF' | 'PJ' | 'Rural' | null;
   final_decision: string | null;
   finalized_at: string | null;
   archived_at: string | null;
@@ -45,7 +45,7 @@ export async function listHistorico(
 // analista_name comes back null or the status looks off. The DB function
 // builds a wide jsonb; only the fields we read are typed here.
 export interface HistoricoDetails {
-  applicant?: { person_type?: 'PF' | 'PJ' } | null;
+  applicant?: { person_type?: 'PF' | 'PJ' | 'Rural' } | null;
   card?: {
     decision_status?: string | null;
     final_decision?: string | null;

@@ -6,7 +6,14 @@ export type Profile = {
   role: UserRole;
 };
 
-export type PersonType = 'PF' | 'PJ';
+export type PersonType = 'PF' | 'PJ' | 'Rural';
+
+/** URL segment for each person type (used to build /ficha/<seg>/<id> routes). */
+export const PERSON_TYPE_SEGMENT: Record<PersonType, string> = {
+  PF: 'pf',
+  PJ: 'pj',
+  Rural: 'rural',
+};
 
 export type KanbanArea = 'comercial' | 'analise';
 
