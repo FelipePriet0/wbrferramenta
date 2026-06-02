@@ -84,6 +84,13 @@ Criar ficha Rural → card no kanban (stage feitas) → abrir `/ficha/rural/[id]
 
 ---
 
+## Desvios durante a implementação (registrados)
+1. **Enums `rural_tipo_moradia` / `rural_nas_outras` dedicados** (não estender os `pf_*` compartilhados): `TIPO_MORADIA` no front é alias de `TIPO_ESTABELECIMENTO` (PJ); estender vazaria "Arrendada" pra PF/PJ. Criados bimaps `RURAL_TIPO_MORADIA`/`RURAL_NAS_OUTRAS` no front + enums DB dedicados. `vinculo`/`estado_civil` reusam `pf_vinculo`/`pf_estado_civil` (valores idênticos).
+2. **Coluna `rural_fichas.tel_empresa`** (gap do plano original): a linha de emprego do Rural é PROFISSÃO|EMPRESA|**TEL** (PF era Profissão|Empresa|Vínculo). Migration aditiva `20260602100400`.
+
+## Status de execução (2026-06-02)
+Fases 1-6 implementadas e commitadas na branch `fix/expandedrural`. Verificação automatizada (Fase 7) verde: 20/20 health checks no banco, smoke test transacional (insert applicant+ficha+card + query do bundle + trigger updated_at, com rollback, zero resíduo), `tsc --noEmit` limpo, lint em paridade com PF, rota `/ficha/rural/[id]` compila e serve HTTP 200 no runtime. **Pendente:** click-through manual logado (criar ficha → kanban → editar → realtime/presence/parecer → histórico → soft-delete).
+
 ## NÃO MUDAM (confirmado agnóstico)
 RealtimeProvider, PresenceContext/usePresence/useCursorSync, lógica do useFichaSync, KanbanBoard/Column/Card + drag-drop + changeStage/change_stage, NovaFichaCTA, ParecerComposer/PareceresList/AnexosList, fetchFieldHistory (frontend), funções genéricas do DB. Métricas e export/PDF: paridade estrita = nada.
 
