@@ -1,45 +1,51 @@
 import type { Opt } from './types';
 
 export const PLANO_OPTIONS: Opt[] = [
-  { label: '— Normais —', value: '__hdr_norm', disabled: true },
-  { label: '150 Mega - R$ 59,90', value: '150 Mega - R$ 59,90' },
-  { label: '300 Mega - R$ 69,90', value: '300 Mega - R$ 69,90' },
-  { label: '600 Mega - R$ 79,90', value: '600 Mega - R$ 79,90' },
-  { label: '1000 Mega (1Gb) - R$ 99,90', value: '1000 Mega (1Gb) - R$ 99,90' },
-  { label: '— IP Dinâmico —', value: '__hdr_ipdin', disabled: true },
-  {
-    label: '150 Mega + IP Dinâmico - R$ 80,00',
-    value: '150 Mega + IP Dinâmico - R$ 80,00',
-  },
-  {
-    label: '300 Mega + IP Dinâmico - R$ 90,00',
-    value: '300 Mega + IP Dinâmico - R$ 90,00',
-  },
-  {
-    label: '600 Mega + IP Dinâmico - R$ 100,00',
-    value: '600 Mega + IP Dinâmico - R$ 100,00',
-  },
-  {
-    label: '1000 Mega (1Gb) + IP Dinâmico - R$ 120,00',
-    value: '1000 Mega (1Gb) + IP Dinâmico - R$ 120,00',
-  },
-  { label: '— IP Fixo —', value: '__hdr_ipfixo', disabled: true },
-  {
-    label: '150 Mega + IP Fixo - R$ 259,90',
-    value: '150 Mega + IP Fixo - R$ 259,90',
-  },
-  {
-    label: '300 Mega + IP Fixo - R$ 269,90',
-    value: '300 Mega + IP Fixo - R$ 269,90',
-  },
-  {
-    label: '600 Mega + IP Fixo - R$ 279,90',
-    value: '600 Mega + IP Fixo - R$ 279,90',
-  },
-  {
-    label: '1000 Mega (1Gb) + IP Fixo - R$ 299,90',
-    value: '1000 Mega (1Gb) + IP Fixo - R$ 299,90',
-  },
+  // ── Rádio (sem variação de IP) ──
+  { label: '— Rádio —', value: '__hdr_radio', disabled: true },
+  { label: '10 Mega + WBR TV+, SVOD - R$ 150,00', value: '10 Mega + WBR TV+, SVOD - R$ 150,00' },
+  { label: '15 Mega + WBR TV+, SVOD - R$ 200,00', value: '15 Mega + WBR TV+, SVOD - R$ 200,00' },
+  { label: '20 Mega + WBR TV+, SVOD - R$ 280,00', value: '20 Mega + WBR TV+, SVOD - R$ 280,00' },
+
+  // ── Fibra: Patrocínio / Serra do Salitre / Guimarânia / São João / Cruzeiro da Fortaleza / Patos de Minas ──
+  // IP Dinâmico = +R$ 20,00 · IP Fixo = +R$ 200,00
+  { label: '— Fibra: Patrocínio / Serra do Salitre / Guimarânia / São João / Cruzeiro da Fortaleza / Patos de Minas —', value: '__hdr_fibra1', disabled: true },
+  { label: '150 Mega + WBR TV - R$ 59,90', value: '150 Mega + WBR TV - R$ 59,90' },
+  { label: '150 Mega + WBR TV + IP Dinâmico - R$ 79,90', value: '150 Mega + WBR TV + IP Dinâmico - R$ 79,90' },
+  { label: '150 Mega + WBR TV + IP Fixo - R$ 259,90', value: '150 Mega + WBR TV + IP Fixo - R$ 259,90' },
+  { label: '300 Mega + WBR TV - R$ 69,90', value: '300 Mega + WBR TV - R$ 69,90' },
+  { label: '300 Mega + WBR TV + IP Dinâmico - R$ 89,90', value: '300 Mega + WBR TV + IP Dinâmico - R$ 89,90' },
+  { label: '300 Mega + WBR TV + IP Fixo - R$ 269,90', value: '300 Mega + WBR TV + IP Fixo - R$ 269,90' },
+  { label: '600 Mega + WBR TV - R$ 79,90', value: '600 Mega + WBR TV - R$ 79,90' },
+  { label: '600 Mega + WBR TV + IP Dinâmico - R$ 99,90', value: '600 Mega + WBR TV + IP Dinâmico - R$ 99,90' },
+  { label: '600 Mega + WBR TV + IP Fixo - R$ 279,90', value: '600 Mega + WBR TV + IP Fixo - R$ 279,90' },
+  { label: '1000 Mega + WBR TV+, SVOD - R$ 99,90', value: '1000 Mega + WBR TV+, SVOD - R$ 99,90' },
+  { label: '1000 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90', value: '1000 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90' },
+  { label: '1000 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90', value: '1000 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90' },
+
+  // ── Fibra: Salitre de Minas / São Benedito ──
+  { label: '— Fibra: Salitre de Minas / São Benedito —', value: '__hdr_fibra2', disabled: true },
+  { label: '100 Mega + WBR TV - R$ 69,90', value: '100 Mega + WBR TV - R$ 69,90' },
+  { label: '100 Mega + WBR TV + IP Dinâmico - R$ 89,90', value: '100 Mega + WBR TV + IP Dinâmico - R$ 89,90' },
+  { label: '100 Mega + WBR TV + IP Fixo - R$ 269,90', value: '100 Mega + WBR TV + IP Fixo - R$ 269,90' },
+  { label: '200 Mega + WBR TV - R$ 79,90', value: '200 Mega + WBR TV - R$ 79,90' },
+  { label: '200 Mega + WBR TV + IP Dinâmico - R$ 99,90', value: '200 Mega + WBR TV + IP Dinâmico - R$ 99,90' },
+  { label: '200 Mega + WBR TV + IP Fixo - R$ 279,90', value: '200 Mega + WBR TV + IP Fixo - R$ 279,90' },
+  { label: '300 Mega + WBR TV+, SVOD - R$ 99,90', value: '300 Mega + WBR TV+, SVOD - R$ 99,90' },
+  { label: '300 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90', value: '300 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90' },
+  { label: '300 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90', value: '300 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90' },
+
+  // ── Fibra: Tejuco ──
+  { label: '— Fibra: Tejuco —', value: '__hdr_fibra3', disabled: true },
+  { label: '300 Mega + WBR TV+, SVOD - R$ 99,90', value: '300 Mega + WBR TV+, SVOD - R$ 99,90' },
+  { label: '300 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90', value: '300 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 119,90' },
+  { label: '300 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90', value: '300 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90' },
+  { label: '400 Mega + WBR TV+, SVOD - R$ 129,90', value: '400 Mega + WBR TV+, SVOD - R$ 129,90' },
+  { label: '400 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 149,90', value: '400 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 149,90' },
+  { label: '400 Mega + WBR TV+, SVOD + IP Fixo - R$ 329,90', value: '400 Mega + WBR TV+, SVOD + IP Fixo - R$ 329,90' },
+  { label: '500 Mega + WBR TV+, SVOD - R$ 149,90', value: '500 Mega + WBR TV+, SVOD - R$ 149,90' },
+  { label: '500 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 169,90', value: '500 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 169,90' },
+  { label: '500 Mega + WBR TV+, SVOD + IP Fixo - R$ 349,90', value: '500 Mega + WBR TV+, SVOD + IP Fixo - R$ 349,90' },
 ];
 
 export const SVA_OPTIONS: Opt[] = [
