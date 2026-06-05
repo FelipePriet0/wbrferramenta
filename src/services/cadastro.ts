@@ -174,6 +174,7 @@ export async function fetchExpandedPF(
           'address_line, address_number, address_complement, cep, bairro, ' +
           'plano_acesso, venc, sva_avulso, carne_impresso, ' +
           'quem_solicitou, telefone_solicitante, protocolo_mk, meio, ' +
+          'como_conheceu_id, ' +
           'info_spc, info_pesquisador, info_relevantes, info_mk, observacoes, ' +
           'parecer_analise, representante_mz, created_at, field_audit',
       )
@@ -256,6 +257,7 @@ export async function fetchExpandedPJ(
           'address_line, address_number, address_complement, cep, bairro, ' +
           'plano_acesso, venc, sva_avulso, carne_impresso, ' +
           'quem_solicitou, telefone_solicitante, protocolo_mk, meio, ' +
+          'como_conheceu_id, ' +
           'info_spc, info_pesquisador, info_relevantes, info_mk, observacoes, ' +
           'parecer_analise, representante_mz, created_at, field_audit',
       )
@@ -394,6 +396,7 @@ export async function fetchExpandedRural(
           'address_line, address_number, address_complement, cep, bairro, ' +
           'plano_acesso, venc, sva_avulso, taxa_instalacao, via, carne_impresso, ' +
           'quem_solicitou, telefone_solicitante, protocolo_mk, meio, ' +
+          'como_conheceu_id, ' +
           'info_spc, info_pesquisador, info_relevantes, info_mk, observacoes, ' +
           'parecer_analise, representante_mz, created_at, field_audit',
       )

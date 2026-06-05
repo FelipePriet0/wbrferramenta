@@ -25,6 +25,7 @@ export type ExpandedAppModel = {
   telefone_solicitante?: string;
   protocolo_mk?: string;
   meio?: string | null;
+  como_conheceu_id?: string | null;
   info_spc?: string;
   info_pesquisador?: string;
   info_relevantes?: string;

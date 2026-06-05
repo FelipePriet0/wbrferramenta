@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
-export type VeiculoOption = { value: string; label: string };
+export type ComoConheceuOption = { value: string; label: string };
 
-// Campo "Veículo" no estilo Adobe (h-[27px], bg-blue-100 — mesma altura dos
-// campos da ficha) com um gatilho de
-// popover no canto direito. Os valores (lista de veículos) e a persistência no
-// banco serão ligados depois — por enquanto o popover mostra um placeholder.
-export function VeiculoPopover({
+// Campo "Como conheceu a WBR" no estilo Adobe (h-[27px], bg-blue-100 — mesma
+// altura dos campos da ficha) com um gatilho de popover no canto direito.
+// As opções vêm do banco (tabela como_conheceu_options via listComoConheceuOptions)
+// e são passadas em `options`; `value` guarda o id da opção escolhida.
+export function ComoConheceuPopover({
   value,
   onChange,
   options = [],
@@ -18,7 +18,7 @@ export function VeiculoPopover({
 }: {
   value?: string | null;
   onChange?: (v: string) => void;
-  options?: VeiculoOption[];
+  options?: ComoConheceuOption[];
   disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);

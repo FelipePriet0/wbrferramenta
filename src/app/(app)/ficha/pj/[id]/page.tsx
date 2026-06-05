@@ -56,7 +56,8 @@ import { AdobeField } from '@/features/expanded-ficha/components/AdobeField';
 import { AdobeTextarea } from '@/features/expanded-ficha/components/AdobeTextarea';
 import { AdobeCard } from '@/features/expanded-ficha/components/AdobeCard';
 import { AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
-import { VeiculoPopover } from '@/features/expanded-ficha/components/VeiculoPopover';
+import { ComoConheceuPopover, type ComoConheceuOption } from '@/features/expanded-ficha/components/ComoConheceuPopover';
+import { listComoConheceuOptions } from '@/services/comoConheceu';
 import { AuditProvider } from '@/features/expanded-ficha/AuditContext';
 import {
   MEIO,
@@ -111,6 +112,7 @@ export default function ExpandedPjPage() {
   const [horaArr, setHoraArr] = useState<string[]>([]);
   const [periodo, setPeriodo] = useState<'manha' | 'tarde' | null>(null);
   const [profiles, setProfiles] = useState<ProfileLite[]>([]);
+  const [comoConheceuOptions, setComoConheceuOptions] = useState<ComoConheceuOption[]>([]);
   const [attachments, setAttachments] = useState<CardAttachment[]>([]);
   const [pareceres, setPareceres] = useState<ParecerNote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -330,7 +332,7 @@ export default function ExpandedPjPage() {
     setError(null);
     (async () => {
       try {
-        const [bundle, profilesData] = await Promise.all([
+        const [bundle, profilesData, comoConheceuData] = await Promise.all([
           queryClient.fetchQuery({
             queryKey: fichaKeys.expandedPJ(applicantId, preferCardId),
             queryFn: () => fetchExpandedPJ(applicantId, preferCardId),
@@ -340,12 +342,18 @@ export default function ExpandedPjPage() {
             queryFn: () => listProfiles(),
             staleTime: 5 * 60 * 1000,
           }),
+          queryClient.fetchQuery({
+            queryKey: fichaKeys.comoConheceuOptions(),
+            queryFn: () => listComoConheceuOptions(),
+            staleTime: 5 * 60 * 1000,
+          }),
         ]);
         if (cancelled) return;
         setApp(bundle.applicant);
         setPj(bundle.pj);
         setCard(bundle.card);
         setProfiles(profilesData);
+        setComoConheceuOptions(comoConheceuData);
         if (bundle.card?.due_at) {
           const parts = utcISOToLocalParts(bundle.card.due_at, DEFAULT_TIMEZONE);
           setDueAt(parts.dateISO ?? '');
@@ -1234,10 +1242,15 @@ auditField="email"
                 />
               </div>
               <label className="shrink-0 text-[9px] font-bold uppercase tracking-wide leading-none text-zinc-600">
-                Veículo
+                Como conheceu a WBR
               </label>
               <div className="flex-1 min-w-0">
-                <VeiculoPopover disabled={readOnly} />
+                <ComoConheceuPopover
+                  value={app.como_conheceu_id ?? null}
+                  onChange={(v) => queueApp('como_conheceu_id', v)}
+                  options={comoConheceuOptions}
+                  disabled={readOnly}
+                />
               </div>
             </div>
 
