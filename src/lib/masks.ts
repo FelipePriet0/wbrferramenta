@@ -59,3 +59,9 @@ export function formatDateBR(input: string): string {
   if (p3) out += '/' + p3;
   return out;
 }
+
+/** Máscara de endereço MAC: AA:BB:CC:DD:EE:FF (aceita colagem suja). */
+export function formatMacAddress(input: string): string {
+  const hex = (input ?? '').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 12);
+  return hex.match(/.{1,2}/g)?.join(':') ?? '';
+}

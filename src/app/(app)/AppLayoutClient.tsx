@@ -3,7 +3,7 @@
 import { Fragment, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Clock, Columns3, LayoutDashboard } from 'lucide-react';
+import { BookOpen, Clock, Columns3, Headset, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
 import {
   Sidebar,
@@ -34,6 +34,11 @@ function AppSidebar() {
       label: 'Kanban',
       href: '/kanban',
       icon: <Columns3 className="h-5 w-5 flex-shrink-0 text-white" />,
+    },
+    {
+      label: 'Suporte',
+      href: '/suporte',
+      icon: <Headset className="h-5 w-5 flex-shrink-0 text-white" />,
     },
     {
       label: 'Histórico',

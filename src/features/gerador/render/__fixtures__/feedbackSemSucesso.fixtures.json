@@ -1,0 +1,38 @@
+[
+  {
+    "nome": "com-dispositivos",
+    "input": {
+      "canal1": "LIGAÇÃO",
+      "contato1": "(11) 99999-8888",
+      "dataHora1": "07/07/2026 14:30",
+      "canal2": "WHATSAPP",
+      "contato2": "(11) 97777-6666",
+      "dataHora2": "08/07/2026 10:15",
+      "sinal": "-18.5 dBm",
+      "equipWifi": "3",
+      "equipCabo": "1",
+      "dispositivosRadio": "sim"
+    },
+    "protocolo": "",
+    "os": "",
+    "saida": "TENTATIVA DE FEEDBACK VIA LIGAÇÃO (11999998888) DIA 07/07/2026 14:30, E NÃO FUI ATENDIDO\n\nTENTATIVA DE CONTATO VIA WHATSAPP (11977776666) DIA 08/07/2026 10:15. NÃO HOUVE RETORNO POR PARTE DO CLIENTE\n\nPROTOCOLO SERÁ ENCERRADO COMO CONCLUÍDO\nCONEXÃO ATIVA COM IP E SINAL DE FIBRA (-18.5 dBm)\n\n(3) EQUIPAMENTO(S) CONECTADO(S) VIA WI-FI. E (1) VIA CABO DE REDE (PRINT EM ANEXO)"
+  },
+  {
+    "nome": "sem-dispositivos",
+    "input": {
+      "canal1": "LIGAÇÃO",
+      "contato1": "(11) 99999-8888",
+      "dataHora1": "07/07/2026 14:30",
+      "canal2": "WHATSAPP",
+      "contato2": "(11) 97777-6666",
+      "dataHora2": "08/07/2026 10:15",
+      "sinal": "-18.5 dBm",
+      "equipWifi": "3",
+      "equipCabo": "1",
+      "dispositivosRadio": "nao"
+    },
+    "protocolo": "",
+    "os": "",
+    "saida": "TENTATIVA DE FEEDBACK VIA LIGAÇÃO (11999998888) DIA 07/07/2026 14:30, E NÃO FUI ATENDIDO\n\nTENTATIVA DE CONTATO VIA WHATSAPP (11977776666) DIA 08/07/2026 10:15. NÃO HOUVE RETORNO POR PARTE DO CLIENTE\n\nPROTOCOLO SERÁ ENCERRADO COMO CONCLUÍDO\nCONEXÃO ATIVA COM IP E SINAL DE FIBRA (-18.5 dBm)\n\nNÃO HÁ DISPOSITIVOS CONECTADOS NA INTERNET NO MOMENTO (PRINT EM ANEXO)"
+  }
+]
