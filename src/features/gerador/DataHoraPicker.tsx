@@ -22,19 +22,19 @@ const dayPickerClassNames = {
   caption_label: 'text-sm font-medium text-zinc-900 dark:text-zinc-100',
   nav: 'space-x-1 flex items-center',
   nav_button:
-    'h-7 w-7 rounded-md border border-emerald-500/30 bg-transparent text-emerald-600 transition hover:bg-emerald-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 dark:border-emerald-400/30 dark:hover:bg-emerald-500/20',
+    'h-7 w-7 rounded-md border border-[#0B42C6]/30 bg-transparent text-[#0B42C6] transition hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B42C6]/40 dark:border-[#0B42C6]/30 dark:hover:bg-[#0B42C6]/20',
   table: 'w-full border-collapse',
   head_row: 'flex',
-  head_cell: 'w-8 rounded-md text-[11px] font-semibold uppercase text-emerald-700 dark:text-emerald-300',
+  head_cell: 'w-8 rounded-md text-[11px] font-semibold uppercase text-[#0B42C6] dark:text-blue-300',
   row: 'flex w-full mt-1',
   cell: 'h-8 w-8 text-center text-sm p-0 relative',
   day: cn(
     'h-8 w-8 rounded-md text-sm text-zinc-900 transition-colors dark:text-zinc-100',
-    'hover:bg-emerald-50 hover:text-emerald-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 dark:hover:bg-emerald-500/20',
+    'hover:bg-blue-50 hover:text-[#0B42C6] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0B42C6]/40 dark:hover:bg-[#0B42C6]/20',
   ),
-  day_selected: 'bg-emerald-600 text-white hover:bg-emerald-600 hover:text-white',
+  day_selected: 'bg-[#0B42C6] text-white hover:bg-[#0B42C6] hover:text-white',
   day_outside: 'pointer-events-none text-zinc-300 opacity-50 dark:text-zinc-600',
-  day_today: 'border border-emerald-400 text-emerald-600 font-semibold',
+  day_today: 'border border-[#0B42C6] text-[#0B42C6] font-semibold',
 };
 
 /** Slots de 15 min de 06:00 a 21:45 (o operador também pode digitar hora livre). */
@@ -81,7 +81,7 @@ export function DataHoraPicker({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex h-11 w-full items-center justify-between rounded-xl border border-zinc-300/90 bg-white px-3.5 text-left text-[15px] text-zinc-900 outline-none transition focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          className="flex h-11 w-full items-center justify-between rounded-xl border border-zinc-300/90 bg-white px-3.5 text-left text-[15px] text-zinc-900 outline-none transition focus-visible:border-[#0B42C6] focus-visible:ring-2 focus-visible:ring-[#0B42C6]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         >
           <span className={cn('truncate', !value?.trim() && 'text-zinc-400')}>
             {value?.trim() || placeholder || (soData ? 'Selecionar data' : 'Selecionar data e hora')}
@@ -115,7 +115,7 @@ export function DataHoraPicker({
           {/* Coluna direita — hora */}
           {!soData && (
           <div className="flex w-[112px] flex-col">
-            <div className="px-3 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+            <div className="px-3 pt-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wide text-[#0B42C6] dark:text-blue-300">
               Hora
             </div>
             <input
@@ -124,7 +124,7 @@ export function DataHoraPicker({
               value={hora}
               onChange={(e) => emit(data, e.target.value)}
               placeholder="HH:MM"
-              className="mx-2 mb-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-center text-sm text-zinc-900 outline-none focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              className="mx-2 mb-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-center text-sm text-zinc-900 outline-none focus:border-[#0B42C6] dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
             />
             <div className="max-h-[248px] overflow-y-auto px-2 pb-2">
               {HORARIOS.map((hh) => {
@@ -137,8 +137,8 @@ export function DataHoraPicker({
                     className={cn(
                       'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors',
                       ativo
-                        ? 'bg-emerald-600 font-semibold text-white'
-                        : 'text-zinc-700 hover:bg-emerald-50 dark:text-zinc-200 dark:hover:bg-emerald-500/10',
+                        ? 'bg-[#0B42C6] font-semibold text-white'
+                        : 'text-zinc-700 hover:bg-blue-50 dark:text-zinc-200 dark:hover:bg-[#0B42C6]/10',
                     )}
                   >
                     {hh}

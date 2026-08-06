@@ -111,7 +111,7 @@ export function HubSuporte() {
           <div className="min-w-0">
             <p
               className="text-xs font-semibold uppercase"
-              style={{ letterSpacing: '0.96px', color: '#2e7d32' }}
+              style={{ letterSpacing: '0.96px', color: '#0B42C6' }}
             >
               Hub de suporte
             </p>
@@ -126,7 +126,7 @@ export function HubSuporte() {
               operação. Os números indicam quantos fluxos existem em cada categoria.
             </p>
             <span className="mt-4 inline-flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#2e7d32' }} />
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: '#0B42C6' }} />
               {TOTAL_MODELOS_PROJETO} modelos no projeto
             </span>
           </div>

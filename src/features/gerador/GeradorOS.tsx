@@ -16,8 +16,8 @@ import type { Valores } from './render/helpers';
 
 const FONTE = "'Google Sans Flex', Ubuntu, 'Segoe UI', system-ui, sans-serif";
 const TEXTO = '#1a2027';
-const VERDE = '#2e7d32'; // headers de seção / eyebrow
-const VERDE_VIVO = '#16b356'; // pill + abas (interativo)
+const AZUL = '#0B42C6'; // headers de seção / eyebrow
+const AZUL_VIVO = '#0B42C6'; // pill + abas (interativo)
 
 const INICIAL: Valores = {
   tipoSolicitacao: 'titular',
@@ -54,12 +54,12 @@ function primeiroNome(nome: string): string {
 }
 
 const inputBase =
-  'w-full rounded-xl border border-zinc-300/90 bg-white px-3.5 py-2.5 text-[15px] text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100';
+  'w-full rounded-xl border border-zinc-300/90 bg-white px-3.5 py-2.5 text-[15px] text-zinc-900 outline-none transition-colors placeholder:text-zinc-400 focus:border-[#0B42C6] focus:ring-2 focus:ring-[#0B42C6]/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100';
 
 /** Gatilho do SimpleSelect alinhado ao visual dos inputs do gerador (rounded-xl,
  *  mesma altura/borda/foco), mantendo o popover padrão do sistema. */
 const SELECT_TRIGGER =
-  'h-11 rounded-xl border-zinc-300/90 px-3.5 text-[15px] shadow-none focus-visible:border-emerald-500 focus-visible:ring-2 focus-visible:ring-emerald-500/20';
+  'h-11 rounded-xl border-zinc-300/90 px-3.5 text-[15px] shadow-none focus-visible:border-[#0B42C6] focus-visible:ring-2 focus-visible:ring-[#0B42C6]/20';
 
 /** Ícone por variável (titular / terceiro / PJ). */
 function iconeVariavel(value: string): LucideIcon {
@@ -110,7 +110,7 @@ function VariavelPill({
         aria-haspopup="listbox"
         aria-expanded={aberto}
         className="flex w-full items-center gap-3 rounded-2xl py-3.5 pl-4 pr-4 text-left text-sm font-semibold uppercase text-white outline-none transition-[filter] hover:brightness-105 focus-visible:ring-2 focus-visible:ring-white/50"
-        style={{ backgroundColor: VERDE_VIVO, letterSpacing: '0.03em' }}
+        style={{ backgroundColor: AZUL_VIVO, letterSpacing: '0.03em' }}
       >
         <IconeAtual className="h-5 w-5 flex-shrink-0" strokeWidth={2} />
         <span className="flex-1 truncate">{atual?.label}</span>
@@ -137,13 +137,13 @@ function VariavelPill({
                   onChange(op.value);
                   setAberto(false);
                 }}
-                className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
+                className="flex w-full items-center gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors hover:bg-blue-50 dark:hover:bg-[#0B42C6]/10"
               >
                 <span
                   className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full"
                   style={{
-                    backgroundColor: selecionado ? 'rgba(22,179,86,0.14)' : 'rgba(33,33,33,0.05)',
-                    color: selecionado ? VERDE_VIVO : '#71717a',
+                    backgroundColor: selecionado ? 'rgba(11,66,198,0.14)' : 'rgba(33,33,33,0.05)',
+                    color: selecionado ? AZUL_VIVO : '#71717a',
                   }}
                 >
                   <Icone className="h-4 w-4" strokeWidth={2} />
@@ -155,7 +155,7 @@ function VariavelPill({
                   {op.label}
                 </span>
                 {selecionado && (
-                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: VERDE_VIVO }} />
+                  <Check className="h-4 w-4 flex-shrink-0" style={{ color: AZUL_VIVO }} />
                 )}
               </button>
             );
@@ -187,17 +187,17 @@ function Campo({
               onClick={() => onChange(op.value)}
               className="flex items-center gap-2 rounded-xl border px-3.5 py-2.5 text-sm transition-colors"
               style={{
-                borderColor: ativo ? VERDE_VIVO : 'rgba(33,33,33,0.15)',
-                backgroundColor: ativo ? 'rgba(22,179,86,0.08)' : 'transparent',
-                color: ativo ? VERDE : TEXTO,
+                borderColor: ativo ? AZUL_VIVO : 'rgba(33,33,33,0.15)',
+                backgroundColor: ativo ? 'rgba(11,66,198,0.08)' : 'transparent',
+                color: ativo ? AZUL : TEXTO,
                 fontWeight: ativo ? 600 : 400,
               }}
             >
               <span
                 className="flex h-4 w-4 items-center justify-center rounded-full border"
-                style={{ borderColor: ativo ? VERDE_VIVO : 'rgba(33,33,33,0.3)' }}
+                style={{ borderColor: ativo ? AZUL_VIVO : 'rgba(33,33,33,0.3)' }}
               >
-                {ativo && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: VERDE_VIVO }} />}
+                {ativo && <span className="h-2 w-2 rounded-full" style={{ backgroundColor: AZUL_VIVO }} />}
               </span>
               {op.label}
             </button>
@@ -269,7 +269,7 @@ function OutputPane({ titulo, texto }: { titulo: string; texto: string }) {
           type="button"
           onClick={copiar}
           className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: VERDE_VIVO }}
+          style={{ backgroundColor: AZUL_VIVO }}
         >
           {copiado ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
           {copiado ? 'Copiado' : 'Copiar'}
@@ -327,7 +327,7 @@ function SaidaColuna({
                 className="rounded-lg px-5 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors"
                 style={{
                   backgroundColor: ativo ? '#fff' : 'transparent',
-                  color: ativo ? VERDE_VIVO : '#71717a',
+                  color: ativo ? AZUL_VIVO : '#71717a',
                   boxShadow: ativo ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
                 }}
               >
@@ -404,7 +404,7 @@ export function GeradorOS({
     <div className="mx-auto w-full max-w-7xl" style={{ fontFamily: FONTE, color: TEXTO }}>
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase" style={{ letterSpacing: '0.96px', color: VERDE }}>
+          <p className="text-xs font-semibold uppercase" style={{ letterSpacing: '0.96px', color: AZUL }}>
             {form.modo}
           </p>
           <h1 className="mt-1 font-bold" style={{ fontSize: '28px', letterSpacing: '-0.5px', color: TEXTO }}>
@@ -436,7 +436,7 @@ export function GeradorOS({
                 <div key={si}>
                   {secao.titulo && (
                     <div className="mb-4 mt-1 flex items-center gap-3">
-                      <h3 className="text-xs font-bold uppercase tracking-[0.08em]" style={{ color: VERDE }}>
+                      <h3 className="text-xs font-bold uppercase tracking-[0.08em]" style={{ color: AZUL }}>
                         {secao.titulo}
                       </h3>
                       <div className="h-px flex-1 bg-zinc-100 dark:bg-zinc-800" />
