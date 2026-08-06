@@ -5,13 +5,15 @@
  * referência "Modelos de O.S". Extraído do bundle deployado — ver
  * `docs/gerador/sondagem2-suporte.md`.
  *
- * `Mudança de endereço` fica de fora de propósito: já existe no wbrferramenta
- * (Mud End / Validação Mud. End.), então não é reclonada aqui.
+ * `Mudança de endereço` (Mud End) entra como categoria própria na versão WBR:
+ * gerador stateless de texto (sem tabela, sem aprovação e sem agenda) — ver
+ * `src/features/gerador/mudend/`.
  */
 
 /** Chave de ícone — mapeada para um componente lucide em `HubSuporte.tsx`. */
 export type IconeCategoria =
   | 'alteracao-plano'
+  | 'mud-end'
   | 'manutencao'
   | 'conversores'
   | 'wifi-extend'
@@ -56,6 +58,15 @@ export const CATEGORIAS_SUPORTE: readonly Categoria[] = [
     badge: '6 modelos',
     icone: 'alteracao-plano',
     cor: '#2e7d32',
+  },
+  {
+    slug: 'mudanca-endereco',
+    titulo: 'Mudança de endereço',
+    descricao: 'Mud End: padrão, com fibra, equipamentos, alt plano e inviabilidade.',
+    quantidade: 6,
+    badge: '6 modelos',
+    icone: 'mud-end',
+    cor: '#0891b2',
   },
   {
     slug: 'manutencao',

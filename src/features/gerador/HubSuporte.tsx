@@ -10,6 +10,7 @@ import {
   KeyRound,
   Layers,
   ListChecks,
+  MapPin,
   MessagesSquare,
   RotateCcw,
   Tv,
@@ -35,6 +36,7 @@ const TEXTO = '#1a2027'; // rgb(26,32,39)
 
 const ICONES: Record<IconeCategoria, LucideIcon> = {
   'alteracao-plano': ArrowLeftRight,
+  'mud-end': MapPin,
   manutencao: Wrench,
   conversores: Tv,
   'wifi-extend': Wifi,

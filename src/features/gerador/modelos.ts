@@ -93,9 +93,62 @@ const ALTERACAO_PLANO: CategoriaDetalhe = {
   ],
 };
 
+
+const MUDANCA_ENDERECO: CategoriaDetalhe = {
+  slug: 'mudanca-endereco',
+  cor: '#0891b2',
+  titulo: 'Mudança de endereço',
+  descricao:
+    'Escolha o fluxo de Mud End. Todos geram os textos de Protocolo, O.S e Agenda pra copiar — a inviabilidade gera só o Protocolo.',
+  grupos: [
+    {
+      titulo: 'Fluxos',
+      modelos: [
+        {
+          slug: 'mud-end-padrao',
+          titulo: 'Mud End padrão',
+          descricao: 'Fluxo padrão para mudança de endereço.',
+          icone: 'mud-end',
+        },
+        {
+          slug: 'mud-end-com-fibra',
+          titulo: 'Mud End com fibra WBR',
+          descricao: 'Mudança de endereço para locais com fibra WBR.',
+          icone: 'mud-end',
+        },
+        {
+          slug: 'mud-end-buscar-equipamentos',
+          titulo: 'Mud End buscando equipamentos',
+          descricao: 'Inclui retirada e entrega de equipamentos no novo endereço.',
+          icone: 'mud-end',
+        },
+        {
+          slug: 'mud-end-altplan-pago',
+          titulo: 'Mud End + Alt Plano pago',
+          descricao: 'Mudança de endereço renovando fidelidade, com visita paga.',
+          icone: 'mud-end',
+        },
+        {
+          slug: 'mud-end-altplan-proposta',
+          titulo: 'Mud End + Alt Plano isento (proposta)',
+          descricao: 'Mudança com proposta de alteração de plano isenta.',
+          icone: 'mud-end',
+        },
+        {
+          slug: 'mud-end-inviabilidade',
+          titulo: 'Mud End sem viabilidade',
+          descricao: 'Para casos em que não há viabilidade técnica no novo endereço.',
+          icone: 'mud-end',
+        },
+      ],
+    },
+  ],
+};
+
 /** Detalhe estático (curado) por slug de categoria. */
 export const DETALHE_CATEGORIA: Record<string, CategoriaDetalhe> = {
   'alteracao-plano': ALTERACAO_PLANO,
+  'mudanca-endereco': MUDANCA_ENDERECO,
 };
 
 /**

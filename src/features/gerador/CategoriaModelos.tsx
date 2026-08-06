@@ -12,6 +12,7 @@ import {
   Layers,
   ListChecks,
   MessagesSquare,
+  MapPin,
   RadioTower,
   RotateCcw,
   Router,
@@ -38,6 +39,7 @@ const ICONES: Record<string, LucideIcon> = {
   'com-troca': ArrowLeftRight,
   // ícones de categoria (fallback usado nas listas derivadas)
   'alteracao-plano': ArrowLeftRight,
+  'mud-end': MapPin,
   manutencao: Wrench,
   conversores: Tv,
   'wifi-extend': Wifi,

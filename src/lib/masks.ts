@@ -65,3 +65,9 @@ export function formatMacAddress(input: string): string {
   const hex = (input ?? '').toUpperCase().replace(/[^0-9A-F]/g, '').slice(0, 12);
   return hex.match(/.{1,2}/g)?.join(':') ?? '';
 }
+
+/** Máscara de CEP: 00000-000. */
+export function formatCep(input: string): string {
+  const d = digitsOnly(input).slice(0, 8);
+  return d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d;
+}
