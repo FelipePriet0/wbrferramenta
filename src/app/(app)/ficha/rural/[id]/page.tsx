@@ -59,6 +59,7 @@ import { AdobeTextarea } from '@/features/expanded-ficha/components/AdobeTextare
 import { AdobeCard } from '@/features/expanded-ficha/components/AdobeCard';
 import { AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
 import { ComoConheceuPopover, type ComoConheceuOption } from '@/features/expanded-ficha/components/ComoConheceuPopover';
+import { CarneImpressoPopover } from '@/features/expanded-ficha/components/CarneImpressoPopover';
 import { listComoConheceuOptions } from '@/services/comoConheceu';
 import {
   ESTADO_CIVIL,
@@ -1371,7 +1372,7 @@ auditField="email"
                 </div>
               </div>
 
-              <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-4 gap-2">
+              <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-5 gap-2">
                 <AdobeField
                   label="Solicitante"
                   value={app.quem_solicitou ?? ''}
@@ -1408,6 +1409,16 @@ auditField="email"
                   status={s('telefone_solicitante')}
                   auditField="telefone_solicitante"
                 />
+                <div className="field-inline">
+                  <label className="text-[9px] font-bold uppercase tracking-wide leading-none text-zinc-600 shrink-0">
+                    Carnê
+                  </label>
+                  <CarneImpressoPopover
+                    value={app.carne_impresso ?? false}
+                    onChange={(v) => queueApp('carne_impresso', v)}
+                    disabled={readOnly}
+                  />
+                </div>
               </div>
               <div className="sm:col-span-2 lg:col-span-4 grid grid-cols-4 gap-2">
                 <AdobeField

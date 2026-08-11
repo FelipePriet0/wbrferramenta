@@ -57,6 +57,7 @@ import { AdobeTextarea } from '@/features/expanded-ficha/components/AdobeTextare
 import { AdobeCard } from '@/features/expanded-ficha/components/AdobeCard';
 import { AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
 import { ComoConheceuPopover, type ComoConheceuOption } from '@/features/expanded-ficha/components/ComoConheceuPopover';
+import { CarneImpressoPopover } from '@/features/expanded-ficha/components/CarneImpressoPopover';
 import { listComoConheceuOptions } from '@/services/comoConheceu';
 import { AuditProvider } from '@/features/expanded-ficha/AuditContext';
 import {
@@ -1107,6 +1108,16 @@ auditField="email"
                 status={s('telefone_solicitante')}
                 auditField="telefone_solicitante"
               />
+              <div className="field-inline w-full sm:w-[110px] sm:shrink-0">
+                <label className="text-[9px] font-bold uppercase tracking-wide leading-none text-zinc-600 shrink-0">
+                  Carnê
+                </label>
+                <CarneImpressoPopover
+                  value={app.carne_impresso ?? false}
+                  onChange={(v) => queueApp('carne_impresso', v)}
+                  disabled={readOnly}
+                />
+              </div>
             </div>
 
             {/* Bloco destacado: Plano / Vencimento / SVA */}
