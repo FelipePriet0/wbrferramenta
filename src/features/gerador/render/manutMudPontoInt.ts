@@ -10,6 +10,14 @@
  */
 import { fraseFormaPag, maiusc, nucleoCustoDrop, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_MUD_PONTO_INT } from '../catalogo/manutMudPontoInt';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-mud-ponto-int';
+
+// `frase` e não `f`: `f` já é o contato do solicitante (nome do bundle).
+const frase = fraseDe(SLUG, MANUT_MUD_PONTO_INT);
 
 /** Separador de blocos — 35 asteriscos. (legado: HA) */
 const HA = '*'.repeat(35);
@@ -20,12 +28,11 @@ function espacos(n: number): string {
 }
 
 /** Indicação técnica fixa da O.S. (legado: tGe) */
-const INDICACAO_TECNICA =
-  'TECNICO: EFETUAR A MUDANCA DE PONTO DOS EQUIPAMENTOS PARA O LOCAL ESPECIFICADO PELO CLIENTE, CASO SEJA POSSIVEL REAPROVEITAR CABO DROP USANDO A SOBRA E RECONECTORIZAR. SE NAO DER TAMANHO, SERA NECESSARIO A PASSAGEM DE UM NOVO CABEAMENTO PARA CONCLUIR O SERVICO. REALIZAR TESTES E AFERIR VELOCIDADE DO PLANO, TESTAR E APRESENTAR ABRANGENCIA DO WI-FI COM DISPOSITIVOS (CELULAR E NOTEBOOK) DO KIT DE TESTES DA EMPRESA E COM OS DISPOSITIVOS DA CLIENTE E APRESENTAR VARIACOES SE HOUVER. ATUALIZAR FIRMWARE DO ROTEADOR SE NECESSARIO. TEMPO ESTIMADO: 60 MIN.';
+const INDICACAO_TECNICA = () => frase('indicacaoTecnica');
 
 /** Envelope da O.S com separador + indicação técnica. (legado: XA) */
 function envelopeOS(corpo: string): string {
-  return `${corpo}\n\n${HA}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA}`;
+  return `${corpo}\n\n${HA}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 export function renderManutMudPontoInt(valores: Valores): SaidaOS {
@@ -62,22 +69,30 @@ export function renderManutMudPontoInt(valores: Valores): SaidaOS {
   // de pagamento — a explicação já carrega o custo e a frase diz só a forma.
   // Só aplica quando há valor; vazio mantém a redação original (fidelidade às
   // fixtures/legado). Núcleo compartilhado em `nucleoCustoDrop`.
+  const base = {
+    cliente: a, clienteCompleto: i, solicitante: s, solicitanteCompleto: o,
+    parente: c, cargo: l, canal: u, contato: d, contatoSolicitante: f,
+    sinalONU: p, motivo: h, ambienteAtual: g, ambienteNovo: amb, valor: v,
+    formaPag: y, formaPagFrase: fraseFormaPag(y), dataVisita: b, horaVisita: x,
+    protocolo: n.protocolo, bairro, tecnico: t,
+  };
+
   const pagouCliente = v
-    ? `${nucleoCustoDrop(v)} CLIENTE PAGARA ${fraseFormaPag(y)}`
-    : `CLIENTE PAGARA ${v} ${fraseFormaPag(y)}`;
+    ? `${nucleoCustoDrop(v)} ${frase('pagamentoCliente', base)}`
+    : frase('pagamentoClienteSemValor', base);
   const pagouSolSolicitou = v
-    ? `${nucleoCustoDrop(v)} ${s} SOLICITOU PAGAR ${fraseFormaPag(y)}`
-    : `${s} SOLICITOU PAGAR ${v} ${fraseFormaPag(y)}`;
+    ? `${nucleoCustoDrop(v)} ${frase('pagamentoSolicitouPagar', base)}`
+    : frase('pagamentoSolicitouPagarSemValor', base);
   const pagouSolEscolheu = v
-    ? `${nucleoCustoDrop(v)} ${s} ESCOLHEU PAGAR ${fraseFormaPag(y)}`
-    : `${s} ESCOLHEU PAGAR ${v} ${fraseFormaPag(y)}`;
+    ? `${nucleoCustoDrop(v)} ${frase('pagamentoEscolheuPagar', base)}`
+    : frase('pagamentoEscolheuPagarSemValor', base);
 
   // Linha de custo do Protocolo: explicação dos termos + formas de pagamento.
   const custoLinhaProto = v
-    ? `${nucleoCustoDrop(v)} VALOR PAGO NO ATO EM DINHEIRO, CARTAO OU PIX.`
-    : `VALOR DE ${v} A SER PAGO NO ATO EM DINHEIRO, CARTAO OU PIX.`;
+    ? `${nucleoCustoDrop(v)} ${frase('custoFormasPagamento')}`
+    : frase('custoSemValor', base);
 
-  const agenda = `MAN MUD PONTO INTERNO ${i} PROT:${n.protocolo} ${y} (${t}) - ${bairro}`;
+  const agenda = frase('agenda', base);
 
   const montar = (protoLinhas: string[], osCorpo: string): SaidaOS => ({
     protocolo: protoLinhas.join('\n'),
@@ -88,121 +103,121 @@ export function renderManutMudPontoInt(valores: Valores): SaidaOS {
   if (r === 'pessoa-juridica') {
     return montar(
       [
-        `${s} (${l}) ENTROU EM CONTATO POR ${u} (${d}) SOLICITANDO INFORMACOES SOBRE MUDANCA DE PONTO INTERNO`,
+        frase('aberturaPj', base),
         HA,
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${p}.`,
+        frase('statusOnu', base),
         HA,
-        `QUESTIONADO ${s} DISSE QUE "${h}".`,
+        frase('motivoCliente', { ...base, pessoa: s }),
         '',
-        `AMBIENTE ATUAL: ${g}`,
-        `NOVO AMBIENTE: ${amb}`,
+        frase('ambienteAtual', base),
+        frase('ambienteNovo', base),
         '',
         custoLinhaProto,
         espacos(4),
         HA,
         espacos(4),
-        `${s} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO ${fraseFormaPag(y)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${b} AS ${x} HRS.`,
+        frase('aceitePresencial', { ...base, pessoa: s }),
       ],
-      `${s} (${l}) SOLICITOU POR ${u} (${d}) MUDANCA DE PONTO INTERNO, RETIRAR EQUIPAMENTOS DE: ${g}, E REINSTALAR EM: ${amb}. MOTIVO: ${h}. ${pagouCliente}. AGENDADA PARA ${b} AS ${x} HORAS.`,
+      `${frase('osAberturaPj', base)} ${pagouCliente}. ${frase('osAgendada', base)}`,
     );
   }
 
   if (r === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${a} ENTROU EM CONTATO POR ${u} (${d}) SOLICITANDO INFORMACOES SOBRE MUDANCA DE PONTO INTERNO`,
+        frase('aberturaTitular', base),
         HA,
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${p}.`,
+        frase('statusOnu', base),
         HA,
-        `QUESTIONADO ${a} DISSE QUE "${h}".`,
+        frase('motivoCliente', { ...base, pessoa: a }),
         espacos(4),
-        `AMBIENTE ATUAL: ${g}`,
-        `NOVO AMBIENTE: ${amb}`,
+        frase('ambienteAtual', base),
+        frase('ambienteNovo', base),
         espacos(8),
         custoLinhaProto,
         espacos(4),
         HA,
         espacos(4),
-        `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO ${fraseFormaPag(y)}, ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+        frase('aceiteTitularAusente', base),
       ],
-      `${a} SOLICITOU POR ${u} (${d}) MUDANCA DE PONTO INTERNO, RETIRAR EQUIPAMENTOS DE: ${g}, E REINSTALAR EM: ${amb}. MOTIVO: ${h}. ${pagouCliente}. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+      `${frase('osAberturaTitular', base)} ${pagouCliente}. ${frase('osTitularAusente', base)}`,
     );
   }
 
   if (r === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) SOLICITANDO INFORMACOES SOBRE MUDANCA DE PONTO INTERNO`,
+        frase('aberturaTerceiro', base),
         '',
         HA,
         '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${p} SEM OSCILACAO.`,
+        frase('statusOnuSemOscilacao', base),
         '',
         HA,
         '',
-        `QUESTIONADO ${s} DISSE QUE "${h}".`,
+        frase('motivoCliente', { ...base, pessoa: s }),
         '',
-        `AMBIENTE ATUAL: ${g}`,
-        `NOVO AMBIENTE: ${amb}`,
+        frase('ambienteAtual', base),
+        frase('ambienteNovo', base),
         '',
         custoLinhaProto,
         '',
         HA,
         espacos(4),
-        `${s} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO ${fraseFormaPag(y)}.`,
+        frase('aceiteSemAcompanhante', base),
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+        frase('contatoAutorizaTerceiro', base),
       ],
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) SOLICITANDO MUDANCA DE PONTO INTERNO, RETIRAR EQUIPAMENTOS DE: ${g}, E REINSTALAR EM: ${amb}. MOTIVO: ${h}. ${pagouSolSolicitou}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+      `${frase('osAberturaTerceiro', base)} ${pagouSolSolicitou}. ${frase('contatoAutorizaTerceiro', base)}`,
     );
   }
 
   if (r === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) SOLICITANDO INFORMACOES SOBRE MUDANCA DE PONTO INTERNO`,
+        frase('aberturaTerceiro', base),
         '',
         HA,
         '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${p}.`,
+        frase('statusOnu', base),
         '',
         HA,
         '',
-        `QUESTIONADO ${s} DISSE QUE "${h}".`,
+        frase('motivoCliente', { ...base, pessoa: s }),
         '',
-        `AMBIENTE ATUAL: ${g}`,
-        `NOVO AMBIENTE: ${amb}`,
+        frase('ambienteAtual', base),
+        frase('ambienteNovo', base),
         '',
         custoLinhaProto,
         espacos(4),
         HA,
         espacos(4),
-        `${s} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO ${fraseFormaPag(y)}.`,
+        frase('aceiteSemAcompanhante', base),
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+        frase('contatoTitularAcompanhaProtocolo', base),
       ],
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) SOLICITANDO MUDANCA DE PONTO INTERNO, RETIRAR EQUIPAMENTOS DE: ${g}, E REINSTALAR EM: ${amb}. MOTIVO: ${h}. ${pagouSolEscolheu}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
+      `${frase('osAberturaTerceiro', base)} ${pagouSolEscolheu}. ${frase('contatoTitularAcompanhaOs', base)}`,
     );
   }
 
   // titular-solicita-titular-acompanha (padrão)
   return montar(
     [
-      `${a} ENTROU EM CONTATO POR ${u} (${d}) SOLICITANDO INFORMACOES SOBRE MUDANCA DE PONTO INTERNO`,
+      frase('aberturaTitular', base),
       HA,
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${p}.`,
+      frase('statusOnu', base),
       HA,
-      `QUESTIONADO ${a} DISSE QUE "${h}".`,
+      frase('motivoCliente', { ...base, pessoa: a }),
       '',
-      `AMBIENTE ATUAL: ${g}`,
-      `NOVO AMBIENTE: ${amb}`,
+      frase('ambienteAtual', base),
+      frase('ambienteNovo', base),
       '',
       custoLinhaProto,
       espacos(4),
       HA,
       espacos(4),
-      `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO ${fraseFormaPag(y)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${b} AS ${x} HRS.`,
+      frase('aceitePresencial', { ...base, pessoa: a }),
     ],
-    `${a} SOLICITOU POR ${u} (${d}) MUDANCA DE PONTO INTERNO, RETIRAR EQUIPAMENTOS DE: ${g}, E REINSTALAR EM: ${amb}. MOTIVO: ${h}. ${pagouCliente}. AGENDADA PARA ${b} AS ${x} HORAS.`,
+    `${frase('osAberturaTitular', base)} ${pagouCliente}. ${frase('osAgendada', base)}`,
   );
 }

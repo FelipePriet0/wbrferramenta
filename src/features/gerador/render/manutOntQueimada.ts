@@ -8,6 +8,17 @@
  */
 import { maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_ONT_QUEIMADA } from '../catalogo/manutOntQueimada';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-ont-queimada';
+
+// `frase` e não `f`: `f` já é o contato do solicitante (nome do bundle).
+const frase = fraseDe(SLUG, MANUT_ONT_QUEIMADA);
+
+/** Espaço final que o legado deixava na pergunta sobre intervenção. */
+const ESP = ' ';
 
 /** Separador de blocos deste modelo (legado: `wj` = "=".repeat(41)). */
 const SEP = '='.repeat(41);
@@ -59,79 +70,86 @@ export function renderManutOntQueimada(valores: Valores): SaidaOS {
     w = f;
   }
 
-  const T = b
-    ? 'CONCORDOU COM A VISITA E CASO HAJA COBRANCA OPTOU POR LANCAR O VALOR NA PROXIMA MENSALIDADE'
-    : `CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}`;
-  const E = `VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA O DIA ${dataVisita} ${horaVisita}`;
-  const D = `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E`;
+  const base = {
+    cliente: a, clienteCompleto: i, solicitanteExibido: S, pessoa: C,
+    solicitanteCompleto: o, parente: c, canal: u ?? '', contato: d,
+    contatoUsado: w ?? '', alarme: m, ont: h ?? '', formaPag: formaPag ?? '',
+    dataVisita: dataVisita ?? '', horaVisita: horaVisita ?? '',
+    protocolo: g ?? '', bairro: p, tecnico: t ?? '',
+    custoAgenda: b ? 'MENSALIDADE' : (formaPag ?? ''),
+  };
+
+  const T = b ? frase('aceiteMensalidade') : frase('aceiteNoAto', base);
+  const E = frase('agendamento', base);
+  const D = frase('contatoTitular', base);
 
   let O: string[];
   if (r === 'titular-solicita-terceiro-acompanha') {
     O = [
-      `${a} ${T}, ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`,
+      `${a} ${T}, ${frase('titularAusenteProtocolo', base)} ${E}.`,
     ];
   } else if (r === 'terceiro-solicita-terceiro-acompanha') {
     O = [
       `${s} ${T}.`,
       ``,
-      `${D} AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`,
+      `${D} ${frase('autorizouTerceiro', base)} ${E}.`,
     ];
   } else if (r === 'terceiro-solicita-titular-acompanha') {
     O = [
       `${s} ${T}.`,
       ``,
-      `${D} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${E}.`,
+      `${D} ${frase('titularAcompanha')} ${E}.`,
     ];
   } else {
-    O = [`${C} ${T}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. ${E}.`];
+    O = [`${C} ${T}, ${frase('acompanhaTecnico')} ${E}.`];
   }
 
   let k: string;
   if (r === 'titular-solicita-terceiro-acompanha') {
-    k = `${a} ${T}, ${a} NAO ESTARA PRESENTE MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`;
+    k = `${a} ${T}, ${frase('titularAusenteOs', base)} ${E}.`;
   } else if (r === 'terceiro-solicita-terceiro-acompanha') {
-    k = `${s} ${T}. ${D} AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`;
+    k = `${s} ${T}. ${D} ${frase('autorizouTerceiro', base)} ${E}.`;
   } else if (r === 'terceiro-solicita-titular-acompanha') {
-    k = `${s} ${T}. ${D} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${E}.`;
+    k = `${s} ${T}. ${D} ${frase('titularAcompanha')} ${E}.`;
   } else {
     k = `${C} ${T}. ${E}.`;
   }
 
   const protocolo = [
-    `${S} ENTROU EM CONTATO POR ${u} (${w}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    frase('abertura', base),
     ``,
     SEP,
     ``,
-    `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONT SEM SINAL (DYINGGASP).`,
+    frase('statusOnt'),
     ``,
     SEP,
     ``,
-    `QUESTIONADO, DISSE QUE O EQUIPAMENTO DE INTERNET NAO ESTA LIGANDO (${h}).`,
+    frase('relatoEquipamento', base),
     ``,
-    `REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ONT COM ${m} (SEM SINAL: DYINGGASP). ORIENTEI ${C} A DESCONECTAR O CABO DE ENERGIA DA ONT E RECONECTA-LO APOS 30 SEGUNDOS, FEITO, POREM, CONEXAO NAO RESTABELECEU.`,
+    frase('verificacaoEOrientacao', base),
     ``,
-    `PERGUNTEI A ${C} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+    frase('perguntaIntervencao', base) + ESP,
     ``,
     SEP,
     ``,
-    `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS.`,
+    frase('termosVisita'),
     ``,
     SEP,
     ``,
     ...O,
     ``,
-    `CLIENTE SEM DUVIDAS.`,
+    frase('semDuvidas'),
   ].join('\n');
 
-  const os = `${`${S} ENTROU EM CONTATO POR ${u} (${w}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, ${C} DISSE "QUE A ONT ESTA COM ${m}". REMOTAMENTE VERIFIQUEI QUE ONT ESTA DESCONECTADA/APAGADA. ORIENTEI ${C} A RETIRAR A FONTE DE ENERGIA DA TOMADA ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${C} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${k}`}
+  const os = `${frase('corpoOs', base)} ${k}
 
 ${SEP}
 
 INDICACAO TECNICA:
 
-${`TECNICO: CONFERIR A TOMADA, T , ETC. ONDE ESTA LIGADA ONT. CONFERIR FONTE DO EQUIPAMENTO E CONFERIR ONT (APARENCIA FISICA). SE NAO FOR PROBLEMAS NA TOMADA, NA FONTE E ONT ESTIVER SEM AVARIAS, SUBSTITUIR ${h} POR OUTRA SIMILAR. EFETUAR TESTES PADROES, FILMAR E FOTOGRAFAR. VERIFICAR ATUALIZACAO DO FIRMWARE DA ONT. CASO PROBLEMA SEJA NA TOMADA, T , FONTES OU ONT AVARIADA: FILMAR E ENCAMINHAR PARA SUPORTE QUE LIGARA DE IMEDIATO PARA CLIENTE. SANAR TODAS AS DUVIDAS DE ${C}. TEMPO ESTIMADO 40 MINUTOS.`}`;
+${frase('indicacaoTecnica', base)}`;
 
-  const agenda = `MAN TROCA ONT ${i} PROT:${g} ${b ? 'MENSALIDADE' : formaPag} (${t}) - ${p}`;
+  const agenda = frase('agenda', base);
 
   return { protocolo, os, agenda };
 }

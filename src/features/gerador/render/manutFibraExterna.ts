@@ -8,6 +8,16 @@
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_FIBRA_EXTERNA } from '../catalogo/manutFibraExterna';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-fibra-externa';
+
+const f = fraseDe(SLUG, MANUT_FIBRA_EXTERNA);
+
+/** Espaço final que o legado deixava em várias linhas do Protocolo. */
+const ESP = ' ';
 
 /** Separador curto de blocos — 19 asteriscos. (legado: Ik) */
 const SEP = '*'.repeat(19);
@@ -22,17 +32,16 @@ function esp(n: number): string {
 }
 
 /** Indicação técnica da O.S (fibra externa). (legado: NUe) */
-const INDICACAO_TECNICA =
-  'TECNICO: VERIFICAR CONECTOR E DROP INTERNO E EXTERNO, ACHANDO O PROBLEMA APRESENTAR AO CLIENTE. SENDO DEFEITO EM QUE E DE OBRIGACAO DO PROVEDOR, TOMAR PROVIDENCIAS E RESTITUIR SEM CUSTO. SENDO OCASIONADO PEDIR AUTORIZACAO DO CLIENTE PARA CORRIGIR E RESTABELECER LEMBRANDO DO VALOR A SER COBRADO NO ATO. APOS RESTITUIR INTERNET, DAR EXPLICACOES SOBRE PLANO, WI-FI E DISPOSITIVOS, CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO, ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADO. TEMPO ESTIMADO 60 MIN.';
+const INDICACAO_TECNICA = () => f('indicacaoTecnica');
 
 /** Envelope padrão da O.S. (legado: Wk) */
 function envelopeOS(): string {
-  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA}`;
+  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 /** Envelope da O.S do fluxo terceiro-terceiro. (legado: LUe) */
 function envelopeOSTerceiro(): string {
-  return `${SEP_OS}\n\nINDICACAO TECNICA:\n${esp(20)}\n${INDICACAO_TECNICA}`;
+  return `${SEP_OS}\n\nINDICACAO TECNICA:\n${esp(20)}\n${INDICACAO_TECNICA()}`;
 }
 
 /** Bloco da CTO no fim da O.S. (legado: IUe) */
@@ -72,10 +81,17 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
 
   const b = blocoCto(ctoType, maiusc(v.cto), maiusc(v.passante));
 
+  const base = {
+    cliente: titular, clienteCompleto: nomeCompleto, solicitante: solNome,
+    solicitanteCompleto: solCompleto, parente, cargo, canal, contato,
+    contatoSolicitante: contatoSol, onu: onuNome, equipamento: onu, motivo,
+    formaPag, formaPagFrase: fraseFormaPag(formaPag), dataVisita, horaVisita,
+    protocolo: v.protocolo ?? '', bairro: maiusc(v.bairro), tecnico: operador,
+    alarme: prefixoAlarme(v.alarme ?? ''),
+  };
+
   const agenda = (() => {
-    let s = `MAN ${prefixoAlarme(v.alarme ?? '')} ${nomeCompleto} PROT:${
-      v.protocolo ?? ''
-    } ${formaPag} (${operador}) - ${maiusc(v.bairro)}`;
+    let s = f('agenda', base);
     if (ctoType === 'CTOI') s += ' *CTOI*';
     return s;
   })();
@@ -89,29 +105,29 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
   if (tipo === 'pessoa-juridica') {
     return montar(
       [
-        `${solNome} (${cargo}) ENTROU EM CONTATO POR ${canal} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        f('aberturaPj', base),
         '',
         SEP,
         esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+        f('statusOnu', base),
         esp(4),
         SEP,
         esp(4),
-        `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${solNome} DISSE QUE "${motivo}", E FICOU SEM ACESSO A INTERNET.`,
+        f('relatoSemSolicitante', { ...base, pessoa: solNome }),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${onu} ESTA DESCONECTADO/APAGADA.`,
-        '',
-        SEP,
-        '',
-        `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+        f('verificacaoEquipamento', base),
         '',
         SEP,
         '',
-        `${solNome} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('custoVisitaCondicional'),
         '',
-        `CLIENTE SEM DUVIDAS.`,
+        SEP,
+        '',
+        f('aceitePjPresencial', base),
+        '',
+        f('semDuvidas'),
       ],
-      `${solNome} (${cargo}) ENTROU EM CONTATO POR ${canal} (${contato}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${motivo}", E FICOU SEM ACESSO A INTERNET. PERGUNTEI SOBRE A ${onuNome}, E CLIENTE DISSE QUE ESTA COM LUZ VERMELHA ACESA. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ${onuNome} APAGADA. INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${solNome} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${solNome} AUTORIZOU VISITA E PAGARA ${fraseFormaPag(formaPag)} NO ATO. VISITA AGENDADA PARA ${dataVisita} AS ${horaVisita} HRS.` +
+      `${f('osAberturaPj', base)} ${f('trocaDropSemCusto', { ...base, pessoa: solNome })} ${f('osPagouPj', base)}` +
         b +
         envelopeOS(),
     );
@@ -120,31 +136,31 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        f('aberturaTerceiro', base),
         '',
         SEP,
         esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+        f('statusOnu', base),
         esp(4),
         SEP,
         esp(4),
-        `QUESTIONADO, ${solNome} DISSE QUE A ${onuNome} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${solNome} DISSE QUE "${motivo}", E FICOU SEM ACESSO A INTERNET.`,
+        f('relatoComSolicitante', base),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${onu} ESTA DESCONECTADO/APAGADA.`,
+        f('verificacaoEquipamento', base),
         esp(4),
-        `PERGUNTEI A ${solNome} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+        f('perguntaIntervencao', { ...base, pessoa: solNome }) + ESP,
         '',
         SEP_LONGO,
         '',
-        `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+        f('custoVisitaCondicional'),
         esp(4),
         SEP_LONGO,
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solCompleto} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${titular} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('aceiteTerceiroAutorizado', base),
         '',
-        `CLIENTE SEM DUVIDAS.`,
+        f('semDuvidas'),
       ],
-      `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${motivo}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${onuNome} APAGADA. INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${solNome} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${solNome} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solCompleto} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.` +
+      `${f('osAberturaTerceiro', base)} ${f('trocaDropSemCusto', { ...base, pessoa: solNome })} ${f('osFechoTerceiroAutorizado', base)}` +
         b +
         envelopeOSTerceiro(),
     );
@@ -153,29 +169,29 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        f('aberturaTerceiro', base),
         '',
         SEP,
         esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+        f('statusOnu', base),
         esp(4),
         SEP,
         esp(4),
-        `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${solNome} DISSE QUE "${motivo}", E FICOU SEM ACESSO A INTERNET.`,
+        f('relatoSemSolicitante', { ...base, pessoa: solNome }),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${onu} ESTA DESCONECTADO/APAGADA.`,
+        f('verificacaoEquipamento', base),
         esp(4),
         SEP,
         '',
-        `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+        f('custoVisitaCondicional'),
         esp(4),
         SEP,
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${titular} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('aceiteTitularAcompanha', base),
         '',
-        `CLIENTE SEM DUVIDAS.`,
+        f('semDuvidas'),
       ],
-      `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${motivo}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${onuNome} APAGADA. INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${solNome} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${solNome} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.` +
+      `${f('osAberturaTerceiro', base)} ${f('trocaDropSemCusto', { ...base, pessoa: solNome })} ${f('osFechoTitularAcompanha', base)}` +
         b +
         envelopeOS(),
     );
@@ -184,29 +200,29 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        f('aberturaTitular', base),
         esp(20),
         SEP,
         esp(24),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+        f('statusOnu', base),
         esp(24),
         SEP,
         esp(24),
-        `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${titular} DISSE QUE "${motivo}", E FICOU SEM ACESSO A INTERNET.`,
+        f('relatoSemSolicitante', { ...base, pessoa: titular }),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${onu} ESTA DESCONECTADO/APAGADA. `,
+        f('verificacaoEquipamento', base) + ESP,
         esp(24),
         SEP,
         esp(20),
-        `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+        f('custoVisitaCondicional'),
         esp(20),
         SEP,
         esp(20),
-        `${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. ${titular} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solCompleto} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('aceiteTitularAusente', base),
         '',
-        `CLIENTE SEM DUVIDAS.`,
+        f('semDuvidas'),
       ],
-      `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${motivo}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${onuNome} APAGADA. INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${titular} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. ${titular} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solCompleto} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.` +
+      `${f('osAberturaTitular', base)} ${f('trocaDropSemCusto', { ...base, pessoa: titular })} ${f('aceiteTitularAusente', base)}` +
         b +
         envelopeOS(),
     );
@@ -215,33 +231,33 @@ export function renderManutFibraExterna(valores: Valores): SaidaOS {
   // titular-solicita-titular-acompanha (padrão)
   return montar(
     [
-      `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaTitular', base),
       '',
       SEP,
       '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+      f('statusOnu', base),
       '',
       SEP,
       '',
-      `QUESTIONADO, DISSE QUE "${motivo}".`,
-      `PERGUNTEI SOBRE A ${onu} E CLIENTE DISSE QUE ESTA COM LUZ VERMELHA ACESA.`,
+      f('relatoSimples', base),
+      f('perguntaLuzVermelha', base),
       '',
-      `REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. `,
-      `ORIENTEI ${titular} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+      f('verificacaoOnu', base) + ESP,
+      f('orientacaoReinicio', base) + ESP,
       '',
-      `PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO.`,
+      f('perguntaIntervencao', { ...base, pessoa: titular }),
       '',
       SEP,
       '',
-      `INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${titular} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS.`,
+      f('trocaDropSemCusto', { ...base, pessoa: titular }),
       esp(4),
       SEP,
       esp(4),
-      `${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+      f('aceiteTitularSozinho', base),
       '',
-      `CLIENTE SEM DUVIDAS.`,
+      f('semDuvidas'),
     ],
-    `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) E DISSE QUE "${motivo}", E FICOU SEM CONEXAO COM A INTERNET. PERGUNTEI SOBRE A ${onu} E CLIENTE DISSE QUE ESTA COM LUZ VERMELHA ACESA. PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE SERA NECESSARIO VISITA TECNICA E CASO SEJA NECESSARIO A TROCA DO CABO DROP, IRIAMOS TROCAR DO POSTE ATE OS EQUIPAMENTOS INTERNOS E POR SE TRATAR DE UM PROBLEMA NAO OCASIONADO PELO CLIENTE A MANUTENCAO NAO TEM CUSTO. ${titular} TAMBEM FOI INFORMADO QUE CASO PROBLEMA IDENTIFICADO FOI OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.` +
+    `${f('osAberturaTitularSemConexao', base)} ${f('trocaDropSemCusto', { ...base, pessoa: titular })} ${f('aceiteTitularSozinho', base)}` +
       b +
       envelopeOS(),
   );

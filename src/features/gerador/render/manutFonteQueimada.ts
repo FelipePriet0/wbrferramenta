@@ -7,6 +7,17 @@
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_FONTE_QUEIMADA } from '../catalogo/manutFonteQueimada';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-fonte-queimada';
+
+// `frase` e não `f`: `f` já é o protocolo aqui (nome herdado do bundle).
+const frase = fraseDe(SLUG, MANUT_FONTE_QUEIMADA);
+
+/** Espaço final que o legado deixava em três linhas do Protocolo. */
+const ESP = ' ';
 
 /** Separador dos blocos do Protocolo — 19 asteriscos. (legado: oj) */
 const SEP = '*'.repeat(19);
@@ -34,6 +45,12 @@ export function renderManutFonteQueimada(valores: Valores): SaidaOS {
   const p = maiusc(n.formaPag);
   const op = n.operadorPrimeiroNome;
 
+  const base = {
+    cliente: a, clienteCompleto: i, canal: o, contato: s, sinalONU: c,
+    bairro: l, equip: u, dataVisita: d, protocolo: f, formaPag: p,
+    formaPagFrase: fraseFormaPag(p), tecnico: op,
+  };
+
   let m = '';
   let h = '';
   let g = '';
@@ -43,68 +60,72 @@ export function renderManutFonteQueimada(valores: Valores): SaidaOS {
     const e = maiusc(n.proced);
     const periodo = n.periodo;
     m = [
-      `${a} ENTROU EM CONTATO POR ${o} (${s}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('abertura', base),
       ``,
       SEP,
       ESP4,
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E FIBRA COM SINAL: ${c}.`,
+      frase('statusFibra', base),
       ESP4,
       SEP,
       ESP4,
-      `QUESTIONADO, DISSE QUE UM DOS EQUIPAMENTOS DE INTERNET NAO ESTA LIGANDO.`,
+      frase('relatoEquipamento'),
       ESP4,
-      `REMOTAMENTE VERIFIQUEI QUE A ONU/ONT ESTA DESCONECTADA. `,
+      frase('verificacaoRemota') + ESP,
       `${e}`,
       ESP4,
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+      frase('perguntaIntervencao', base) + ESP,
       ESP4,
       SEP,
       ``,
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA, E QUE DEVIDO ${a} TER CONECTADO O EQUIPAMENTO A ENERGIA CONFORME RECOMENDACAO DA WBR, ESTARA ISENTO DO CUSTO DA FONTE DE ENERGIA. FICANDO APENAS A COBRANCA DO DESLOCAMENTO DO TECNICO COM O CUSTO DE R$50,00.`,
+      frase('isencaoFonteLoja', base),
       ``,
-      `SUGERI TAMBEM, A POSSIBILIDADE DE COMPARECER A LOJA E RETIRAR UMA NOVA FONTE DE ENERGIA SEM NENHUM CUSTO ADICIONAL.`,
+      frase('sugestaoLoja'),
       ``,
       SEP,
       ESP4,
-      `${a} OPTOU POR VIR A LOJA, DISSE QUE VIRA NO DIA ${d} NO PERIODO DA ${periodo}.`,
+      frase('optouLoja', { ...base, periodo }),
       ``,
-      `CLIENTE SEM DUVIDAS.`,
+      frase('semDuvidas'),
     ].join('\n');
-    g = `*${i}*\nCLIENTE VIRA NA LOJA RECOLHER UMA ${u} SEM CUSTOS. EM ${d} NO PERIODO DA ${periodo}.\nPROTOCOLO Nº:${f}`;
+    g = [
+      `*${i}*`,
+      frase('avisoLojaCorpo', { ...base, periodo }),
+      frase('avisoLojaProtocolo', base),
+    ].join('\n');
     rotuloAgenda = 'Encaminhar no grupo LEIA';
   } else {
     const e = maiusc(n.proced);
     const r = n.horaVisita;
     m = [
-      `${a} ENTROU EM CONTATO POR ${o} (${s}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('abertura', base),
       ``,
       SEP,
       ESP4,
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU COM SINAL: ${c}.`,
+      frase('statusOnu', base),
       ESP4,
       SEP,
       ESP4,
-      `QUESTIONADO, DISSE QUE UM DOS EQUIPAMENTOS DE INTERNET NAO ESTA LIGANDO.`,
+      frase('relatoEquipamento'),
       ``,
-      `REMOTAMENTE VERIFIQUEI QUE A ONU/ONT ESTA DESCONECTADA. `,
+      frase('verificacaoRemota') + ESP,
       `${e}.`,
       ESP4,
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+      frase('perguntaIntervencao', base) + ESP,
       ESP4,
       SEP,
       ESP4,
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE DEVIDO ${a} CONECTAR O EQUIPAMENTO A ENERGIA CONFORME RECOMENDACAO DA WBR, ESTARA ISENTO DO CUSTO DA FONTE DE ENERGIA. FICANDO APENAS A COBRANCA DO DESLOCAMENTO DO TECNICO COM O CUSTO DE R$50,00.`,
+      frase('isencaoFonteVisita', base),
       ESP4,
       SEP,
       ESP4,
-      `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E PAGARA ${fraseFormaPag(p)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${d} A PARTIR DE ${r} HRS.`,
+      frase('aceiteVisita', { ...base, horaVisita: r }),
       ``,
-      `CLIENTE SEM DUVIDAS.`,
+      frase('semDuvidas'),
     ].join('\n');
-    const osCorpo = `${a} ENTROU EM CONTATO POR ${o} (${s}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE A ONU/ONT ESTA COM TODAS AS LUZES APAGADAS". REMOTAMENTE VERIFIQUEI QUE A ONU/ONT ESTA DESCONECTADA/APAGADA. ${e}. PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA REALIZAR A SUBSTITUICAO DA FONTE QUEIMADA POR OUTRA DE MODELO SIMILAR. VISITA TECNICA POSSUI O CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TECNICO. ${a} CONCORDOU E PAGARA NO ATO COM ${p}. VISITA AGENDADA PARA ${d} A PARTIR DE ${r} HRS.`;
-    const tecnico = `TECNICO: CONFERIR EQUIPAMENTOS E PARTE ELETRICA. SUBSTITUIR FONTE QUEIMADA E RESTABELECER ACESSO A INTERNET. CASO HAJA EQUIPAMENTOS DANIFICADOS POR MAL USO ENTRAR EM CONTATO COM O SUPORTE DE IMEDIATO PARA TRATATIVA. TESTAR REDE WI-FI E DISPOSITIVOS LIGADOS POR CABOS, CONFERIR NAVEGACAO IPv6 E AFERIR O PLANO CONTRATADO. SANAR TODAS AS DUVIDAS DE ${a}, COLHER ASSINATURA DA ORDEM DE SERVICO E RECEBER SERVICO.`;
+    const osCorpo = frase('corpoOs', { ...base, proced: e, horaVisita: r });
+    const tecnico = frase('indicacaoTecnica', base);
     h = `${osCorpo}\n\n${SEP_OS}\n\nINDICACAO TECNICA:\n\n${tecnico}`;
-    g = `MAN TROCA FONTE ${i} PROT:${f} ${p} (${op}) - ${l}`;
+    g = frase('agenda', base);
   }
 
   const saida =

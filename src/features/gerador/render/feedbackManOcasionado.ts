@@ -10,6 +10,14 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_MAN_OCASIONADO } from '../catalogo/feedbackManOcasionado';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-man-ocasionado';
+
+const frase = fraseDe(SLUG, FEEDBACK_MAN_OCASIONADO);
+
 export function renderFeedbackManOcasionado(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -25,16 +33,18 @@ export function renderFeedbackManOcasionado(valores: Valores): SaidaOS {
   const u = t.formaPagamento || '';
   const d = t.obs?.trim() || '';
 
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, reparoLocal: o, energia: s, valorOS: l, formaPagFrase: fraseFormaPag(u), obs: d };
+
   const f = [
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `${n} CONFIRMOU ACESSO NORMALIZADO APÓS REPARO ${o} REALIZADO.`,
-    `CLIENTE ORIENTADO A NÃO MANUSEAR EQUIPAMENTOS/FIBRA, POIS EM CASO DE DANO, É GERADO O VALOR DO REFERIDO EQUIPAMENTO/DESLOCAMENTO.`,
-    `EQUIPAMENTO LIGADO EM ${s}.`,
+    frase('feedbackRealizado', base),
+    frase('acessoNormalizado', base),
+    frase('orientacaoNaoManusear'),
+    frase('equipamentoLigado', base),
   ];
-  if (c === 'sim') f.push(`O.S COM CUSTO DE R$${l} PAGO ${fraseFormaPag(u)}.`);
-  else f.push(`O.S SEM CUSTO.`);
-  f.push(`CLIENTE SEM DUVIDAS.`);
-  if (d) f.push('', `OBS: ${d}`);
+  if (c === 'sim') f.push(frase('osComCusto', base));
+  else f.push(frase('osSemCusto'));
+  f.push(frase('semDuvidas'));
+  if (d) f.push('', frase('observacao', base));
 
   return { protocolo: f.join('\n'), os: '' };
 }

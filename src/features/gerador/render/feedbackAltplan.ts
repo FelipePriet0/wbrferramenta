@@ -9,6 +9,14 @@
 import { maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_ALTPLAN } from '../catalogo/feedbackAltplan';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-altplan';
+
+const frase = fraseDe(SLUG, FEEDBACK_ALTPLAN);
+
 export function renderFeedbackAltplan(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -34,42 +42,44 @@ export function renderFeedbackAltplan(valores: Valores): SaidaOS {
   const b = t.valorOS || '';
   const x = t.obs?.trim() || '';
 
-  const S = [`FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`];
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, plano: o, modeloRoteador: c, aparelho: d, marcaModelo: f, velocidade: p, wifiCabo: m, caboTec: h, wifiTec: g, energia: v, valorOS: b, obs: x };
+
+  const S = [frase('feedbackRealizado', base)];
 
   if (s === 'sim') {
-    S.push(`${n} CONFIRMOU A TROCA DO ROTEADOR E CONFIRMOU A ALTERAÇÃO DO PLANO PARA: ${o}.`);
+    S.push(frase('confirmouComTroca', base));
   } else {
-    S.push(`${n} CONFIRMOU A ALTERAÇÃO DO PLANO PARA: ${o}. ROTEADOR INSTALADO: ${c}.`);
+    S.push(frase('confirmouSemTroca', base));
   }
 
   S.push(
-    `${n} CONFIRMOU QUE FORAM REALIZADOS TESTES DE AFERIÇÃO DA VELOCIDADE, ORIENTAÇÃO DE COBERTURA WI-FI E REDE 2.4G E 5.8G.`,
+    frase('testesRealizados', base),
   );
 
   if (l === 'sim') {
-    S.push(`${n} DISPENSOU OS TESTES EM SEUS DISPOSITIVOS PESSOAIS.`);
+    S.push(frase('dispensouTestes', base));
   } else {
     if (u === 'sim') {
-      S.push(`${n} POSSUI EQUIPAMENTO QUE AFERE A BANDA (${d} ${f} AFERIU ${p}MB VIA ${m}).`);
+      S.push(frase('possuiEquipamento', base));
     } else {
-      S.push(`${n} NÃO POSSUI APARELHO COMPATÍVEL COM A VELOCIDADE CONTRATADA (${d} ${f} AFERIU ${p}MB VIA ${m}).`);
+      S.push(frase('naoPossuiEquipamento', base));
     }
     S.push(
-      `NOTEBOOK DO TÉCNICO VIA CABO DE REDE AFERIU ${h}MEGA E ${g}MEGA VIA WI-FI CONECTADO NA REDE 5G.`,
+      frase('aferricaoNotebook', base),
     );
   }
 
-  S.push(`EQUIPAMENTOS INSTALADOS: ${v}.`);
+  S.push(frase('equipamentosInstalados', base));
 
   if (y === 'sim') {
-    S.push(`O.S COM O CUSTO DE R$${b}`);
+    S.push(frase('osComCusto', base));
   } else {
-    S.push(`O.S. SEM CUSTOS.`);
+    S.push(frase('osSemCusto'));
   }
 
-  S.push(`CLIENTE SEM DUVIDAS.`);
+  S.push(frase('semDuvidas'));
 
-  if (x) S.push(`OBS: ${x}`);
+  if (x) S.push(frase('observacao', base));
 
   return { protocolo: '', os: S.join('\n') };
 }

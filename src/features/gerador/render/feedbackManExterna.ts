@@ -10,6 +10,14 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_MAN_EXTERNA } from '../catalogo/feedbackManExterna';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-man-externa';
+
+const f = fraseDe(SLUG, FEEDBACK_MAN_EXTERNA);
+
 export function renderFeedbackManExterna(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -24,17 +32,19 @@ export function renderFeedbackManExterna(valores: Valores): SaidaOS {
   const e = t.energia || '';
   const l = t.obs?.trim() || '';
 
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, energia: e, valorOS: s, formaPagFrase: fraseFormaPag(c) };
+
   const u = [
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `CLIENTE CONFIRMOU ACESSO NORMALIZADO APÓS REPARO TÉCNICO REALIZADO.`,
-    `EQUIPAMENTO LIGADO EM ${e}.`,
+    f('feedbackRealizado', base),
+    f('acessoNormalizado'),
+    f('equipamentoLigado', base),
   ];
   if (o === 'sim') {
-    u.push(`O.S TEVE O CUSTO DE R$${s} PAGO ${fraseFormaPag(c)}.`);
+    u.push(f('osComCusto', base));
   } else {
-    u.push(`O.S SEM CUSTO.`);
+    u.push(f('osSemCusto'));
   }
-  u.push(`CLIENTE SEM DÚVIDA.`);
+  u.push(f('semDuvida'));
   if (l) u.push(``, l);
 
   return { protocolo: '', os: u.join('\n') };

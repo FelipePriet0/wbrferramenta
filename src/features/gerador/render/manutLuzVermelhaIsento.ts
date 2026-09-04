@@ -9,6 +9,17 @@
  */
 import { linhas, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_LUZ_VERMELHA_ISENTO } from '../catalogo/manutLuzVermelhaIsento';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-luz-vermelha-isento';
+
+// `frase` e não `f`: `f` já é a ONU em maiúsculo (nome herdado do bundle).
+const frase = fraseDe(SLUG, MANUT_LUZ_VERMELHA_ISENTO);
+
+/** Espaço final que o legado deixava em várias linhas do Protocolo. */
+const ESP = ' ';
 
 /** Separador do fluxo titular-solicita-titular (default) — 28 iguais. (legado: dA) */
 const SEP_MAN = '='.repeat(28);
@@ -21,8 +32,7 @@ const SEP_OS = '='.repeat(39);
  */
 const SEP_TERCEIRO = '='.repeat(28);
 /** Bloco "INFORMEI QUE É NECESSÁRIA VISITA..." do Protocolo. (legado: mA) */
-const INFO_VISITA =
-  'INFORMEI QUE E NECESSARIA VISITA TECNICA PARA VERIFICAR E RESTABELECER A CONEXAO. VISITA ISENTA MEDIANTE EQUIPAMENTOS EMPRESTADOS ESTAREM EM PERFEITO ESTADO DE CONSERVACAO. INSTALACAO REALIZADA DENTRO DE 07 DIAS.';
+const INFO_VISITA = () => frase('visitaIsenta');
 
 /** Espaços em branco. (legado: vA) */
 function esp(n: number): string {
@@ -31,7 +41,7 @@ function esp(n: number): string {
 
 /** Indicação técnica da O.S. (legado: yA) */
 function indicacaoTecnica(nome: string): string {
-  return `TECNICO: VERIFICAR CONECTOR, DROP INTERNO E EXTERNO. ACHANDO O PROBLEMA, TOMAR PROVIDENCIAS E RESTITUIR SEM CUSTO. APOS TERMINO DO SERVICO, PERGUNTA A ${nome} (OU QUEM ESTIVER ACOMPANHADO SERVICO) SE HA NECESSIDADE DE QUALQUER OUTRA ORIENTACAO SOBRE A INTERNET.`;
+  return frase('indicacaoTecnica', { pessoa: nome });
 }
 
 /** Bloco CTO da O.S (após o corpo). (legado: SWe) */
@@ -52,7 +62,13 @@ function descreveAlarme(v: unknown): string {
 /** Linha da agenda de instalação. (legado: CWe) */
 function montaAgenda(v: Valores, clienteMaiusc: string, operador: string): string {
   const tipo = v.ctoType || 'CTOE';
-  let linha = `DENTRO DOS 7 DIAS // MAN ${descreveAlarme(v.alarme ?? '')} ${clienteMaiusc} PROT:${v.protocolo ?? ''} ISENTO (${operador}) - ${maiusc(v.bairro)}`;
+  let linha = frase('agenda', {
+    alarme: descreveAlarme(v.alarme ?? ''),
+    clienteCompleto: clienteMaiusc,
+    protocolo: v.protocolo ?? '',
+    tecnico: operador,
+    bairro: maiusc(v.bairro),
+  });
   if (tipo === 'CTOI') linha += ' *CTOI*';
   return linha;
 }
@@ -82,6 +98,11 @@ export function renderManutLuzVermelhaIsento(valores: Valores): SaidaOS {
   const cto = ctoBloco(v.ctoType || 'CTOE', maiusc(v.cto), maiusc(v.passante)); // _
   const agenda = montaAgenda(v, clienteMaiusc, operador); // v
 
+  const base = {
+    cliente: a, solicitante: s, parente: c, canal: l, onu: p,
+    equipamento: f, alarme: m,
+  };
+
   const montar = (protoLinhas: string[], osTexto: string): SaidaOS => ({
     protocolo: linhas(...protoLinhas),
     os: osTexto,
@@ -91,20 +112,20 @@ export function renderManutLuzVermelhaIsento(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTerceiro', { ...base, contatoUsado: d }),
         '', SEP_TERCEIRO, esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${p} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(4), SEP_TERCEIRO, esp(4),
-        `QUESTIONADO, DISSE QUE A ${p} ESTA COM ${m}.`,
+        frase('alarmeRelato', base),
         esp(4),
-        `REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. `,
-        `ORIENTEI ${s} A DESCONECTAR EQUIPAMENTO (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+        frase('verificacaoRemota', base) + ESP,
+        frase('orientacaoReinicio', { ...base, pessoa: s }) + ESP,
         esp(4),
-        `PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-        '', SEP_TERCEIRO, '', INFO_VISITA, '', SEP_TERCEIRO, '', '',
+        frase('perguntaIntervencao', { ...base, pessoa: s }) + ESP,
+        '', SEP_TERCEIRO, '', INFO_VISITA(), '', SEP_TERCEIRO, '', '',
         `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${c}) ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.`,
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${p} ESTA COM ${m}". REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. ORIENTEI ${s} A DESCONECTAR EQUIPAMENTO (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIA VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E RESTABELECER A CONEXAO. VISITA ISENTA MEDIANTE EQUIPAMENTOS EMPRESTADOS ESTAREM EM PERFEITO ESTADO DE CONSERVACAO E INSTALACAO REALIZADA DENTRO DE 07 DIAS. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${c}) ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.` +
         cto +
@@ -115,20 +136,20 @@ export function renderManutLuzVermelhaIsento(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTerceiro', { ...base, contatoUsado: d }),
         '', SEP_TERCEIRO, esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${p} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(4), SEP_TERCEIRO, esp(4),
-        `QUESTIONADO, DISSE QUE A ${p} ESTA COM ${m}.`,
+        frase('alarmeRelato', base),
         esp(4),
-        `REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. `,
+        frase('verificacaoRemota', base) + ESP,
         `ORIENTEI ${s} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
         esp(4),
-        `PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-        esp(4), SEP_TERCEIRO, '', INFO_VISITA, '', SEP_TERCEIRO, '',
+        frase('perguntaIntervencao', { ...base, pessoa: s }) + ESP,
+        esp(4), SEP_TERCEIRO, '', INFO_VISITA(), '', SEP_TERCEIRO, '',
         `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.`,
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${p} ESTA COM ${m}". REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. ORIENTEI ${s} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIA VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E RESTABELECER A CONEXAO. VISITA ISENTA MEDIANTE EQUIPAMENTOS EMPRESTADOS ESTAREM EM PERFEITO ESTADO DE CONSERVACAO E INSTALACAO REALIZADA DENTRO DE 07 DIAS. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.` +
         cto +
@@ -139,20 +160,20 @@ export function renderManutLuzVermelhaIsento(valores: Valores): SaidaOS {
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${a} ENTROU EM CONTATO POR ${l} (${u}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTitular', { ...base, contatoUsado: u }),
         esp(20), SEP_TERCEIRO, esp(24),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${p} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(24), SEP_TERCEIRO, esp(24),
-        `QUESTIONADO, DISSE QUE A ${p} ESTA COM ${m}.`,
+        frase('alarmeRelato', base),
         esp(24),
-        `REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. `,
+        frase('verificacaoRemota', base) + ESP,
         `ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
         esp(24),
-        `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-        esp(24), SEP_TERCEIRO, esp(20), INFO_VISITA, esp(20), SEP_TERCEIRO, esp(20),
+        frase('perguntaIntervencao', { ...base, pessoa: a }) + ESP,
+        esp(24), SEP_TERCEIRO, esp(20), INFO_VISITA(), esp(20), SEP_TERCEIRO, esp(20),
         `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solFull} (${c}) A ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.`,
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       `${a} ENTROU EM CONTATO POR ${l} (${u}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${p} ESTA COM ${m}". REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIA VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E RESTABELECER A CONEXAO. VISITA ISENTA MEDIANTE EQUIPAMENTOS EMPRESTADOS ESTAREM EM PERFEITO ESTADO DE CONSERVACAO E INSTALACAO REALIZADA DENTRO DE 07 DIAS. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solFull} (${c}) A ACOMPANHAR E ASSINAR O.S. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.` +
         cto +
@@ -163,20 +184,20 @@ export function renderManutLuzVermelhaIsento(valores: Valores): SaidaOS {
   // titular-solicita-titular-acompanha (default)
   return montar(
     [
-      `${a} ENTROU EM CONTATO POR ${l} (${u}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('aberturaTitular', { ...base, contatoUsado: u }),
       '', SEP_MAN, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${p} SEM SINAL.`,
+      frase('statusOnu', base),
       esp(8), SEP_MAN, esp(8),
-      `QUESTIONADO, DISSE QUE A ${p} ESTA COM ${m}.`,
+      frase('alarmeRelato', base),
       esp(8),
-      `REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. `,
+      frase('verificacaoRemota', base) + ESP,
       `ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
       esp(8),
       `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO.`,
-      esp(8), SEP_MAN, '', INFO_VISITA, esp(8), SEP_MAN, esp(8),
+      esp(8), SEP_MAN, '', INFO_VISITA(), esp(8), SEP_MAN, esp(8),
       `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA. DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${h} ${g} HRS.`,
       '',
-      'CLIENTE SEM DUVIDAS.',
+      frase('semDuvidas'),
     ],
     `${a} ENTROU EM CONTATO POR ${l} (${u}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${p} ESTA COM ${m}". REMOTAMENTE VERIFIQUEI QUE ${p} ESTA DESCONECTADO/APAGADA. ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${f}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIA VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E RESTABELECER A CONEXAO. VISITA ISENTA MEDIANTE EQUIPAMENTOS EMPRESTADOS ESTAREM EM PERFEITO ESTADO DE CONSERVACAO E INSTALACAO REALIZADA DENTRO DE 07 DIAS. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ${g} HRS.` +
       cto +

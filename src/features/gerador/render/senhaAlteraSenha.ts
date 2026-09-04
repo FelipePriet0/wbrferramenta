@@ -10,6 +10,14 @@
 import { maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { SENHA_ALTERA_SENHA } from '../catalogo/senhaAlteraSenha';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'senha-altera-senha';
+
+const frase = fraseDe(SLUG, SENHA_ALTERA_SENHA);
+
 /** Separador de asteriscos no Protocolo. (legado: oqe) */
 const SEP = '*'.repeat(23);
 /** Solicitação: só SSID. (legado: sM) */
@@ -39,24 +47,26 @@ export function renderSenhaAlteraSenha(valores: Valores): SaidaOS {
   const oComDe = o === SO_SSID_SENHA ? 'SSID E DA SENHA' : o;
   const oComA = o === SO_SSID_SENHA ? 'SSID E A SENHA' : o;
 
+  const base = { cliente: n, canal: r, contato: i, sinalONU: a, solicitacao: o, atualSSID: s, novoSSID: c, atualSenha: l, novaSenha: u };
+
   const p = [
-    `${n} ENTROU EM CONTATO POR ${r} (${i}) E SOLICITOU A ALTERAÇÃO DA ${oComDe} DO WI-FI.`,
+    frase('abertura', { ...base, oQue: oComDe }),
     '',
     SEP,
     '',
-    `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO, E ONU ${a} SEM OSCILAÇÃO.`,
+    frase('statusOnu', base),
     '',
     SEP,
     '',
-    `QUESTIONADO, ${n} DESEJA ALTERAR A ${oComA} DE SUA REDE WI-FI POR MOTIVO PESSOAL.`,
+    frase('motivoPessoal', { ...base, oQue: oComA }),
     '    ',
   ];
 
-  if (mostraSSID) p.push(`SSID ATUAL: ${s}`, `SSID NOVA: ${c}`);
+  if (mostraSSID) p.push(frase('ssidAtual', base), frase('ssidNova', base));
   if (mostraSSID && mostraSenha) p.push('');
-  if (mostraSenha) p.push(`SENHA ATUAL: ${l}`, `SENHA NOVA: ${u}`);
+  if (mostraSenha) p.push(frase('senhaAtual', base), frase('senhaNova', base));
   const alterado = o === SO_SSID_SENHA ? 'ALTERADAS' : 'ALTERADA';
-  p.push('', '    ', `${o} ${alterado} COM SUCESSO E ${n} CONFIRMOU CONEXÃO.`);
+  p.push('', '    ', frase('confirmacao', { ...base, alterado }));
 
   return { protocolo: p.join('\n'), os: '' };
 }

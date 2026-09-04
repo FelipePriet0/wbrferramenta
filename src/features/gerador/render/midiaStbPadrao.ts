@@ -12,6 +12,17 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { MIDIA_STB_PADRAO } from '../catalogo/midiaStbPadrao';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'midia-stb-padrao';
+
+const frase = fraseDe(SLUG, MIDIA_STB_PADRAO);
+
+/** Espaços finais que o legado deixava numa linha. */
+const ESP2 = '  ';
+
 /** Separador de asteriscos entre a O.S e a indicação técnica. (legado: JKe) */
 const SEP = '*'.repeat(35);
 const esp = (n: number) => ' '.repeat(n);
@@ -34,16 +45,22 @@ export function renderMidiaStbPadrao(valores: Valores): SaidaOS {
   const protocoloNum = String(e.protocolo ?? '');
   const operador = String(e.operadorPrimeiroNome ?? '');
 
-  const cabecalho = `${n} SOLICITOU POR ${r} (${i}) A COMPRA DE STB (CONVERSOR DE MÍDIA)`;
+  const base = {
+    cliente: n, clienteCompleto: clienteUpper, canal: r, contato: i,
+    valorSTB: a, parcelas, pagFrase, formaPag: fp, formaPagFrase: fraseFormaPag(fp),
+    dataVisita, horaVisita, protocolo: protocoloNum, bairro, tecnico: operador,
+  };
+
+  const cabecalho = frase('cabecalho', base);
 
   const texto = [
-    `${cabecalho} POIS CONTRATOU PLANO DE INTERNET QUE TEM SERVIÇO DE CANAIS VIA STREAMING GRATUITAMENTE, MAS NÃO TEM SMART-TV (TV COM ACESSO À INTERNET) VALOR DO STB: ${a}, PGM EM ${parcelas} ${pagFrase} A SER PAGO NO INÍCIO DA INSTALAÇÃO. COM O APARELHO (STB) CLIENTE TERÁ ACESSO AO SERVIÇO DE STREAMING QUE TEM NOME DE WBR TV, E TAL SERVIÇO É GRATUITO ENQUANTO CLIENTE FOR ASSINANTE E ADIMPLENTE DO SERVIÇO DE INTERNET WBR COM O PLANO CONTRATADO QUE POSSUI TAL BENEFÍCIO, E NÃO SENDO MAIS, NÃO HAVERÁ DEVOLUÇÃO DO EQUIPAMENTO (STB) NEM RESTITUIÇÃO DO VALOR PAGO. VISITA TÉCNICA ISENTA DE CUSTOS AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HORAS.`,
+    `${cabecalho} ${frase('osCorpo', base)}`,
     ``,
     SEP,
     ``,
-    `INDICAÇÃO TÉCNICA:`,
+    frase('rotuloIndicacao'),
     ``,
-    `TÉCNICO: INSTALAR STB (SETUP BOX), CONECTA-LO POR CABO DE REDE SE ESTE FOR FICAR JUNTO DO ROTEADOR OU PELA REDE WI-FI (SEM FIO) E EXPLICAR DIFERENÇAS DESTA CONEXÃO. CONFIGURAR USUÁRIO E SENHA DO SERVIÇO DE STREAMING, ORIENTAR SOBRE UTILIZAÇÃO (DO SERVIÇO E DO EQUIPAMENTO/STB). TEMPO ESTIMADO 30 MINUTOS.`,
+    frase('indicacaoTecnica'),
   ].join(`\n`);
 
   const protocolo = [
@@ -51,30 +68,30 @@ export function renderMidiaStbPadrao(valores: Valores): SaidaOS {
     ``,
     SEP,
     ``,
-    `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO.`,
+    frase('statusCliente'),
     ``,
     SEP,
     esp(8),
-    `QUESTIONADO, ${n} INFORMOU QUE CONTRATOU PLANO DE INTERNET QUE TEM SERVIÇO DE CANAIS VIA STREAMING GRATUITAMENTE, MAS NÃO TEM SMART-TV (TV COM ACESSO À INTERNET).  `,
+    frase('motivoCompra', base) + ESP2,
     ``,
     SEP,
     esp(8),
-    `VALOR DO STB: ${a}, PGM EM ${parcelas} ${pagFrase}.`,
+    frase('valorAparelho', base),
     ``,
-    `PAGAMENTO PODE SER REALIZADO EM DINHEIRO, PIX OU CARTÃO.`,
+    frase('formasPagamento'),
     esp(8),
     SEP,
     esp(8),
-    `INFORMEI QUE É NECESSÁRIO VISITA TÉCNICA (ISENTA DE CUSTOS) PARA INSTALAÇÃO DO APARELHO STB (CONVERSOR DE MÍDIA)`,
+    frase('visitaIsenta'),
     ``,
     SEP,
     esp(8),
-    `INFORMEI A ${n} QUE UMA VEZ QUE REALIZAR A COMPRA DO STB, O MESMO PASSA A SER SEU, NÃO HAVENDO DEVOLUÇÃO DO EQUIPAMENTO (STB) NEM RESTITUIÇÃO DO VALOR PAGO. ${n} CONCORDOU COM OS TERMOS DA VISITA E PAGARÁ O STB ${fraseFormaPag(fp)}. VISITA TÉCNICA ISENTA DE CUSTOS AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HORAS.`,
+    frase('semDevolucao', base),
     esp(4),
-    `GARANTIA DO APARELHO ADQUIRIDO É DE 90 DIAS PARA DEFEITOS DE FABRICAÇÃO.`,
+    frase('garantia'),
   ].join(`\n`);
 
-  const agenda = `COMPRA STB ${clienteUpper} PROT:${protocoloNum} ${fp} (${operador}) - ${bairro}`;
+  const agenda = frase('agenda', base);
 
   return { protocolo, os: texto, agenda };
 }

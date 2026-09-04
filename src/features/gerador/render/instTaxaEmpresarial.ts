@@ -7,6 +7,14 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { INST_TAXA_EMPRESARIAL } from '../catalogo/instTaxaEmpresarial';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'inst-taxa-empresarial';
+
+const frase = fraseDe(SLUG, INST_TAXA_EMPRESARIAL);
+
 /**
  * Modos do solicitante — os 4 tipos do legado (builder VXe: WN/OXe/GN/KN).
  * O sujeito muda quando é TERCEIRO quem solicita; o fecho muda entre o TITULAR
@@ -18,8 +26,7 @@ const TERCEIRO_AUTORIZA = 'terceiro-autoriza'; // GN — terceiro solicita, titu
 const TERCEIRO_ACOMPANHA = 'terceiro-acompanha'; // KN — terceiro solicita, titular acompanha
 
 /** Texto de O.S fixo (legado: IZe). */
-const OS_TEXTO =
-  'INSTALAR OS EQUIPAMENTOS EM LOCAL DE CONCORDÂNCIA DO CLIENTE, HABILITAR/ATIVAR PLANO ESCOLHIDO. CONFIGURAR REDE WI-FI, PADRONIZAR COM "NOME DO CLIENTE_WBR", SOLICITAR ESCOLHA DA SENHA. CONECTAR TODOS DISPOSITIVOS QUE APRESENTAREM, REALIZAR TESTES DA FUNCIONALIDADE DA INTERNET, AFERIR PLANO COM DISPOSITIVOS DO CLIENTE E OUTROS QUE ESTIVEREM NO LOCAL, FOTOGRAFAR, FILMAR, COMPARAR E EXPLICAR. TESTAR ABRANGÊNCIA DA WI-FI E EXPLICAR SOBRE COBERTURA. CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN. BAIXAR E INSTALAR OS APPS QUE FAZEM PARTE DO PLANO ESCOLHIDO, TANTO NOS TELEFONES E TVS QUE POSSUÍREM COMPATIBILIDADE PARA FUNCIONAMENTO E NÃO HAVENDO DAR EXPLICAÇÕES. COLHER ASSINATURAS, ENTREGAR VIA DO CONTRATO E CARNÊ DE PAGAMENTO.';
+const OS_TEXTO = () => frase('indicacaoTecnica');
 
 const CANAIS_COM_CONTATO = ['VIA LIGAÇÃO', 'VIA WHATSAPP'];
 
@@ -80,7 +87,7 @@ export function renderInstTaxaEmpresarial(valores: Valores): SaidaOS {
       ? `${proprietario} ACOMPANHARÁ INSTALAÇÃO.`
       : `${proprietario} ASSINOU CONTRATO DIGITALMENTE E AUTORIZOU ${solicitante} (${parente}) A ACOMPANHAR INSTALAÇÃO.`;
 
-  const protocolo = `${quemSolicitou} SOLICITOU ${canalTexto} A INSTALAÇÃO DE INTERNET PARA O ENDEREÇO CITADO NA O.S, PLANO DE ACESSO: ${planoAcesso}; VENCIMENTO: DIA ${vencimento} DO MÊS; VIGÊNCIA DO CONTRATO: 12 MESES. INSTALAÇÃO AGENDADA PARA ${dataVisita} ${horaVisita}. ${acompanhamento} TAXA DE INSTALAÇÃO/ATIVAÇÃO: ${taxa} EM ${parcelas}, ${formaPagFrase}.`;
+  const protocolo = `${frase('protocolo', { sujeito: quemSolicitou, canal: canalTexto, plano: planoAcesso, vencimento: vencimento, dataVisita: dataVisita, horaVisita: horaVisita })} ${acompanhamento} ${frase('taxaInstalacao', { taxa: taxa, parcelas, formaPagFrase })}`;
 
-  return { protocolo, os: OS_TEXTO };
+  return { protocolo, os: OS_TEXTO() };
 }

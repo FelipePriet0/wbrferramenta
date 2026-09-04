@@ -10,6 +10,14 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_STB_ROKU } from '../catalogo/feedbackStbRoku';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-stb-roku';
+
+const frase = fraseDe(SLUG, FEEDBACK_STB_ROKU);
+
 export function renderFeedbackStbRoku(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -28,23 +36,25 @@ export function renderFeedbackStbRoku(valores: Valores): SaidaOS {
   const d = t.formaPagamento || '';
   const f = t.obs?.trim() || '';
 
-  const linhaEnergia = energia === 'TOMADA' ? `${o} LIGADO NA TOMADA (${energiaDetalhe}).` : `${o} LIGADO NA TV.`;
-  const formaCompra = parcelas ? `PARCELADO EM ${maiusc(parcelas)}` : 'À VISTA';
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, aparelho: o, wifiCabo: s, energiaDetalhe, valorAparelho, parcelas: maiusc(parcelas), formaPagFrase: fraseFormaPag(d), obs: f };
+
+  const linhaEnergia = energia === 'TOMADA' ? frase('ligadoNaTomada', base) : frase('ligadoNaTv', base);
+  const formaCompra = parcelas ? frase('parcelado', base) : frase('aVista');
 
   const p = [
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `${n} CONFIRMOU INSTALAÇÃO E CONFIGURAÇÃO DO APARELHO ${o}.`,
-    `APARELHO CONECTADO VIA ${s}.`,
+    frase('feedbackRealizado', base),
+    frase('confirmouInstalacao', base),
+    frase('conexaoAparelho', base),
     linhaEnergia,
   ];
   if (l === 'sim') {
-    p.push(`APP MZTV INSTALADO E CONFIGURADO NO APARELHO ${o}.`);
+    p.push(frase('appInstalado', base));
   }
   p.push(
-    `O.S DE INSTALAÇÃO ISENTA. ${o} ADQUIRIDO POR ${valorAparelho} ${formaCompra}, PAGO ${fraseFormaPag(d)}.`,
-    `CLIENTE SEM DUVIDAS`,
+    frase('compraEIsencao', { ...base, formaCompra }),
+    frase('semDuvidas'),
   );
-  if (f) p.push(``, `OBS: ${f}`);
+  if (f) p.push(``, frase('observacao', base));
 
   return { protocolo: '', os: p.join('\n') };
 }

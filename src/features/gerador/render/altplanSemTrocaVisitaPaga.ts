@@ -14,6 +14,18 @@ import {
   type Valores,
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_SEM_TROCA_VISITA_PAGA } from '../catalogo/altplanSemTrocaVisitaPaga';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-sem-troca-visita-paga';
+
+// Chamado `frase` e não `f`: este arquivo já usa `f` para o contato do
+// solicitante (nome herdado do bundle minificado).
+const frase = fraseDe(SLUG, ALTPLAN_SEM_TROCA_VISITA_PAGA);
+
+/** Espaço final que o legado deixava na linha de acesso aos apps. */
+const ESP = ' ';
 
 /** Separador de bloco do protocolo (legado: BAR de 14 asteriscos). */
 const BAR = '**************';
@@ -22,8 +34,7 @@ const BAR = '**************';
 const VVe = '***********************************';
 
 /** Bloco de indicação técnica padrão (legado: JVe). */
-const JVe =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO.  FAZER TESTE DA BANDA CONTRATADA.  PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. COLHER ASSINATURAS (O.S E CONTRATO), ENTREGAR DOCUMENTAÇÃO (VIAS DO CLIENTE), RECOLHER CARNÊ ANTIGO.';
+const JVe = () => frase('indicacaoTecnica');
 
 interface DadosPlano {
   motivo: string;
@@ -40,16 +51,16 @@ function IO(abertura: string, sinal: string, m: DadosPlano): string[] {
     '',
     BAR,
     '    ',
-    `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+    frase('statusOnu', { sinal }),
     '    ',
     BAR,
-    `QUESTIONADO, CLIENTE DISSE QUE "${m.motivo}".`,
+    frase('motivoCliente', { ...m }),
     '',
-    `PLANO ATUAL: ${m.planoAtual} CONTRATADO EM ${m.dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${m.roteador}`,
+    frase('planoAtual', { ...m }),
     '',
-    `PLANO SOLICITADO: ${m.planoEscolhido}`,
+    frase('planoSolicitado', { ...m }),
     '',
-    'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
+    frase('acesso') + ESP,
     '',
     '',
     BAR,
@@ -59,7 +70,7 @@ function IO(abertura: string, sinal: string, m: DadosPlano): string[] {
 
 /** Linha de compatibilidade + desejo de visita (legado: LO). */
 function LO(nome: string, roteador: string): string {
-  return `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA. PORÉM, ${nome} DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DOS APLICATIVOS. O TÉCNICO REALIZARÁ OS TESTES DE ABRANGÊNCIA, QUALIDADE E VELOCIDADE, SANAR TODAS AS DÚVIDAS QUE ${nome} POSSA TER, NO QUAL ESSA VISITA POSSUI UM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TÉCNICO, ESTE VALOR A SER PAGO NO ATO EM DINHEIRO, PIX OU CARTÃO.`;
+  return frase('desejaVisitaPaga', { pessoa: nome, roteador });
 }
 
 /** Envolve a O.S com o rodapé de indicação técnica (legado: FO). */
@@ -70,7 +81,7 @@ ${VVe}
 
 INDICAÇÃO TÉCNICA:
 
-${JVe}`;
+${JVe()}`;
 }
 
 /** Transforma o Protocolo para o modo ofertado (legado: WD). */
@@ -130,8 +141,15 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
   // gerador — sem operador, o slot some (fixtures do legado geradas sem `t`).
   const t = maiusc(n.operadorPrimeiroNome ?? '');
   const ref = t ? ` (${t})` : '';
-  const agenda = `ALT PLANO ${i} PROT:${proto} ${v}${ref} - ${p}`;
+  const agenda = frase('agenda', { clienteCompleto: i, protocolo: proto, formaPag: v, operador: ref, bairro: p });
   const ofertado = String(n.origem ?? 'padrao') === 'ofertado';
+
+  const base = {
+    titular: a, solicitante: s, solicitanteCompleto: o, autorizado: c, parente: l,
+    canal: u, contato: d, contatoSolicitante: f, bairro: p, sinal: y,
+    dataVisita: h, horaVisita: g, protocolo: proto, formaPag: v,
+    formaPagFrase: fraseFormaPag(v), clienteCompleto: i, ...m,
+  };
 
   const montar = (protoLinhas: string[], osTexto: string): SaidaOS => {
     const protoTexto = protoLinhas.join('\n');
@@ -142,8 +160,8 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
     };
   };
 
-  const C = `${a} ENTROU EM CONTATO VIA ${u} (${d}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
-  const w = `${s} (${l} DE ${a}) ENTROU EM CONTATO VIA ${u} (${f}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
+  const C = frase('aberturaTitular', base);
+  const w = frase('aberturaTerceiro', base);
 
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
@@ -153,12 +171,12 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
         '',
         BAR,
         '',
-        `${a} CONCORDOU COM A VISITA E DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${c} (${l}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA COM CUSTO DE R$50,00 SERÁ PAGA NO ATO COM ${v}, AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ÀS ${g} HRS.`,
+        frase('aceiteTitularAutorizaTerceiro', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       FO(
-        `${a} SOLICITOU POR ${u} (${d}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${a} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. ${a} CONCORDOU COM A VISITA, DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${c} (${l}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA TÉCNICA COM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO E SERÁ PAGO NO ATO ${fraseFormaPag(v)}. AGENDADA (A PEDIDO DO CLIENTE) PARA ${h} ÀS ${g} HRS.`,
+        frase('osTitularAutorizaTerceiro', base),
       ),
     );
   }
@@ -171,12 +189,12 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
         '',
         BAR,
         '',
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${a} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA COM CUSTO DE R$50,00 SERÁ PAGA NO ATO COM ${v}, AGENDADA PARA O DIA ${h} ÀS ${g} HRS.`,
+        frase('aceiteTitularAcompanha', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       FO(
-        `${s} (${l} DE ${a}) ENTROU EM CONTATO VIA ${u} (${f}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${s} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA TÉCNICA COM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO E SERÁ PAGO NO ATO ${fraseFormaPag(v)}. AGENDADA PARA O DIA ${h} ÀS ${g} HRS.`,
+        frase('osTerceiroTitularAcompanha', base),
       ),
     );
   }
@@ -189,12 +207,12 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
         '',
         BAR,
         '',
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${l}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${a} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VISITA COM CUSTO DE R$50,00 SERÁ PAGA NO ATO COM ${v}, AGENDADA PARA O DIA ${h} ÀS ${g} HRS.`,
+        frase('aceiteTerceiroAutorizado', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
       FO(
-        `${s} (${l} DE ${a}) ENTROU EM CONTATO VIA ${u} (${f}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${s} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${l}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA TÉCNICA COM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO E SERÁ PAGO NO ATO ${fraseFormaPag(v)}. AGENDADA PARA ${h} ÀS ${g} HRS.`,
+        frase('osTerceiroAutorizado', base),
       ),
     );
   }
@@ -207,10 +225,10 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
       '',
       BAR,
       '',
-      `${a} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VISITA COM CUSTO DE R$50,00 SERÁ PAGA NO ATO COM ${v}, E FOI AGENDADA PARA O DIA ${h} ÀS ${g} HRS.`,
+      frase('aceiteTitularSozinho', base),
     ],
     FO(
-      `${a} SOLICITOU POR ${u} (${d}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${a} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. VISITA TÉCNICA COM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO E SERÁ PAGO NO ATO ${fraseFormaPag(v)}. AGENDADA PARA ${h} ÀS ${g} HRS.`,
+      frase('osTitular', base),
     ),
   );
 }

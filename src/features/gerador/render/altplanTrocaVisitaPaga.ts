@@ -14,6 +14,16 @@ import {
   type Valores,
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_TROCA_VISITA_PAGA } from '../catalogo/altplanTrocaVisitaPaga';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-troca-visita-paga';
+
+const f = fraseDe(SLUG, ALTPLAN_TROCA_VISITA_PAGA);
+
+/** Espaço final que o legado deixava na linha de acesso aos apps. */
+const ESP = ' ';
 
 /** origem === 'ofertado' (legado: UD / sVe). */
 function ehOfertado(v: Valores): boolean {
@@ -51,12 +61,10 @@ const SEP_BLOCO = '**************';
 const SEP_LONGO = '***********************************';
 
 /** Cláusula de renovação + necessidade de visita/troca de roteador (legado: MHe). */
-const CLAUSULA_RENOVACAO =
-  'RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. É NECESSÁRIA VISITA TÉCNICA PARA TROCA DO ROTEADOR WI-FI POR OUTRO COMPATÍVEL COM O NOVO PLANO ESCOLHIDO, TAL EQUIPAMENTO IRÁ SUBSTITUIR O ROTEADOR INSTALADO ANTERIORMENTE E PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO.';
+const CLAUSULA_RENOVACAO = () => f('clausulaRenovacao');
 
 /** Indicação técnica padrão (legado: NHe). */
-const INDICACAO_TECNICA =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO, FAZER TESTES ANTES E DEPOIS DA TROCA DO ROTEADOR. PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), SOLICITAR ESCOLHA DA SENHA, CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. COLHER ASSINATURAS (O.S E CONTRATO), ENTREGAR DOCUMENTAÇÃO (VIAS DO CLIENTE), RECOLHER CARNÊ ANTIGO.';
+const INDICACAO_TECNICA = () => f('indicacaoTecnica');
 
 interface DadosPlano {
   motivo: string;
@@ -78,16 +86,16 @@ function blocoProtocolo(
     '',
     SEP_BLOCO,
     '    ',
-    `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+    f('statusOnu', { sinal }),
     '    ',
     SEP_BLOCO,
-    `QUESTIONADO, CLIENTE DISSE QUE "${p.motivo}".`,
+    f('motivoCliente', { ...p }),
     '',
-    `PLANO ATUAL: ${p.planoAtual} CONTRATADO EM ${p.dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${p.roteador}`,
+    f('planoAtual', { ...p }),
     '',
-    `PLANO SOLICITADO: ${p.planoEscolhido}`,
+    f('planoSolicitado', { ...p }),
     '',
-    'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
+    f('acesso') + ESP,
     '',
     '',
     SEP_BLOCO,
@@ -101,7 +109,7 @@ function blocoProtocolo(
 
 /** Fecha a O.S com o separador longo + indicação técnica (legado: tk). */
 function fechaOS(corpo: string): string {
-  return `${corpo}\n\n${SEP_LONGO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA}`;
+  return `${corpo}\n\n${SEP_LONGO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 export function renderAltplanTrocaVisitaPaga(
@@ -124,8 +132,8 @@ export function renderAltplanTrocaVisitaPaga(
   const roteadorTxt = maiusc(v.roteador);
   const compat =
     maiusc(v.compativel) === 'NÃO'
-      ? `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteadorTxt}) NÃO É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA, E ASSIM SE FAZ NECESSÁRIO O AGENDAMENTO DE VISITA TÉCNICA PARA SUBSTITUIÇÃO DO ROTEADOR PARA UM MODELO COMPATÍVEL COM TAL VELOCIDADE, REALIZAR OS TESTES DE ABRANGÊNCIA, QUALIDADE, VELOCIDADE E SANAR TODAS AS DÚVIDAS QUE CLIENTE/USUÁRIOS POSSAM TER. ESSA VISITA POSSUI UM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TÉCNICO, A SER PAGO NO ATO EM DINHEIRO, PIX OU CARTÃO.`
-      : `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteadorTxt}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA, PORÉM FAREMOS O AGENDAMENTO DE VISITA TÉCNICA PARA INSTALAÇÃO DE UM NOVO ROTEADOR COM VERSÃO ATUALIZADA. APÓS INSTALADO, FAREMOS OS TESTES DE ABRANGÊNCIA, QUALIDADE, VELOCIDADE E SANAR TODAS AS DÚVIDAS QUE CLIENTE/USUÁRIOS POSSAM TER. ESSA VISITA POSSUI UM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TÉCNICO, A SER PAGO NO ATO EM DINHEIRO, PIX OU CARTÃO.`;
+      ? f('compatNao', { roteador: roteadorTxt })
+      : f('compatSim', { roteador: roteadorTxt });
   const roteadorSug = maiusc(v.roteadorSug);
   const formaPag = maiusc(v.formaPag);
   const p: DadosPlano = {
@@ -145,9 +153,15 @@ export function renderAltplanTrocaVisitaPaga(
   const operador = maiusc(v.operadorPrimeiroNome ?? '');
   const ref = operador ? ` (${operador})` : '';
   const sug = roteadorSug ? ` // ${roteadorSug}` : '';
-  const agenda = `ALT PLANO ${nomeCompleto} PROT:${protocolo} ${formaPag}${ref} - ${bairro}${sug}`;
-  const custoVisita = `VISITA TÉCNICA COM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO E SERÁ PAGO NO ATO ${fraseFormaPag(formaPag)}.`;
+  const agenda = f('agenda', { clienteCompleto: nomeCompleto, protocolo, formaPag, operador: ref, bairro, roteadorSug: sug });
+  const custoVisita = f('custoVisita', { formaPagFrase: fraseFormaPag(formaPag) });
   const ofertado = ehOfertado(v);
+
+  const base = {
+    titular: a, solicitante: s, solicitanteCompleto: o, autorizado, parente,
+    canal, contato, contatoSolicitante: contatoSol, sinal, dataVisita, horaVisita,
+    bairro, protocolo, clienteCompleto: nomeCompleto,     formaPag, formaPagFrase: fraseFormaPag(formaPag), ...p,
+  };
 
   const montar = (proto: string, osTexto: string): SaidaOS => ({
     protocolo: ofertado ? ofertadoProtocolo(proto) : proto,
@@ -155,21 +169,21 @@ export function renderAltplanTrocaVisitaPaga(
     agenda,
   });
 
-  const entradaTitular = `${a} ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
-  const entradaTerceiro = `${s} (${parente} DE ${a}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
-  const osTitular = `${a} SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${p.planoAtual}. PLANO ESCOLHIDO: ${p.planoEscolhido}. ${CLAUSULA_RENOVACAO}`;
-  const osTerceiro = `${s} (${parente} DE ${a}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${p.planoAtual}. PLANO ESCOLHIDO: ${p.planoEscolhido}. ${CLAUSULA_RENOVACAO}`;
+  const entradaTitular = f('aberturaTitular', base);
+  const entradaTerceiro = f('aberturaTerceiro', base);
+  const osTitular = `${f('osCabecalhoTitular', base)} ${CLAUSULA_RENOVACAO()}`;
+  const osTerceiro = `${f('osCabecalhoTerceiro', base)} ${CLAUSULA_RENOVACAO()}`;
 
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
         ...blocoProtocolo(entradaTitular, sinal, compat, p),
-        `${a} ESTÁ CIENTE DA RENOVAÇÃO DA FIDELIDADE POR 12 MESES E CONCORDOU COM OS TERMOS. OPTOU POR REALIZAR O PAGAMENTO ${fraseFormaPag(formaPag)}, NO ATO. ${a} DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTitularAutorizaTerceiro', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ].join('\n'),
       fechaOS(
-        `${osTitular} ${a} CONCORDOU COM A VISITA, DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTitular} ${f('osFechoTitularAutorizaTerceiro', base)} ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
       ),
     );
   }
@@ -178,12 +192,12 @@ export function renderAltplanTrocaVisitaPaga(
     return montar(
       [
         ...blocoProtocolo(entradaTerceiro, sinal, compat, p),
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${a} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${custoVisita} AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${f('aceiteTitularAcompanha', base)} ${custoVisita} AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ].join('\n'),
       fechaOS(
-        `${osTerceiro} POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${custoVisita} AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTerceiro} ${f('osFechoTitularAcompanha', base)} ${custoVisita} AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
       ),
     );
   }
@@ -192,12 +206,12 @@ export function renderAltplanTrocaVisitaPaga(
     return montar(
       [
         ...blocoProtocolo(entradaTerceiro, sinal, compat, p),
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${a} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. PAGAMENTO SERÁ REALIZADO ${fraseFormaPag(formaPag)}. VISITA AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTerceiroAutorizado', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ].join('\n'),
       fechaOS(
-        `${osTerceiro} POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${custoVisita} AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTerceiro} ${f('osFechoTerceiroAutorizado', base)} ${custoVisita} AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
       ),
     );
   }
@@ -206,7 +220,7 @@ export function renderAltplanTrocaVisitaPaga(
   return montar(
     [
       ...blocoProtocolo(entradaTitular, sinal, compat, p),
-      `${a} ESTÁ CIENTE DA RENOVAÇÃO DA FIDELIDADE POR 12 MESES E CONCORDOU COM OS TERMOS. OPTOU POR REALIZAR O PAGAMENTO ${fraseFormaPag(formaPag)}, NO ATO, E A VISITA TÉCNICA FOI AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS, DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO.`,
+      f('aceiteTitularSozinho', base),
     ].join('\n'),
     fechaOS(`${osTitular} ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`),
   );

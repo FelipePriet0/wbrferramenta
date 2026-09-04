@@ -12,6 +12,14 @@
 import type { Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { ENCE_PADRAO_CASA_EXTEND } from '../catalogo/encePadraoCasaExtend';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'ence-padrao-casa-extend';
+
+const f = fraseDe(SLUG, ENCE_PADRAO_CASA_EXTEND);
+
 /** Formata MAC em pares hex separados por ":" (legado: MP). */
 function formatMac(v: string): string {
   const hex = String(v ?? '')
@@ -55,13 +63,13 @@ export function renderEncePadraoCasaExtend(valores: Valores): SaidaOS {
   i += (t.sem_id_cto === 'SIM' ? 'CTO: XXXX' : `CTO: ${n('cto')}`) + '\n';
   i += `SINAL: ${n('sinal')}\n`;
   i += `PORTA: ${n('porta')}\n\n`;
-  i += `PASSAGEM DO CABO DROP: ${n('passagem_cabo')}.\n\n`;
+  i += f('passagemCabo', { passagemCabo: n('passagem_cabo') }) + `\n\n`;
 
   if (t.possui_passante === 'SIM') {
     i += 'POSSUI PASSANTE: SIM\n';
-    i += `MOTIVO DO PASSANTE: ${n('motivo_passante')}\n`;
-    i += `LOCAL DO PASSANTE: ${n('local_passante')}\n`;
-    i += `AUTORIZADO POR: ${n('autorizado_por')}\n`;
+    i += f('motivoPassante', { motivoPassante: n('motivo_passante') }) + `\n`;
+    i += f('localPassante', { localPassante: n('local_passante') }) + `\n`;
+    i += f('autorizadoPor', { autorizadoPor: n('autorizado_por') }) + `\n`;
   }
 
   i += `>>> EQUIPAMENTO ${n('descricao_ponto_primario')}.\n\n`;
@@ -69,11 +77,11 @@ export function renderEncePadraoCasaExtend(valores: Valores): SaidaOS {
   const localInst = t.local_instalacao ?? '';
   let fixacao = '';
   if (localInst === 'SOLTO EM CIMA DO MÓVEL') {
-    fixacao = `SOLTO EM CIMA DO MÓVEL: ${n('descricao_movel')}. MOTIVO DE NÃO FIXAR: ${n('motivo_nao_fixado')}. O CLIENTE ESTÁ CIENTE DOS RISCOS CASO O EQUIPAMENTO SOFRA DANO POR QUEDA.`;
+    fixacao = f('fixacaoSolto', { descricaoMovel: n('descricao_movel'), motivoNaoFixado: n('motivo_nao_fixado') });
   } else if (localInst === 'FIXADO NA PAREDE') {
-    fixacao = 'FIXADO NA PAREDE COM AUTORIZAÇÃO DO CLIENTE.';
+    fixacao = f('fixacaoParede');
   } else if (localInst === 'FIXADO NO MÓVEL') {
-    fixacao = `FIXADO NO MÓVEL COM ${n('tipo_fixacao_movel')} A PEDIDO DO CLIENTE.`;
+    fixacao = f('fixacaoMovel', { tipoFixacaoMovel: n('tipo_fixacao_movel') });
   }
 
   // "ONU" é feminino: a linha da ONU concorda em "SOLTA"/"FIXADA"; ROTEADOR e
@@ -114,16 +122,16 @@ export function renderEncePadraoCasaExtend(valores: Valores): SaidaOS {
   if (nomeEnergia) i += ` E ${nomeEnergia}`;
   i += '.\n';
 
-  const appWbr = n('app_wbr_celular');
-  if (appWbr) {
-    i += `APP WBR: CELULAR ${appWbr}`;
+  const appMznet = n('app_mznet_celular');
+  if (appMznet) {
+    i += f('appProvedor', { appCelular: appMznet });
     if (t.eh_assinante === 'NÃO') i += ` DE ${nomeCobertura} (${n('parentesco_cobertura')})`;
     else i += ` DO TITULAR ${nomeCobertura}`;
     i += ', ESTE APP CONCEDE ACESSO AOS BOLETOS E CONTRATO.\n';
   }
 
-  if (t.app_mztv === 'SIM') i += `APP MZTV OU CDNTV: ${n('dispositivo_mztv')}\n`;
-  else i += 'APP MZTV OU CDNTV: NÃO\n';
+  if (t.app_mztv === 'SIM') i += f('appTvSim', { dispositivoTv: n('dispositivo_mztv') }) + `\n`;
+  else i += f('appTvNao') + `\n`;
 
   // "Tomada"/"Extensão Elétrica" pedem o artigo ("NA TOMADA" / "NA EXTENSÃO
   // ELÉTRICA"); "T de Energia" fecha com "EM" ("EM T DE ENERGIA").
@@ -164,10 +172,10 @@ export function renderEncePadraoCasaExtend(valores: Valores): SaidaOS {
     }
   }
 
-  i += `DISPOSITIVOS CONECTADOS NA REDE: ${n('dispositivos_conectados')}\n`;
+  i += f('dispositivosConectados', { dispositivosConectados: n('dispositivos_conectados') }) + `\n`;
   if (t.pagamento === 'SIM') {
     i += `VALOR R$: ${r('valor_pagamento')} PAGAMENTO (X)SIM ( )NAO\n`;
-    i += `FORMA PAGAMENTO ${n('forma_pagamento')}\n`;
+    i += f('formaPagamento', { formaPagamento: n('forma_pagamento') }) + `\n`;
   } else {
     i += 'PAGAMENTO ( )SIM (X)NAO\n';
   }

@@ -14,6 +14,16 @@ import {
   type Valores,
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_SEM_TROCA_VISITA_ISENTA } from '../catalogo/altplanSemTrocaVisitaIsenta';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-sem-troca-visita-isenta';
+
+const f = fraseDe(SLUG, ALTPLAN_SEM_TROCA_VISITA_ISENTA);
+
+/** Espaço final que o legado deixava na linha de acesso aos apps. */
+const ESP = ' ';
 
 /** Separador do bloco ONU/plano no Protocolo — 14 asteriscos. (legado: _O) */
 const SEP_ONU = '*'.repeat(14);
@@ -51,21 +61,15 @@ function ofertadoOS(texto: string): string {
 }
 
 /** Bloco motivo + plano do Protocolo. (legado: TO) */
-function blocoPlano(m: {
-  motivo: string;
-  planoAtual: string;
-  planoEscolhido: string;
-  roteador: string;
-  dataContrato: string;
-}): string[] {
+function blocoPlano(m: Record<string, string>): string[] {
   return [
-    `QUESTIONADO, CLIENTE DISSE QUE "${m.motivo}".`,
+    f('motivoCliente', m),
     '',
-    `PLANO ATUAL: ${m.planoAtual} CONTRATADO EM ${m.dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${m.roteador}`,
+    f('planoAtual', m),
     '',
-    `PLANO SOLICITADO: ${m.planoEscolhido}`,
+    f('planoSolicitado', m),
     '',
-    'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
+    f('acesso') + ESP,
     '',
     '',
     SEP_ONU,
@@ -79,7 +83,7 @@ function blocoPlano(m: {
  */
 function indicacaoTecnica(duploEspaco: boolean): string {
   const sep = duploEspaco ? '  ' : ' ';
-  return `TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO. FAZER TESTE DA BANDA CONTRATADA.${sep}PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. COLHER ASSINATURAS (O.S E CONTRATO), ENTREGAR DOCUMENTAÇÃO (VIAS DO CLIENTE), RECOLHER CARNÊ ANTIGO.`;
+  return `${f('indicacaoTecnicaInicio')}${sep}${f('indicacaoTecnicaResto')}`;
 }
 
 /** Envelope da O.S com separador + indicação técnica. (legado: EO) */
@@ -117,12 +121,24 @@ export function renderAltplanSemTrocaVisitaIsenta(
   const sinal = descreveSinal(v);
   const ofertado = ehOfertado(v);
 
+  const base = {
+    titular, solicitante: solNome, solicitanteCompleto: solCompleto, autorizado,
+    parente, canal, contato, contatoSolicitante: contatoSol, sinal,
+    dataVisita, horaVisita, bairro, protocolo, clienteCompleto: nomeCompleto,
+    ...m,
+  };
+
   // O 2º arg do builder legado (`t`) era o primeiro nome do operador, impresso na
   // agenda como ` (${t})`. Aqui é lido de `valores.operadorPrimeiroNome`, igual aos
   // demais modelos do gerador — sem operador, o slot some (fixtures do legado).
   const operador = maiusc(v.operadorPrimeiroNome ?? '');
   const ref = operador ? ` (${operador})` : '';
-  const agenda = `ALT PLANO ${nomeCompleto} PROT:${protocolo} ISENTO${ref} - ${bairro}`;
+  const agenda = f('agenda', {
+    clienteCompleto: nomeCompleto,
+    protocolo,
+    operador: ref,
+    bairro,
+  });
 
   const montar = (protoLinhas: string[], osTexto: string): SaidaOS => {
     const proto = protoLinhas.join('\n');
@@ -136,19 +152,19 @@ export function renderAltplanSemTrocaVisitaIsenta(
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${titular} ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+        f('aberturaTitular', base),
         '', SEP_ONU, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+        f('statusOnu', base),
         '', SEP_ONU,
         ...blocoPlano(m),
-        `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${m.roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA. PORÉM, ${titular} DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DOS APLICATIVOS. O TÉCNICO REALIZARÁ OS TESTES DE ABRANGÊNCIA, QUALIDADE E VELOCIDADE, SANAR TODAS AS DÚVIDAS QUE ${titular} POSSA TER, NO QUAL ESSA VISITA É ISENTA DE CUSTOS.`,
+        f('desejaVisitaIsenta', { ...base, pessoa: titular }),
         '', SEP_ONU, '',
-        `${titular} CONCORDOU COM A VISITA E DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA ISENTA DE CUSTOS AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTitularAutorizaTerceiro', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       envelopeOS(
-        `${titular} SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${titular} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. ${titular} CONCORDOU COM A VISITA, DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('osTitularAutorizaTerceiro', base),
       ),
     );
   }
@@ -156,19 +172,19 @@ export function renderAltplanSemTrocaVisitaIsenta(
   if (tipo === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+        f('aberturaTerceiro', base),
         '', SEP_ONU, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+        f('statusOnu', base),
         '', SEP_ONU,
         ...blocoPlano(m),
-        `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${m.roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA. PORÉM, ${solNome} DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DOS APLICATIVOS. O TÉCNICO REALIZARÁ OS TESTES DE ABRANGÊNCIA, QUALIDADE E VELOCIDADE, SANAR TODAS AS DÚVIDAS QUE ${solNome} POSSA TER, NO QUAL ESSA VISITA É ISENTA DE CUSTOS.`,
+        f('desejaVisitaIsenta', { ...base, pessoa: solNome }),
         '', SEP_ONU, '',
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTitularAcompanha', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       envelopeOS(
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${solNome} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('osTerceiroTitularAcompanha', base),
       ),
     );
   }
@@ -176,19 +192,19 @@ export function renderAltplanSemTrocaVisitaIsenta(
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+        f('aberturaTerceiro', base),
         '', SEP_ONU, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+        f('statusOnu', base),
         '', SEP_ONU,
         ...blocoPlano(m),
-        `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${m.roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA. PORÉM, ${solNome} DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DOS APLICATIVOS. O TÉCNICO REALIZARÁ OS TESTES DE ABRANGÊNCIA, QUALIDADE E VELOCIDADE, SANAR TODAS AS DÚVIDAS QUE ${solNome} POSSA TER, NO QUAL ESSA VISITA É ISENTA DE CUSTOS.`,
+        f('desejaVisitaIsenta', { ...base, pessoa: solNome }),
         '', SEP_ONU, '',
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solCompleto} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VISITA AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTerceiroAutorizado', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       envelopeOS(
-        `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${solNome} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solCompleto} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA TÉCNICA ISENTA DE CUSTOS AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('osTerceiroAutorizado', base),
       ),
     );
   }
@@ -196,17 +212,17 @@ export function renderAltplanSemTrocaVisitaIsenta(
   // titular-solicita-titular-acompanha (padrão)
   return montar(
     [
-      `${titular} ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+      f('aberturaTitular', base),
       '', SEP_ONU, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+      f('statusOnu', base),
       '', SEP_ONU,
       ...blocoPlano(m),
-      `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${m.roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA. PORÉM, ${titular} DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DOS APLICATIVOS. O TÉCNICO REALIZARÁ OS TESTES DE ABRANGÊNCIA, QUALIDADE E VELOCIDADE, SANAR TODAS AS DÚVIDAS QUE ${titular} POSSA TER, NO QUAL ESSA VISITA É ISENTA DE CUSTOS.`,
+      f('desejaVisitaIsenta', { ...base, pessoa: titular }),
       '', SEP_ONU, '',
-      `${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VISITA AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+      f('aceiteTitularSozinho', base),
     ],
     envelopeOS(
-      `${titular} SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m.planoAtual}. PLANO ESCOLHIDO: ${m.planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${titular} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, PORÉM, DESEJA VISITA TÉCNICA PARA INSTRUÇÕES, AFERIÇÃO DO NOVO PLANO E INSTALAÇÃO DO APLICATIVO. VISITA TÉCNICA ISENTA DE CUSTOS AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+      f('osTitular', base),
       true,
     ),
   );

@@ -13,6 +13,13 @@ import {
   type Valores,
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_LUZ_VERMELHA_PJ } from '../catalogo/manutLuzVermelhaPj';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-luz-vermelha-pj';
+
+const f = fraseDe(SLUG, MANUT_LUZ_VERMELHA_PJ);
 
 /** Separador de blocos no Protocolo — 19 asteriscos. (legado: kk) */
 const SEP_PROTO = '*'.repeat(19);
@@ -24,8 +31,7 @@ const PK4 = ' '.repeat(4);
 const SP = ' ';
 
 /** Indicação técnica fixa da O.S. (legado: xUe) */
-const INDICACAO_TECNICA =
-  'TECNICO: VERIFICAR CONECTOR E DROP INTERNO E EXTERNO, ACHANDO O PROBLEMA APRESENTAR AO CLIENTE. SENDO DEFEITO EM QUE E DE OBRIGACAO DO PROVEDOR, TOMAR PROVIDENCIAS E RESTITUIR SEM CUSTO. SENDO OCASIONADO PEDIR AUTORIZACAO DO CLIENTE PARA CORRIGIR E RESTABELECER LEMBRANDO DO VALOR A SER COBRADO NO ATO. APOS RESTITUIR INTERNET, DAR EXPLICACOES SOBRE PLANO, WI-FI E DISPOSITIVOS, CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO, ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADO. TEMPO ESTIMADO 60 MIN.';
+const INDICACAO_TECNICA = () => f('indicacaoTecnica');
 
 /** Bloco CTO da O.S. (legado: wUe) */
 function blocoCto(ctoType: string, cto: string, passante: string): string {
@@ -52,36 +58,54 @@ export function renderManutLuzVermelhaPj(valores: Valores): SaidaOS {
   const cto = maiusc(n.cto);
   const passante = maiusc(n.passante);
 
-  const protocolo = `${sol} (${cargo}) ENTROU EM CONTATO POR ${n.canal ?? ''} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.
+  const base = {
+    solicitante: sol,
+    cargo,
+    clienteCompleto: razao,
+    canal: n.canal ?? '',
+    contato,
+    alarme,
+    onu: onuNome,
+    equipamentos: onu,
+    formaPag,
+    formaPagFrase: fraseFormaPag(formaPag),
+    dataVisita: n.dataVisita ?? '',
+    horaVisita: n.horaVisita ?? '',
+    protocolo: n.protocolo ?? '',
+    bairro,
+    tecnico: t,
+  };
+
+  const protocolo = `${f('abertura', base)}
 
 ${SEP_PROTO}
 ${PK4}
-CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.
+${f('statusOnu', base)}
 ${PK4}
 ${SEP_PROTO}
 ${PK4}
-QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM ${alarme}.
+${f('alarmeRelato', base)}
 ${PK4}
-REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA.${SP}
-ORIENTEI ${sol} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU.${SP}
+${f('verificacaoRemota', base)}${SP}
+${f('orientacaoReinicio', base)}${SP}
 ${PK4}
-PERGUNTEI A ${sol} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO.${SP}
-${PK4}
-${SEP_PROTO}
-${PK4}
-INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.
+${f('perguntaIntervencao', base)}${SP}
 ${PK4}
 ${SEP_PROTO}
 ${PK4}
-${sol} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${n.dataVisita ?? ''} AS ${n.horaVisita ?? ''} HRS.
+${f('termosVisita')}
+${PK4}
+${SEP_PROTO}
+${PK4}
+${f('aceite', base)}
 
-CLIENTE SEM DUVIDAS.`;
+${f('semDuvidas')}`;
 
-  const corpoOs = `${sol} (${cargo}) ENTROU EM CONTATO POR ${n.canal ?? ''} (${contato}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${onuNome} ESTA COM ${alarme}". REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. ORIENTEI ${sol} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${sol} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${sol} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${n.dataVisita ?? ''} AS ${n.horaVisita ?? ''} HRS.`;
+  const corpoOs = f('corpoOs', base);
 
-  const os = `${corpoOs}${blocoCto(ctoType, cto, passante)}${SEP_OS}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA}`;
+  const os = `${corpoOs}${blocoCto(ctoType, cto, passante)}${SEP_OS}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA()}`;
 
-  let agenda = `MAN ${alarme} ${razao} PROT:${n.protocolo ?? ''} ${formaPag} (${t}) - ${bairro}`;
+  let agenda = f('agenda', base);
   if (ctoType === 'CTOI') agenda += ` *CTOI*`;
 
   return { protocolo, os, agenda };

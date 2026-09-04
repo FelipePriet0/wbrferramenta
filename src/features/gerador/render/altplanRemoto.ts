@@ -14,14 +14,17 @@ import {
   soDigitos,
   type Valores,
 } from './helpers';
-import {
-  BENEFICIOS_APOS_ASSINATURA,
-  OPCAO_REMOTA,
-  OPCAO_VISITA_PAGA,
-  OPCOES_INTRO,
-  SEM_CUSTOS,
-  SEP,
-} from './frases';
+import { SEP } from './frases';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_REMOTO } from '../catalogo/altplanRemoto';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-remoto';
+
+const f = fraseDe(SLUG, ALTPLAN_REMOTO);
+
+/** Espaço final que o legado deixava na linha de acesso aos apps. */
+const ESP = ' ';
 
 export interface SaidaOS {
   protocolo: string;
@@ -95,11 +98,13 @@ export function renderAltplanRemoto(valores: Valores): SaidaOS {
     };
   };
 
-  const blocoPlano = [
-    `PLANO ATUAL: ${planoAtual} CONTRATADO EM ${dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${roteador}`,
-    '',
-    `PLANO SOLICITADO: ${planoEscolhido}`,
-  ];
+  const base = {
+    titular, solicitante: sol, parente, cargo, canal, contato,
+    contatoSolicitante: contatoSol, motivo, planoAtual, planoEscolhido,
+    roteador, dataContrato, protocolo, sinal, ligData, ligHora, protData, protHora,
+  };
+
+  const blocoPlano = [f('planoAtual', base), '', f('planoSolicitado', base)];
   /**
    * Encerramento da O.S (execução remota, sem intervenção técnica) — puxa o
    * roteador/ONT já informado no formulário e a data/hora ATUAL (do momento
@@ -110,72 +115,75 @@ export function renderAltplanRemoto(valores: Valores): SaidaOS {
     return linhas(
       '',
       '',
-      'ALTERAÇÃO DE PLANO EXECUTADA REMOTAMENTE COM SUCESSO.',
-      'ASSINATURA DIGITAL + SELFIE EM ANEXO.',
-      `NÃO HOUVE INTERVENÇÃO TÉCNICA DEVIDO O ROTEADOR EM COMODATO SER COMPATÍVEL AO PLANO ACORDADO (${roteador}).`,
-      'CLIENTE SEM DÚVIDAS.',
+      f('encExecutada'),
+      f('encAssinatura'),
+      f('encSemIntervencao', base),
+      f('encSemDuvidas'),
       '',
-      `DATA/HORA DO ENCERRAMENTO: ${dataAtual} ÀS ${horaAtual}HRS`,
+      f('encDataHora', { ...base, dataAtual, horaAtual }),
     );
   };
 
   const blocoOpcoes = [
-    `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA.`,
-    OPCOES_INTRO,
+    f('roteadorCompativel', base),
+    f('opcoesIntro'),
     '',
-    OPCAO_VISITA_PAGA,
+    f('opcaoVisitaPaga'),
     '',
   ];
 
   if (tipo === 'terceiro') {
     return montar(
       [
-        `${sol} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+        f('aberturaTerceiro', base),
         '', SEP, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}.`,
+        f('statusOnu', base) + '.',
         '', SEP,
-        `QUESTIONADO, CLIENTE DISSE QUE "${motivo}".`,
+        f('motivoCliente', base),
         '', ...blocoPlano, '',
-        'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
-        '', '', SEP, ...blocoOpcoes, OPCAO_REMOTA, SEM_CUSTOS, BENEFICIOS_APOS_ASSINATURA, '', SEP,
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO COM ${titular} (ASSINANTE) POR ${canal} QUE CONFIRMOU E AUTORIZOU O UPGRADE, ACORDO FIRMADO POR ${canal} (${contato}) SOB PROTOCOLO Nº${protocolo} EM ${ligData} ÀS ${ligHora} HRS.`,
+        f('acesso') + ESP,
+        '', '', SEP, ...blocoOpcoes,
+        f('opcaoRemota'), f('semCustos'), f('beneficiosAposAssinatura'), '', SEP,
+        f('autorizacaoTitular', base),
         '',
-        `${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, SOLICITOU PROSSEGUIR COM O PROCESSO DE FORMA REMOTA E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES.`,
+        f('aceiteRemoto', base),
         '',
-        'CLIENTE NÃO TEM DÚVIDAS',
+        f('semDuvidas'),
       ],
-      `${sol} (${parente} DE ${titular}) SOLICITOU POR ${canal} (${contatoSol}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${planoAtual}. PLANO ESCOLHIDO: ${planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. NÃO É NECESSÁRIA VISITA TÉCNICA, O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${sol} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, EQUIPAMENTO PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO COM ${titular} (ASSINANTE) POR ${canal} QUE CONFIRMOU E AUTORIZOU O UPGRADE, ACORDO FIRMADO POR ${canal} (${contato}) SOB PROTOCOLO Nº${protocolo} EM ${ligData} ÀS ${ligHora} HRS.${blocoEncerramento()}`,
+      `${f('osTerceiro', base)}${blocoEncerramento()}`,
     );
   }
 
   if (tipo === 'pj') {
     return montar(
       [
-        `${sol} (${cargo}) ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+        f('aberturaPj', base),
         '', SEP, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+        f('statusOnu', base),
         '', SEP,
-        `QUESTIONADO, CLIENTE DISSE QUE "${motivo}".`,
-        '', ...blocoPlano, '', SEP, ...blocoOpcoes, OPCAO_REMOTA, SEM_CUSTOS, '', SEP, '',
-        `${sol} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, SOLICITOU PROSSEGUIR COM O PROCESSO DE FORMA REMOTA E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VALIDAÇÃO FEITA POR ${canal} (${contato}) DIA ${ligData} ÀS ${ligHora} HRS.`,
+        f('motivoCliente', base),
+        '', ...blocoPlano, '', SEP, ...blocoOpcoes,
+        f('opcaoRemota'), f('semCustos'), '', SEP, '',
+        f('aceiteRemotoValidado', { ...base, pessoa: sol }),
       ],
-      `${sol} (${cargo}) SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${planoAtual}. PLANO ESCOLHIDO: ${planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. NÃO É NECESSÁRIA VISITA TÉCNICA, O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${sol} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, EQUIPAMENTO PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO. PROTOCOLO Nº${protocolo} EM ${protData} ÀS ${protHora} HRS.${blocoEncerramento()}`,
+      `${f('osPj', base)}${blocoEncerramento()}`,
     );
   }
 
   // titular (padrão)
   return montar(
     [
-      `${titular} ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`,
+      f('aberturaTitular', base),
       '', SEP, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+      f('statusOnu', base),
       '', SEP,
-      `QUESTIONADO, CLIENTE DISSE QUE "${motivo}".`,
+      f('motivoCliente', base),
       '', ...blocoPlano, '',
-      'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
-      '', '', SEP, ...blocoOpcoes, OPCAO_REMOTA, SEM_CUSTOS, BENEFICIOS_APOS_ASSINATURA, '', SEP, '',
-      `${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, SOLICITOU PROSSEGUIR COM O PROCESSO DE FORMA REMOTA E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VALIDAÇÃO FEITA POR ${canal} (${contato}) DIA ${ligData} ÀS ${ligHora} HRS.`,
+      f('acesso') + ESP,
+      '', '', SEP, ...blocoOpcoes,
+      f('opcaoRemota'), f('semCustos'), f('beneficiosAposAssinatura'), '', SEP, '',
+      f('aceiteRemotoValidado', { ...base, pessoa: titular }),
     ],
-    `${titular} SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${planoAtual}. PLANO ESCOLHIDO: ${planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. NÃO É NECESSÁRIA VISITA TÉCNICA, O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${titular} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, EQUIPAMENTO PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO. PROTOCOLO Nº${protocolo} EM ${protData} ÀS ${protHora} HRS.${blocoEncerramento()}`,
+    `${f('osTitular', base)}${blocoEncerramento()}`,
   );
 }
