@@ -14,6 +14,16 @@ import {
   type Valores,
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_TROCA_VISITA_ISENTA } from '../catalogo/altplanTrocaVisitaIsenta';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-troca-visita-isenta';
+
+const f = fraseDe(SLUG, ALTPLAN_TROCA_VISITA_ISENTA);
+
+/** Espaço final que o legado deixava na linha de acesso aos apps. */
+const ESP = ' ';
 
 /** Separador de bloco do protocolo (legado: qD desta família). */
 const SEP_BLOCO = '**************';
@@ -24,12 +34,10 @@ const SEP_INDICACAO = '***********************************';
  * Trecho fixo de renovação/necessidade de visita para troca de roteador.
  * (legado: pHe)
  */
-const CONTRATO_VISITA =
-  'RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. É NECESSÁRIA VISITA TÉCNICA PARA TROCA DO ROTEADOR WI-FI POR OUTRO COMPATÍVEL COM O NOVO PLANO ESCOLHIDO, TAL EQUIPAMENTO IRÁ SUBSTITUIR O ROTEADOR INSTALADO ANTERIORMENTE E PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO.';
+const CONTRATO_VISITA = () => f('contratoVisita');
 
 /** Bloco de indicação técnica (legado: mHe). */
-const INDICACAO_TECNICA =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO, FAZER TESTES ANTES E DEPOIS DA TROCA DO ROTEADOR. PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), SOLICITAR ESCOLHA DA SENHA, CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. COLHER ASSINATURAS (O.S E CONTRATO), ENTREGAR DOCUMENTAÇÃO (VIAS DO CLIENTE), RECOLHER CARNÊ ANTIGO.';
+const INDICACAO_TECNICA = () => f('indicacaoTecnica');
 
 interface Plano {
   motivo: string;
@@ -71,7 +79,7 @@ function ofertadoOS(texto: string): string {
 
 /** Envelope da indicação técnica na O.S (legado: GO). */
 function comIndicacaoTecnica(texto: string): string {
-  return `${texto}\n\n${SEP_INDICACAO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA}`;
+  return `${texto}\n\n${SEP_INDICACAO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 /** Bloco superior do protocolo, comum a todos os tipos (legado: KO desta família). */
@@ -81,16 +89,16 @@ function blocoProtocolo(intro: string, sinal: string, compat: string, plano: Pla
     '',
     SEP_BLOCO,
     '    ',
-    `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+    f('statusOnu', { sinal }),
     '    ',
     SEP_BLOCO,
-    `QUESTIONADO, CLIENTE DISSE QUE "${plano.motivo}".`,
+    f('motivoCliente', { ...plano }),
     '',
-    `PLANO ATUAL: ${plano.planoAtual} CONTRATADO EM ${plano.dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${plano.roteador}`,
+    f('planoAtual', { ...plano }),
     '',
-    `PLANO SOLICITADO: ${plano.planoEscolhido}`,
+    f('planoSolicitado', { ...plano }),
     '',
-    'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
+    f('acesso') + ESP,
     '',
     '',
     SEP_BLOCO,
@@ -120,8 +128,8 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
   const roteadorTxt = maiusc(v.roteador);
   const compat =
     maiusc(v.compativel) === 'NÃO'
-      ? `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteadorTxt}) NÃO É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA, E ASSIM SE FAZ NECESSÁRIO O AGENDAMENTO DE VISITA TÉCNICA PARA SUBSTITUIÇÃO DO ROTEADOR PARA UM MODELO COMPATÍVEL COM TAL VELOCIDADE, REALIZAR OS TESTES DE ABRANGÊNCIA, QUALIDADE, VELOCIDADE E SANAR TODAS AS DÚVIDAS QUE CLIENTE/USUÁRIOS POSSAM TER. VISITA ISENTA DE CUSTOS.`
-      : `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteadorTxt}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA, PORÉM FAREMOS O AGENDAMENTO DE VISITA TÉCNICA PARA INSTALAÇÃO DE UM NOVO ROTEADOR COM VERSÃO ATUALIZADA. APÓS INSTALADO, FAREMOS OS TESTES DE ABRANGÊNCIA, QUALIDADE, VELOCIDADE E SANAR TODAS AS DÚVIDAS QUE CLIENTE/USUÁRIOS POSSAM TER. VISITA ISENTA DE CUSTOS.`;
+      ? f('compatNao', { roteador: roteadorTxt })
+      : f('compatSim', { roteador: roteadorTxt });
   const roteadorSug = maiusc(v.roteadorSug);
   const plano: Plano = {
     motivo: maiusc(v.motivo),
@@ -140,8 +148,14 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
   const operador = maiusc(v.operadorPrimeiroNome ?? '');
   const ref = operador ? ` (${operador})` : '';
   const sug = roteadorSug ? ` // ${roteadorSug}` : '';
-  const agenda = `ALT PLANO ${clienteFull} PROT:${protocolo} ISENTO${ref} - ${bairro}${sug}`;
+  const agenda = f('agenda', { clienteCompleto: clienteFull, protocolo, operador: ref, bairro, roteadorSug: sug });
   const ofertado = ehOfertado(v);
+
+  const base = {
+    titular, solicitante: sol, solicitanteCompleto: solFull, autorizado, parente,
+    canal, contato, contatoSolicitante: contatoSol, sinal, dataVisita, horaVisita,
+    bairro, protocolo, clienteCompleto: clienteFull, ...plano,
+  };
 
   const montar = (protoLinhas: string[], osTexto: string): SaidaOS => {
     const proto = protoLinhas.join('\n');
@@ -152,21 +166,21 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
     };
   };
 
-  const introTitular = `${titular} ENTROU EM CONTATO VIA ${canal} (${contato}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
-  const introTerceiro = `${sol} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) SOLICITANDO ALTERAÇÃO DE PLANO.`;
-  const osTitular = `${titular} SOLICITOU POR ${canal} (${contato}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${plano.planoAtual}. PLANO ESCOLHIDO: ${plano.planoEscolhido}. ${CONTRATO_VISITA}`;
-  const osTerceiro = `${sol} (${parente} DE ${titular}) ENTROU EM CONTATO VIA ${canal} (${contatoSol}) E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${plano.planoAtual}. PLANO ESCOLHIDO: ${plano.planoEscolhido}. ${CONTRATO_VISITA}`;
+  const introTitular = f('aberturaTitular', base);
+  const introTerceiro = f('aberturaTerceiro', base);
+  const osTitular = `${f('osCabecalhoTitular', base)} ${CONTRATO_VISITA()}`;
+  const osTerceiro = `${f('osCabecalhoTerceiro', base)} ${CONTRATO_VISITA()}`;
 
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
         ...blocoProtocolo(introTitular, sinal, compat, plano),
-        `${titular} CONCORDOU COM A VISITA E DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA ISENTA DE CUSTOS AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTitularAutorizaTerceiro', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       comIndicacaoTecnica(
-        `${osTitular} ${titular} CONCORDOU COM A VISITA, DISSE QUE NÃO ESTARÁ PRESENTE, MAS AUTORIZOU ${autorizado} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTitular} ${f('osFechoTitularAutorizaTerceiro', base)}`,
       ),
     );
   }
@@ -175,12 +189,12 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
     return montar(
       [
         ...blocoProtocolo(introTerceiro, sinal, compat, plano),
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTitularAcompanha', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       comIndicacaoTecnica(
-        `${osTerceiro} POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA ISENTA DE CUSTOS AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTerceiro} ${f('osFechoTitularAcompanha', base)}`,
       ),
     );
   }
@@ -189,12 +203,12 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
     return montar(
       [
         ...blocoProtocolo(introTerceiro, sinal, compat, plano),
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. ${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO, E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VISITA AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        f('aceiteTerceiroAutorizado', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        f('semDuvidas'),
       ],
       comIndicacaoTecnica(
-        `${osTerceiro} POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${parente}) A ACOMPANHAR O TÉCNICO E ASSINAR O.S. VISITA TÉCNICA ISENTA DE CUSTOS AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        `${osTerceiro} ${f('osFechoTerceiroAutorizado', base)}`,
       ),
     );
   }
@@ -203,10 +217,10 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
   return montar(
     [
       ...blocoProtocolo(introTitular, sinal, compat, plano),
-      `${titular} ESTÁ CIENTE DA RENOVAÇÃO DA FIDELIDADE POR 12 MESES E CONCORDOU COM OS TERMOS, E VISITA TÉCNICA ISENTA DE CUSTOS FOI AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS, DISSE QUE ESTARÁ PRESENTE PARA ACOMPANHAR O TÉCNICO.`,
+      f('aceiteTitularSozinho', base),
     ],
     comIndicacaoTecnica(
-      `${osTitular} VISITA TÉCNICA ISENTA DE CUSTOS. VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+      `${osTitular} ${f('osFechoTitular', base)}`,
     ),
   );
 }

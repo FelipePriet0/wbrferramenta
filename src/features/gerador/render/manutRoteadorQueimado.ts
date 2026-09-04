@@ -5,6 +5,17 @@
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_ROTEADOR_QUEIMADO } from '../catalogo/manutRoteadorQueimado';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-roteador-queimado';
+
+// `frase` e não `f`: `f` já é o canal aqui (nome herdado do bundle).
+const frase = fraseDe(SLUG, MANUT_ROTEADOR_QUEIMADO);
+
+/** Espaço final que o legado deixava em duas linhas do Protocolo. */
+const ESP = ' ';
 
 const esp = (n: number) => ' '.repeat(n);
 const SEP_AST = '*'.repeat(19); // hj
@@ -62,95 +73,117 @@ export function renderManutRoteadorQueimado(valores: Valores): SaidaOS {
   if (i === 'pessoa-juridica') { E = `${l} (${d})`; D = l; }
   else if (T) { E = `${l} (${u} DE ${s})`; D = l; O = m; }
 
+  const base = {
+    cliente: s, clienteCompleto: clienteUp, solicitanteExibido: E, pessoa: D,
+    solicitanteCompleto: c, parente: u, canal: String(f), contato: p,
+    contatoUsado: O, sinalONU: h, roteador: String(rot), valorRoteador: String(v),
+    // String() e não `?? ''`: este arquivo não usa o Proxy de chave ausente, então
+    // o legado imprime literalmente "undefined" quando o campo não veio no input.
+    // As fixtures cobram esse comportamento.
+    formaPag: String(b), formaPagFrase: fraseFormaPag(b), dataVisita: String(x),
+    horaVisita: String(S), horaCobrada: String(C), protocolo: String(y), bairro: g,
+    tecnico: operador, custoAgenda: w ? 'MENSALIDADE' : String(b),
+  };
+
   const k = isento
-    ? `CONCORDOU COM OS TERMOS DA VISITA TECNICA E PAGARA ${fraseFormaPag(b)}`
+    ? frase('aceiteIsento', base)
     : w
-    ? 'CONCORDOU COM A VISITA E CASO HAJA COBRANCA OPTOU POR LANCAR O VALOR NA PROXIMA MENSALIDADE'
-    : `CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${b}`;
-  const A = isento
-    ? `VISITA AGENDADA PARA O DIA ${x} AS ${S} HRS`
-    : `VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA O DIA ${x} ${C}`;
-  const j = isento
-    ? `VISITA AGENDADA PARA ${x} AS ${S} HRS`
-    : `VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA O DIA ${x} ${C}`;
+    ? frase('aceiteMensalidade')
+    : frase('aceiteNoAto', base);
+  const A = isento ? frase('agendamentoIsentoProtocolo', base) : frase('agendamentoCobrada', base);
+  const j = isento ? frase('agendamentoIsentoOs', base) : frase('agendamentoCobrada', base);
   const M = ', ';
-  const N = `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${f} (${p}) COM ${s} (ASSINANTE) QUE CONFIRMOU E`;
+  const N = frase('contatoTitular', base);
+  /** Ciência + autorização do fluxo isento, prefixo comum aos 5 ramos. */
+  const ciente = frase('cienteAutorizou', base);
 
   let P: string[];
   if (i === 'titular-solicita-terceiro-acompanha')
-    P = [`${s} ${k}${M}${s} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${c} (${u}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${A}.`];
+    P = [`${s} ${k}${M}${frase('titularAusenteProtocolo', base)} ${A}.`];
   else if (i === 'terceiro-solicita-terceiro-acompanha')
-    P = [`${l} ${k}.`, '', `${N} AUTORIZOU ${c} (${u}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${A}.`];
+    P = [`${l} ${k}.`, '', `${N} ${frase('autorizouTerceiro', base)} ${A}.`];
   else if (i === 'terceiro-solicita-titular-acompanha')
-    P = [`${l} ${k}.`, '', `${N} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${A}.`];
+    P = [`${l} ${k}.`, '', `${N} ${frase('titularAcompanha')} ${A}.`];
   else
-    P = [`${D} ${k}${M}DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. ${A}.`];
+    P = [`${D} ${k}${M}${frase('acompanhaTecnico')} ${A}.`];
 
   let F: string;
   if (isento) {
     F = i === 'titular-solicita-terceiro-acompanha'
-      ? `${s} DISSE ESTAR CIENTE, AUTORIZOU A VISITA E CASO HAJA CUSTOS REALIZARA O PAGAMENTO ${fraseFormaPag(b)}, ${s} NAO ESTARA PRESENTE MAS AUTORIZOU ${c} (${u}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${j}.`
+      ? `${s} ${ciente}, ${frase('titularAusenteOs', base)} ${j}.`
       : i === 'terceiro-solicita-terceiro-acompanha'
-      ? `${l} DISSE ESTAR CIENTE, AUTORIZOU A VISITA E CASO HAJA CUSTOS REALIZARA O PAGAMENTO ${fraseFormaPag(b)}. ${N} AUTORIZOU ${c} (${u}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${j}.`
+      ? `${l} ${ciente}. ${N} ${frase('autorizouTerceiro', base)} ${j}.`
       : i === 'terceiro-solicita-titular-acompanha'
-      ? `${l} DISSE ESTAR CIENTE, AUTORIZOU A VISITA E CASO HAJA CUSTOS REALIZARA O PAGAMENTO ${fraseFormaPag(b)}. ${N} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${j}.`
+      ? `${l} ${ciente}. ${N} ${frase('titularAcompanha')} ${j}.`
       : i === 'pessoa-juridica'
-      ? `${D} DISSE ESTAR CIENTE, AUTORIZOU A VISITA E CASO HAJA CUSTOS REALIZARA O PAGAMENTO ${fraseFormaPag(b)}. ${j}.`
-      : `CLIENTE DISSE ESTAR CIENTE, AUTORIZOU A VISITA E CASO HAJA CUSTOS REALIZARA O PAGAMENTO ${fraseFormaPag(b)}. ${j}.`;
+      ? `${D} ${ciente}. ${j}.`
+      : `CLIENTE ${ciente}. ${j}.`;
   } else {
     F = i === 'titular-solicita-terceiro-acompanha'
-      ? `${s} ${k}, ${s} NAO ESTARA PRESENTE MAS AUTORIZOU ${c} (${u}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${j}.`
+      ? `${s} ${k}, ${frase('titularAusenteOs', base)} ${j}.`
       : i === 'terceiro-solicita-terceiro-acompanha'
-      ? `${l} ${k}. ${N} AUTORIZOU ${c} (${u}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${j}.`
+      ? `${l} ${k}. ${N} ${frase('autorizouTerceiro', base)} ${j}.`
       : i === 'terceiro-solicita-titular-acompanha'
-      ? `${l} ${k}. ${N} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${j}.`
+      ? `${l} ${k}. ${N} ${frase('titularAcompanha')} ${j}.`
       : `${D} ${k}. ${j}.`;
   }
 
-  const tecIsento = `TECNICO: CONFERIR ENERGIA DAS TOMADAS, ANALISAR FONTE E ROTEADOR, CASO ENERGIA E FONTE ESTIVER NORMAL, E EQUIPAMENTO NAO APRESENTAR SINAL DE MAL USO OU QUEDA, SUBSTITUIR FONTE E/OU ROTEADOR QUEIMADO, RESTABELECER CONEXAO E REALIZAR OS DEVIDOS TESTES. CASO ENERGIA NAO ESTIVER NORMAL INSTRUIR ${D} A VERIFICA-LA E COBRAR VISITA DE R$50,00 + EQUIPAMENTO DANIFICADO. APOS RESTITUIR INTERNET, DAR EXPLICACOES SOBRE PLANO, WIFI E DISPOSITIVOS, CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO, ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADA. TEMPO ESTIMADO 60 MIN.`;
-  const tecCobrada = `TECNICO: CONFERIR AS TOMADAS, T, ETC. ONDE ESTAO LIGADOS ONU E ROTEADOR. CONFERIR FONTES DOS EQUIPAMENTOS E CONFERIR ROTEADOR (APARENCIA FISICA). SE NAO FOR PROBLEMAS NA TOMADA, NAS FONTES E ROTEADOR ESTIVER SEM AVARIAS, SUBSTITUIR ROTEADOR ${rot} POR OUTRO SIMILAR. EFETUAR TESTES PADROES, FILMAR E FOTOGRAFAR. VERIFICAR ATUALIZACAO DO FIRMWARE DO ROTEADOR. CASO PROBLEMA SEJA NA TOMADA,  T , FONTES OU ROTEADOR AVARIADO: FILMAR E ENCAMINHAR PARA SUPORTE QUE LIGARA DE IMEDIATO PARA CLIENTE. SANAR TODAS AS DUVIDAS DE ${D}. TEMPO ESTIMADO 40 MINUTOS.`;
+  const tecIsento = frase('indicacaoTecnicaIsento', base);
+  const tecCobrada = frase('indicacaoTecnicaCobrada', base);
 
   let I: string, R: string;
   if (isento) {
     I = [
-      `${E} ENTROU EM CONTATO POR ${f} (${O}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('abertura', base),
       '', SEP_AST, esp(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${h}.`,
+      frase('statusOnu', base),
       esp(4), SEP_AST, esp(4),
-      'QUESTIONADO, DISSE QUE UM DOS EQUIPAMENTOS DE INTERNET NAO ESTA LIGANDO.',
+      frase('relatoEquipamento'),
       esp(4),
-      `REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ONU ESTA ACESA (SINAL ${h}). ORIENTEI ${D} A DESCONECTAR OS CABOS DE ENERGIA DA ONU E ROTEADOR E RECONECTA-LOS, FEITO, POREM, CONEXAO NAO RESTABELECEU. `,
+      frase('verificacaoEOrientacaoIsento', base) + ESP,
       esp(4),
-      `PERGUNTEI A ${D} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+      frase('perguntaIntervencao', base) + ESP,
       esp(4), SEP_AST, esp(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE DEVIDO ${D} CONECTAR O EQUIPAMENTO A ENERGIA CONFORME RECOMENDACAO DA WBR, ESTARA ISENTO DO CUSTO DO ROTEADOR. FICANDO APENAS A COBRANCA DO DESLOCAMENTO DO TECNICO COM O CUSTO DE R$50,00.`,
+      frase('isencaoRoteador', base),
       esp(4), SEP_AST, esp(4),
       ...P,
-      '', 'CLIENTE SEM DUVIDAS.',
+      '', frase('semDuvidas'),
     ].join('\n');
-    R = `${E} ENTROU EM CONTATO POR ${f} (${O}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET, QUESTIONADO DISSE "QUE ROTEADOR ESTA COM TODAS AS LUZES APAGADAS E ONU ESTA LIGADO NORMALMENTE". REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ONU ESTA ACESA (SINAL ${h}). ORIENTEI ${D} A DESCONECTAR OS CABOS DE ENERGIA DA ONU E ROTEADOR E RECONECTA-LOS, FEITO, POREM, CONEXAO NAO RESTABELECEU. INFORMEI ${D} QUE E NECESSARIO VISITA TECNICA, E QUE HAVENDO PROBLEMAS DE QUEIMA NA FONTE DE ENERGIA OU EQUIPAMENTO NAO OCASIONADO, SUBSTITUICAO DO COMODATO NAO HAVERA CUSTOS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 MAIS O CUSTO DA PECA OU EQUIPAMENTO A SER SUBSTITUIDO (FONTE R$40,00) OU (ROTEADOR ${v}), ${F}\n\n${SEP_AST_OS}\n\nINDICACAO TECNICA:\n\n${tecIsento}`;
+    R = `${frase('corpoOsIsento', base)} ${F}
+
+${SEP_AST_OS}
+
+INDICACAO TECNICA:
+
+${tecIsento}`;
   } else {
     I = [
-      `${E} ENTROU EM CONTATO POR ${f} (${O}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('abertura', base),
       '', SEP_EQ, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${h}.`,
+      frase('statusOnu', base),
       '', SEP_EQ, '',
-      `QUESTIONADO, DISSE QUE UM DOS EQUIPAMENTOS DE INTERNET NAO ESTA LIGANDO (${rot}).`,
+      frase('relatoEquipamentoComModelo', base),
       '',
-      `REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ONU ESTA ONLINE COM SINAL ${h}.`,
+      frase('verificacaoCobrada', base),
       '',
-      `ORIENTEI ${D} A DESCONECTAR OS CABOS DE ENERGIA DA ONU E ROTEADOR E INVERTE-LOS, FEITO, POREM, CONEXAO NAO RESTABELECEU.`,
+      frase('orientacaoInverter', base),
       '',
-      `PERGUNTEI A ${D} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+      frase('perguntaIntervencao', base) + ESP,
       '', SEP_EQ, '',
-      'INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS.',
+      frase('termosVisita'),
       '', SEP_EQ, '',
       ...P,
-      '', 'CLIENTE SEM DUVIDAS.',
+      '', frase('semDuvidas'),
     ].join('\n');
-    R = `${E} ENTROU EM CONTATO POR ${f} (${O}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, ${D} DISSE "QUE ROTEADOR ESTA COM TODAS AS LUZES APAGADAS". REMOTAMENTE VERIFIQUEI QUE ONU ESTA CONECTADA E COM SINAL ${h}. ORIENTEI ${D} A INVERTER AS FONTES DE ENERGIA DOS EQUIPAMENTOS (ONU E ROTEADOR) E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${D} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${F}\n\n${SEP_EQ}\n\nINDICACAO TECNICA:\n\n${tecCobrada}`;
+    R = `${frase('corpoOsCobrada', base)} ${F}
+
+${SEP_EQ}
+
+INDICACAO TECNICA:
+
+${tecCobrada}`;
   }
 
-  const z = `MAN TROCA ROTEADOR ${clienteUp} PROT:${y} ${w ? 'MENSALIDADE' : b} (${operador}) - ${g}`;
+  const z = frase('agenda', base);
   return { protocolo: I, os: R, agenda: z };
 }

@@ -8,6 +8,26 @@
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_LUZ_VERMELHA } from '../catalogo/manutLuzVermelha';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-luz-vermelha';
+
+const f = fraseDe(SLUG, MANUT_LUZ_VERMELHA);
+
+/** Espaço final que o legado deixava em várias linhas do Protocolo. */
+const ESP = ' ';
+
+/** Campos comuns montados a partir dos valores já normalizados. */
+function dados(v: Valores, extra: Record<string, string> = {}): Record<string, string> {
+  return {
+    canal: v.canal ?? '', contato: v.contato ?? '', contatoSolicitante: v.contatoSol ?? '',
+    parente: v.parente ?? '', equipamento: v.onu ?? '', alarme: maiusc(v.alarme),
+    formaPag: maiusc(v.formaPag ?? ''), formaPagFrase: fraseFormaPag(v.formaPag ?? ''),
+    dataVisita: v.dataVisita ?? '', horaVisita: v.horaVisita ?? '', ...extra,
+  };
+}
 
 /** Separador de asteriscos no Protocolo. (legado: yk) */
 const SEP_AST = '*';
@@ -20,8 +40,7 @@ function esp(n: number): string {
   return ' '.repeat(n);
 }
 /** Bloco de indicação técnica da O.S. (legado: wk) */
-const TECNICO =
-  'TECNICO: VERIFICAR CONECTOR E DROP INTERNO E EXTERNO, ACHANDO O PROBLEMA APRESENTAR AO CLIENTE. SENDO DEFEITO EM QUE E DE OBRIGACAO DO PROVEDOR, TOMAR PROVIDENCIAS E RESTITUIR SEM CUSTO. SENDO OCASIONADO PEDIR AUTORIZACAO DO CLIENTE PARA CORRIGIR E RESTABELECER LEMBRANDO DO VALOR A SER COBRADO NO ATO. APOS RESTITUIR INTERNET, DAR EXPLICACOES SOBRE PLANO, WI-FI E DISPOSITIVOS, CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO, ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADO. TEMPO ESTIMADO 60 MIN.';
+const TECNICO = () => f('indicacaoTecnica');
 
 /**
  * Nome do alarme para a agenda, POR EXTENSO. (legado: iUe abreviava
@@ -42,7 +61,14 @@ function blocoCto(ctoType: string, cto: string, passante: string): string {
 /** Linha de agenda. (legado: uUe) */
 function linhaAgenda(v: Valores, clienteMaiusc: string, operador: string): string {
   const tipoCto = v.ctoType || 'CTOE';
-  let linha = `MAN ${nomeAlarme(v.alarme ?? '')} ${clienteMaiusc} PROT:${v.protocolo ?? ''} ${maiusc(v.formaPag ?? '')} (${operador}) - ${maiusc(v.bairro)}`;
+  let linha = f('agenda', {
+    alarme: nomeAlarme(v.alarme ?? ''),
+    clienteCompleto: clienteMaiusc,
+    protocolo: v.protocolo ?? '',
+    formaPag: maiusc(v.formaPag ?? ''),
+    tecnico: operador,
+    bairro: maiusc(v.bairro),
+  });
   if (tipoCto === 'CTOI') linha += ` *CTOI*`;
   return linha;
 }
@@ -57,36 +83,36 @@ function protoTerceiroTerceiro(
 ): string {
   const { canal, contato, contatoSol, alarme, onu, formaPag, dataVisita, horaVisita, parente } = v;
   return [
-    `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    f('aberturaTerceiro', dados(v, { solicitante: solNome, cliente: titular })),
     '',
     SEP_AST,
     esp(4),
-    `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+    f('statusOnu', dados(v, { onu: onuNome })),
     esp(4),
     SEP_AST,
     esp(4),
-    `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM ${alarme}.`,
+    f('alarmeRelato', dados(v, { onu: onuNome })),
     esp(4),
-    `REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. `,
-    `ORIENTEI ${solNome} A DESCONECTAR EQUIPAMENTO (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+    f('verificacaoRemota', dados(v, { onu: onuNome })) + ESP,
+    f('orientacaoUmEquipamento', dados(v, { pessoa: solNome })) + ESP,
     esp(4),
-    `PERGUNTEI A ${solNome} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+    f('perguntaIntervencao', dados(v, { pessoa: solNome })) + ESP,
     '',
     SEP_AST,
     '',
-    `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+    f('termosVisitaProtocolo'),
     esp(4),
     SEP_AST,
     '',
-    `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solMaiusc} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${titular} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+    f('aceiteTerceiroAutorizado', dados(v, { cliente: titular, solicitanteCompleto: solMaiusc })),
     '',
-    `CLIENTE SEM DUVIDAS.`,
+    f('semDuvidas'),
   ].join('\n');
 }
 
 /** Sufixo O.S — terceiro solicita, terceiro acompanha. (legado: sUe) */
 function sufixoTerceiroTerceiro(): string {
-  return `${SEP_OS}\n${esp(18)}\nINDICACAO TECNICA:\n${esp(20)}\n${TECNICO}`;
+  return `${SEP_OS}\n${esp(18)}\nINDICACAO TECNICA:\n${esp(20)}\n${TECNICO()}`;
 }
 
 /** Protocolo — terceiro solicita, titular acompanha. (legado: pUe) */
@@ -98,36 +124,36 @@ function protoTerceiroTitular(
 ): string {
   const { canal, contato, contatoSol, alarme, onu, formaPag, dataVisita, horaVisita, parente } = v;
   return [
-    `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    f('aberturaTerceiro', dados(v, { solicitante: solNome, cliente: titular })),
     '',
     SEP_AST,
     esp(4),
-    `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+    f('statusOnu', dados(v, { onu: onuNome })),
     esp(4),
     SEP_AST,
     esp(4),
-    `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM ${alarme}.`,
+    f('alarmeRelato', dados(v, { onu: onuNome })),
     esp(4),
-    `REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. `,
-    `ORIENTEI ${solNome} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+    f('verificacaoRemota', dados(v, { onu: onuNome })) + ESP,
+    f('orientacaoEquipamentos', dados(v, { pessoa: solNome })) + ESP,
     esp(4),
-    `PERGUNTEI A ${solNome} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-    esp(4),
-    SEP_AST,
-    '',
-    `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+    f('perguntaIntervencao', dados(v, { pessoa: solNome })) + ESP,
     esp(4),
     SEP_AST,
     '',
-    `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${titular} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+    f('termosVisitaProtocolo'),
+    esp(4),
+    SEP_AST,
     '',
-    `CLIENTE SEM DUVIDAS.`,
+    f('aceiteTitularAcompanha', dados(v, { cliente: titular })),
+    '',
+    f('semDuvidas'),
   ].join('\n');
 }
 
 /** Sufixo O.S — terceiro solicita, titular acompanha. (legado: cUe) */
 function sufixoTerceiroTitular(): string {
-  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${TECNICO}`;
+  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${TECNICO()}`;
 }
 
 /** Protocolo — titular solicita, terceiro acompanha. (legado: mUe) */
@@ -139,72 +165,72 @@ function protoTitularTerceiro(
 ): string {
   const { canal, contato, alarme, onu, formaPag, dataVisita, horaVisita, parente } = v;
   return [
-    `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    f('aberturaTitular', dados(v, { cliente: titular })),
     esp(20),
     SEP_AST,
     esp(24),
-    `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+    f('statusOnu', dados(v, { onu: onuNome })),
     esp(24),
     SEP_AST,
     esp(24),
-    `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM ${alarme}.`,
+    f('alarmeRelato', dados(v, { onu: onuNome })),
     esp(24),
-    `REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. `,
-    `ORIENTEI ${titular} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+    f('verificacaoRemota', dados(v, { onu: onuNome })) + ESP,
+    f('orientacaoEquipamentos', dados(v, { pessoa: titular })) + ESP,
     esp(24),
-    `PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+    f('perguntaIntervencao', dados(v, { pessoa: titular })) + ESP,
     esp(24),
     SEP_AST,
     esp(20),
-    `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+    f('termosVisitaProtocolo'),
     esp(20),
     SEP_AST,
     esp(20),
-    `${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. ${titular} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solMaiusc} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+    f('aceiteTitularAusente', dados(v, { cliente: titular, solicitanteCompleto: solMaiusc })),
     '',
-    `CLIENTE SEM DUVIDAS.`,
+    f('semDuvidas'),
   ].join('\n');
 }
 
 /** Sufixo O.S — titular solicita, terceiro acompanha. (legado: lUe) */
 function sufixoTitularTerceiro(): string {
-  return `${SEP_OS}\n\nINDICACAO TECNICA:\n${esp(20)}\n${TECNICO}`;
+  return `${SEP_OS}\n\nINDICACAO TECNICA:\n${esp(20)}\n${TECNICO()}`;
 }
 
 /** Protocolo — titular solicita e acompanha (padrão). (legado: dUe) */
 function protoTitularTitular(v: Valores, titular: string, onuNome: string): string {
   const { canal, contato, alarme, formaPag, dataVisita, horaVisita, onu } = v;
   return [
-    `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    f('aberturaTitular', dados(v, { cliente: titular })),
     '',
     SEP_EQ,
     '',
-    `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${onuNome} SEM SINAL.`,
+    f('statusOnu', dados(v, { onu: onuNome })),
     esp(8),
     SEP_EQ,
     esp(8),
-    `QUESTIONADO, DISSE QUE A ${onuNome} ESTA COM ${alarme}.`,
+    f('alarmeRelato', dados(v, { onu: onuNome })),
     esp(8),
-    `REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. `,
-    `ORIENTEI ${titular} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
+    f('verificacaoRemota', dados(v, { onu: onuNome })) + ESP,
+    f('orientacaoEquipamentos', dados(v, { pessoa: titular })) + ESP,
     esp(8),
-    `PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO.`,
+    f('perguntaIntervencao', dados(v, { pessoa: titular })),
     esp(8),
     SEP_EQ,
     '',
-    `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
+    f('termosVisitaProtocolo'),
     esp(8),
     SEP_EQ,
     esp(8),
-    `${titular} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(formaPag)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+    f('aceiteTitularSozinho', dados(v, { cliente: titular })),
     '',
-    `CLIENTE SEM DUVIDAS.`,
+    f('semDuvidas'),
   ].join('\n');
 }
 
 /** Sufixo O.S — titular solicita e acompanha (padrão). (legado: oUe) */
 function sufixoTitularTitular(): string {
-  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${TECNICO}`;
+  return `${SEP_OS}\n\nINDICACAO TECNICA:\n\n${TECNICO()}`;
 }
 
 export function renderManutLuzVermelha(valores: Valores): SaidaOS {
@@ -241,7 +267,7 @@ export function renderManutLuzVermelha(valores: Valores): SaidaOS {
   const horaVisita = v.horaVisita ?? '';
 
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
-    const os = `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${onuNome} ESTA COM ${alarme}". REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. ORIENTEI ${solNome} A DESCONECTAR EQUIPAMENTO (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${solNome} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${solNome} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solMaiusc} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`;
+    const os = [f('osAberturaTerceiro', dados(v, { solicitante: solNome, cliente: titular, onu: onuNome })), f('verificacaoRemota', dados(v, { onu: onuNome })), f('orientacaoUmEquipamento', dados(v, { pessoa: solNome })), f('perguntaIntervencao', dados(v, { pessoa: solNome })), f('termosVisitaOs'), f('osPagouSolicitante', dados(v, { solicitante: solNome })), f('osContatoAutorizaTerceiro', dados(v, { cliente: titular, solicitanteCompleto: solMaiusc }))].join(' ');
     return {
       protocolo: protoTerceiroTerceiro(v, solNome, titular, solMaiusc, onuNome),
       os: os + cto + sufixoTerceiroTerceiro(),
@@ -250,7 +276,7 @@ export function renderManutLuzVermelha(valores: Valores): SaidaOS {
   }
 
   if (tipo === 'terceiro-solicita-titular-acompanha') {
-    const os = `${solNome} (${parente} DE ${titular}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${onuNome} ESTA COM ${alarme}". REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. ORIENTEI ${solNome} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${solNome} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${solNome} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${titular} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`;
+    const os = [f('osAberturaTerceiro', dados(v, { solicitante: solNome, cliente: titular, onu: onuNome })), f('verificacaoRemota', dados(v, { onu: onuNome })), f('orientacaoEquipamentosOs', dados(v, { pessoa: solNome })), f('perguntaIntervencao', dados(v, { pessoa: solNome })), f('termosVisitaOs'), f('osPagouSolicitante', dados(v, { solicitante: solNome })), f('osContatoTitularAcompanha', dados(v, { cliente: titular }))].join(' ');
     return {
       protocolo: protoTerceiroTitular(v, solNome, titular, onuNome),
       os: os + cto + sufixoTerceiroTitular(),
@@ -259,7 +285,7 @@ export function renderManutLuzVermelha(valores: Valores): SaidaOS {
   }
 
   if (tipo === 'titular-solicita-terceiro-acompanha') {
-    const os = `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${onuNome} ESTA COM ${alarme}". REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. ORIENTEI ${titular} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. ${titular} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solMaiusc} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`;
+    const os = [f('osAberturaTitular', dados(v, { cliente: titular, onu: onuNome })), f('verificacaoRemota', dados(v, { onu: onuNome })), f('orientacaoEquipamentos', dados(v, { pessoa: titular })), f('perguntaIntervencao', dados(v, { pessoa: titular })), f('termosVisitaOs'), f('osPagouTitular', dados(v, { cliente: titular })), f('osTitularAusente', dados(v, { cliente: titular, solicitanteCompleto: solMaiusc }))].join(' ');
     return {
       protocolo: protoTitularTerceiro(v, titular, onuNome, solMaiusc),
       os: os + cto + sufixoTitularTerceiro(),
@@ -268,7 +294,7 @@ export function renderManutLuzVermelha(valores: Valores): SaidaOS {
   }
 
   // titular-solicita-titular-acompanha (padrão)
-  const os = `${titular} ENTROU EM CONTATO POR ${canal} (${contato}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, DISSE "QUE ${onuNome} ESTA COM ${alarme}". REMOTAMENTE VERIFIQUEI QUE ${onuNome} ESTA DESCONECTADO/APAGADA. ORIENTEI ${titular} A DESCONECTAR EQUIPAMENTOS (${onu}) DA REDE ELETRICA E RECONECTAR APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${titular} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${titular} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${formaPag}. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`;
+  const os = [f('osAberturaTitular', dados(v, { cliente: titular, onu: onuNome })), f('verificacaoRemota', dados(v, { onu: onuNome })), f('orientacaoEquipamentos', dados(v, { pessoa: titular })), f('perguntaIntervencao', dados(v, { pessoa: titular })), f('termosVisitaOs'), f('osPagouTitular', dados(v, { cliente: titular })), f('osAgendadaSemAcompanhante', dados(v))].join(' ');
   return {
     protocolo: protoTitularTitular(v, titular, onuNome),
     os: os + cto + sufixoTitularTitular(),

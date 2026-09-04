@@ -5,6 +5,17 @@
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_ROTEADOR_RESET } from '../catalogo/manutRoteadorReset';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-roteador-reset';
+
+// `frase` e não `f`: `f` já é usado aqui para o texto da O.S (nome do bundle).
+const frase = fraseDe(SLUG, MANUT_ROTEADOR_RESET);
+
+/** Espaço final que o legado deixava em três linhas do Protocolo. */
+const ESP = ' ';
 
 const esp = (n: number) => ' '.repeat(n);
 const SEP = '*'.repeat(19); // Bj
@@ -23,53 +34,57 @@ export function renderManutRoteadorReset(valores: Valores): SaidaOS {
   const l = maiusc(n.oscila);
   const u = maiusc(n.roteador);
   const operador = n.operadorPrimeiroNome ?? '';
+  const base = {
+    cliente: a, clienteCompleto: i, canal: o, contato: s,
+    sinalONU: c, oscila: l, roteador: u, tecnico: operador,
+  };
+
+  /** Miolo comum aos três desfechos — era copiado três vezes no legado. */
+  const miolo = () => [
+    frase('abertura', base),
+    '', SEP, '',
+    frase('statusOnu', base),
+    '', SEP, esp(4),
+    frase('relatoSemRede', base),
+    esp(4),
+    frase('verificacaoRemota', base) + ESP,
+    esp(4), SEP, esp(4),
+    frase('orientacaoReinicio', base) + ESP,
+    esp(4),
+    frase('perguntaIntervencao', base) + ESP,
+    esp(4), SEP, esp(4),
+  ];
+
+  /** As duas opções repassadas ao cliente (loja e visita). */
+  const opcoes = () => [
+    frase('duasOpcoes'),
+    '',
+    frase('opcaoVisita'),
+    '',
+    frase('opcaoLoja'),
+  ];
+
   let d = '', f = '', p = '';
 
   if (r === 'loja') {
     const [e = '', t = ''] = (n.dataLigacao ?? '').split(' ');
     d = [
-      `${a} ENTROU EM CONTATO POR ${o} (${s}) INFORMANDO PROBLEMA DE CONEXAO.`,
-      '', SEP, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${c} ${l}.`,
-      '', SEP, esp(4),
-      `QUESTIONADO ${a} DISSE QUE ESTA SEM CONEXAO DE INTERNET EM TODOS OS DISPOSITIVOS DA CASA E QUE O NOME DE SUA REDE WIFI NAO ESTA APARECENDO MAIS.`,
-      esp(4),
-      `REMOTAMENTE, VERIFIQUEI QUE ONU ESTA ACESA (SINAL ${c}) ${l} E ROTEADOR (${u}) ESTA INACESSIVEL. `,
-      esp(4), SEP, esp(4),
-      `ORIENTEI ${a} A DESCONECTAR AS FONTES DE ENERGIA DA ONU E ROTEADOR DA TOMADA E RECONECTA-LAS APOS 30 SEGUNDOS. FEZ POREM REDE WI-FI NAO VOLTOU A APARECER. `,
-      esp(4),
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      esp(4), SEP, esp(4),
-      'INFORMEI QUE O ROTEADOR ESTA RESETADO, E REPASSEI AO CLIENTE 2 OPCOES PARA SOLUCAO DO PROBLEMA.',
-      '',
-      '1ª. AGENDAMENTO DE UMA VISITA TECNICA PARA RECONFIGURAR O ROTEADOR, NO QUAL ESSA VISITA POSSUI UM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TECNICO. ESTE VALOR PODE SER PAGO NO ATO EM DINHEIRO, PIX OU CARTAO.',
-      '',
-      '2ª. TRAZER O ROTEADOR NA LOJA PARA RECONFIGURA-LO. ESTA OPCAO NAO TERA CUSTOS',
+      ...miolo(),
+      ...opcoes(),
       SEP, esp(4),
-      `${a} OPTOU POR TRAZER O ROTEADOR NA LOJA EM ${e} AS ${t}.`,
-      '', 'CLIENTE SEM DUVIDAS.',
+      frase('optouLoja', { ...base, dataLoja: e, horaLoja: t }),
+      '', frase('semDuvidas'),
     ].join('\n');
   } else if (r === 'remoto') {
     const e = n.ssid?.trim() ?? '';
     const t = n.senhaWifi?.trim() ?? '';
     d = [
-      `${a} ENTROU EM CONTATO POR ${o} (${s}) INFORMANDO PROBLEMA DE CONEXAO.`,
-      '', SEP, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${c} ${l}.`,
-      '', SEP, esp(4),
-      `QUESTIONADO ${a} DISSE QUE ESTA SEM CONEXAO DE INTERNET EM TODOS OS DISPOSITIVOS DA CASA E QUE O NOME DE SUA REDE WIFI NAO ESTA APARECENDO MAIS.`,
-      esp(4),
-      `REMOTAMENTE, VERIFIQUEI QUE ONU ESTA ACESA (SINAL ${c}) ${l} E ROTEADOR (${u}) ESTA INACESSIVEL. `,
-      esp(4), SEP, esp(4),
-      `ORIENTEI ${a} A DESCONECTAR AS FONTES DE ENERGIA DA ONU E ROTEADOR DA TOMADA E RECONECTA-LAS APOS 30 SEGUNDOS. FEZ POREM REDE WI-FI NAO VOLTOU A APARECER. `,
-      esp(4),
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      esp(4), SEP, esp(4),
-      `INFORMEI ${a} QUE O ROTEADOR ESTA RESETADO E ORIENTEI O MESMO A REALIZAR O PROCESSO DE RECONFIGURACAO REMOTA CONFORME TUTORIAL DA WBR. ${a} SEGUIU AS ORIENTACOES, CONFIGUROU O ROTEADOR E CONFIRMOU QUE A REDE WI-FI VOLTOU NORMALMENTE.`,
+      ...miolo(),
+      frase('reconfiguracaoRemota', base),
       '',
-      `SSID: ${e}`,
-      `SENHA: ${t}`,
-      '', 'CLIENTE SEM DUVIDAS.',
+      frase('linhaSsid', { ...base, ssid: e }),
+      frase('linhaSenha', { ...base, senhaWifi: t }),
+      '', frase('semDuvidas'),
     ].join('\n');
   } else {
     const e = maiusc(n.bairro);
@@ -77,30 +92,27 @@ export function renderManutRoteadorReset(valores: Valores): SaidaOS {
     const mv = n.horaVisita;
     const h = n.protocolo;
     const gv = n.formaPag;
+    const dados = { ...base, dataVisita: rv, horaVisita: mv, formaPag: gv, formaPagFrase: fraseFormaPag(gv), protocolo: h, bairro: e };
     d = [
-      `${a} ENTROU EM CONTATO POR ${o} (${s}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('abertura', base),
       '', '', SEP, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${c} ${l}.`,
+      frase('statusOnu', base),
       '', SEP, esp(4),
-      `QUESTIONADO ${a} DISSE QUE ESTA SEM CONEXAO DE INTERNET EM TODOS OS DISPOSITIVOS DA CASA E QUE O NOME DE SUA REDE WIFI NAO ESTA APARECENDO MAIS.`,
+      frase('relatoSemRede', base),
       esp(4),
-      `REMOTAMENTE, VERIFIQUEI QUE ONU ESTA ACESA (SINAL ${c}) ${l} E ROTEADOR (${u}) ESTA INACESSIVEL. `,
+      frase('verificacaoRemota', base) + ESP,
       esp(4), SEP, esp(4),
-      `ORIENTEI ${a} A DESCONECTAR AS FONTES DE ENERGIA DA ONU E ROTEADOR DA TOMADA E RECONECTA-LAS APOS 30 SEGUNDOS. FEZ POREM REDE WI-FI NAO VOLTOU A APARECER. `,
+      frase('orientacaoReinicio', base) + ESP,
       esp(4),
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+      frase('perguntaIntervencao', base) + ESP,
       esp(4), SEP, esp(4),
-      'INFORMEI QUE O ROTEADOR ESTA RESETADO, E REPASSEI AO CLIENTE 2 OPCOES PARA SOLUCAO DO PROBLEMA.',
-      '',
-      '1ª. AGENDAMENTO DE UMA VISITA TECNICA PARA RECONFIGURAR O ROTEADOR, NO QUAL ESSA VISITA POSSUI UM CUSTO DE R$50,00 REFERENTE AO DESLOCAMENTO TECNICO. ESTE VALOR PODE SER PAGO NO ATO EM DINHEIRO, PIX OU CARTAO.',
-      '',
-      '2ª. TRAZER O ROTEADOR NA LOJA PARA RECONFIGURA-LO. ESTA OPCAO NAO TERA CUSTOS',
+      ...opcoes(),
       SEP, esp(4),
-      `${a} OPTOU PELA VISITA TECNICA, CONCORDOU COM OS TERMOS REPASSADOS E SOLICITOU PAGAR ${fraseFormaPag(gv)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${rv} AS ${mv} HRS.`,
-      '', 'CLIENTE SEM DUVIDAS.',
+      frase('optouVisita', dados),
+      '', frase('semDuvidas'),
     ].join('\n');
-    f = `${a} ENTROU EM CONTATO POR ${o} (${s}) E INFORMOU QUE ESTA SEM CONEXAO DE INTERNET EM TODOS OS DISPOSITIVOS DA CASA E QUE SUA REDE WIFI NAO ESTA APARECENDO MAIS. REMOTAMENTE, VERIFIQUEI QUE ONU ESTA ACESA (SINAL ${c}) ${l} E ROTEADOR (${u}) ESTA INACESSIVEL. ORIENTEI ${a} A DESCONECTAR AS FONTES DE ENERGIA DA ONU E ROTEADOR DA TOMADA E RECONECTA-LAS APOS 30 SEGUNDOS. FEZ POREM REDE WI-FI NAO VOLTOU A APARECER. INFORMEI QUE ROTEADOR ESTA RESETADO, E NECESSARIA VISITA TECNICA PARA RECONFIGURA-LO, QUE ESTE SERVICO POSSUI CUSTO R$50,00. ${a} CONCORDOU E SOLICITOU PAGAR NO ATO COM ${gv}. VISITA AGENDADA PARA ${rv} AS ${mv} HRS.\n\n${SEP_OS}\n\nINDICACAO TECNICA:\n\n${`TECNICO: ANALISAR ESTRUTURA INTERNA CONFERIR EQUIPAMENTOS SE DANIFICADOS, ANALISAR FONTE E ROTEADOR. CONFIGURAR EQUIPAMENTO, RESTABELECER CONEXAO E REALIZAR OS DEVIDOS TESTES, FILMAR, FOTOGRAFAR E APRESENTAR A ${a}. EXPLICAR SOBRE REDE 2 E 5GHZ, E SUAS ABRANGENCIAS.  ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADA. TEMPO ESTIMADO 40 MIN.`}`;
-    p = `MAN ROTEADOR RESETADO ${i} PROT:${h} ${gv} (${operador}) - ${e}`;
+    f = `${frase('corpoOs', dados)}\n\n${SEP_OS}\n\nINDICACAO TECNICA:\n\n${frase('indicacaoTecnica', base)}`;
+    p = frase('agenda', dados);
   }
 
   const saida = r === 'loja' || r === 'remoto'

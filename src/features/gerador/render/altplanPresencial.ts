@@ -2,6 +2,15 @@
  * Emulação do modelo `altplan-presencial` — porte 1:1 da função `bVe` do bundle
  * legado. Ramifica em titular/terceiro (sem modo ofertado). Validado por diff —
  * ver `altplanPresencial.diff.test.ts`.
+ *
+ * ⚠️ SEM TEXTO AQUI. O conteúdo mora em `../catalogo/altplanPresencial.ts`,
+ * resolvido por `fraseDe`, que aplica o override publicado pela plataforma.
+ * Aqui ficam os ramos, a ordem dos blocos, os separadores e os espaços de
+ * diagramação (`ESP`) — que o catálogo não guarda porque são invisíveis para
+ * quem edita e sumiriam no primeiro save.
+ *
+ * As cinco frases que vinham de `./frases.ts` também foram para o catálogo. Era
+ * lá que morava o `APP "MZNET"`, o que fazia aquele arquivo divergir da WBR.
  */
 import {
   descreveSinal,
@@ -12,15 +21,18 @@ import {
   soDigitos,
   type Valores,
 } from './helpers';
-import {
-  BENEFICIOS_APOS_ASSINATURA,
-  OPCAO_REMOTA,
-  OPCAO_VISITA_PAGA,
-  OPCOES_INTRO,
-  SEM_CUSTOS,
-  SEP,
-} from './frases';
+import { SEP } from './frases';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { ALTPLAN_PRESENCIAL } from '../catalogo/altplanPresencial';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'altplan-presencial';
+
+const f = fraseDe(SLUG, ALTPLAN_PRESENCIAL);
+
+/** Espaço final que o legado deixava em duas frases. Diagramação, não conteúdo. */
+const ESP = ' ';
 
 export function renderAltplanPresencial(valores: Valores): SaidaOS {
   const v: Valores = {};
@@ -43,50 +55,70 @@ export function renderAltplanPresencial(valores: Valores): SaidaOS {
   const [protData, protHora] = parteData(v.dataProtocolo);
   const [atendData, atendHora] = parteData(v.dataAtendimento);
 
-  const blocoPlano = [
-    `PLANO ATUAL: ${planoAtual} CONTRATADO EM ${dataContrato} COM FIDELIDADE DE 12 MESES. ROTEADOR: ${roteador}`,
-    '',
-    `PLANO SOLICITADO: ${planoEscolhido}`,
-  ];
+  const base = {
+    titular,
+    solicitante: sol,
+    parente,
+    canal,
+    contato,
+    motivo,
+    planoAtual,
+    planoEscolhido,
+    roteador,
+    dataContrato,
+    protocolo,
+    sinal,
+    ligData,
+    ligHora,
+    protData,
+    protHora,
+    atendData,
+    atendHora,
+  };
+
+  const blocoPlano = [f('planoAtual', base), '', f('planoSolicitado', base)];
   const blocoOpcoes = [
-    `INFORMEI QUE O ROTEADOR ATUAL EMPRESTADO (${roteador}) É COMPATÍVEL COM A NOVA VELOCIDADE SOLICITADA.`,
-    OPCOES_INTRO,
+    f('roteadorCompativel', base),
+    f('opcoesIntro'),
     '',
-    OPCAO_VISITA_PAGA,
+    f('opcaoVisitaPaga'),
     '',
   ];
 
   if (tipo === 'terceiro') {
     return {
       protocolo: linhas(
-        `${sol} (${parente} DE ${titular}) COMPARECEU À LOJA E SOLICITOU ALTERAÇÃO DE PLANO.`,
+        f('aberturaTerceiro', base),
         '', SEP, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}${sinal === 'SEM SINAL' ? '.' : ' SEM OSCILAÇÃO.'}`,
+        // Sem sinal fecha com ponto; com sinal, acrescenta a nota de oscilação.
+        f('statusOnu', base) + (sinal === 'SEM SINAL' ? '.' : ESP + f('semOscilacao')),
         '', SEP,
-        `QUESTIONADO, CLIENTE DISSE QUE "${motivo}".`,
+        f('motivoCliente', base),
         '', ...blocoPlano, '',
-        'ACESSO LIBERADO PARA SMARTPHONE OU TV SMART QUE POSSUA COMPATIBILIDADE. ',
-        '', '', SEP, ...blocoOpcoes, OPCAO_REMOTA, SEM_CUSTOS, BENEFICIOS_APOS_ASSINATURA, '', SEP, '',
-        `POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO COM ${titular} (ASSINANTE) POR ${canal} QUE CONFIRMOU E AUTORIZOU O UPGRADE, ACORDO FIRMADO POR ${canal} (${contato}) SOB PROTOCOLO ${protocolo} EM ${ligData} ÀS ${ligHora}. ${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES.`,
-        'CLIENTE NÃO TEM DÚVIDAS.',
+        f('acessoTerceiro') + ESP,
+        '', '', SEP, ...blocoOpcoes,
+        f('opcaoRemota'), f('semCustos'), f('beneficiosAposAssinatura'), '', SEP, '',
+        f('aceiteTerceiro', base),
+        f('semDuvidas'),
       ),
-      os: `${sol} (${parente} DE ${titular}) COMPARECEU NA LOJA E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${planoAtual}. PLANO ESCOLHIDO: ${planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. NÃO É NECESSÁRIA VISITA TÉCNICA, O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${sol} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, EQUIPAMENTO PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO. POR PROCEDIMENTO PADRÃO ENTREI EM CONTATO COM ${titular} (ASSINANTE) POR ${canal} QUE CONFIRMOU E AUTORIZOU O UPGRADE, ACORDO FIRMADO POR ${canal} (${contato}) SOB PROTOCOLO Nº${protocolo} EM ${ligData} ÀS ${ligHora} HRS.`,
+      os: f('osTerceiro', base),
     };
   }
 
   // titular (padrão)
   return {
     protocolo: linhas(
-      `${titular} COMPARECEU À LOJA E SOLICITOU ALTERAÇÃO DE PLANO.`,
+      f('aberturaTitular', base),
       '', SEP, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUÇÃO E ONU ${sinal}`,
+      f('statusOnu', base),
       '', SEP,
-      `QUESTIONADO, CLIENTE DISSE QUE "${motivo}".`,
+      f('motivoCliente', base),
       '', ...blocoPlano, '',
-      'APLICATIVOS DISPONÍVEIS PARA SMARTPHONE OU SMART-TV QUE POSSUA COMPATIBILIDADE. ',
-      '', '', SEP, ...blocoOpcoes, `${OPCAO_REMOTA} ${SEM_CUSTOS}`, '', BENEFICIOS_APOS_ASSINATURA, '', SEP, '',
-      `${titular} CONCORDOU COM OS TERMOS DE ALTERAÇÃO DE PLANO E VALIDOU SOBRE A RENOVAÇÃO DA FIDELIDADE POR 12 MESES. VALIDAÇÃO FEITA PRESENCIALMENTE DIA ${atendData} ÀS ${atendHora} HRS`,
+      f('acessoTitular') + ESP,
+      '', '', SEP, ...blocoOpcoes,
+      `${f('opcaoRemota')} ${f('semCustos')}`, '', f('beneficiosAposAssinatura'), '', SEP, '',
+      f('aceiteTitular', base),
     ),
-    os: `${titular} COMPARECEU À LOJA E SOLICITOU ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${planoAtual}. PLANO ESCOLHIDO: ${planoEscolhido}. RENOVA-SE CONTRATO DE PERMANÊNCIA PARA 12 (DOZE) MESES A PARTIR DA ASSINATURA DA O.S E CONTRATO. NÃO É NECESSÁRIA VISITA TÉCNICA, O ROTEADOR INSTALADO ANTERIORMENTE É COMPATÍVEL COM O NOVO PLANO ESCOLHIDO E ${titular} DISSE QUE A INSTALAÇÃO DESTE PERMANECE COMO FOI EXECUTADA, EQUIPAMENTO PERMANECERÁ EMPRESTADO EM REGIME DE COMODATO. PROTOCOLO Nº${protocolo} EM ${protData} ÀS ${protHora} HRS.`,
+    os: f('osTitular', base),
   };
 }

@@ -5,26 +5,50 @@
  * o texto de agendamento da visita técnica. Validado por diff contra o legado —
  * ver `manutSinalAlto.diff.test.ts`.
  *
+ * ⚠️ ESTE ARQUIVO NÃO CONTÉM TEXTO. Todo o conteúdo mora em
+ * `../catalogo/manutSinalAlto.ts` e é resolvido por `fraseDe`, que aplica o
+ * override publicado pela líder do suporte quando existir. O que fica aqui é a
+ * LÓGICA: qual ramo, em que ordem, com quais separadores e espaçadores.
+ *
+ * Essa separação existe por três motivos: permite editar o texto pela
+ * plataforma sem deploy; deixa este arquivo idêntico entre MZnet e WBR (é o
+ * texto que carrega o nome do provedor), então ele sincroniza sem risco; e
+ * desfaz a repetição — cada frase do miolo existia 5 vezes, uma por ramo.
+ *
+ * DIAGRAMAÇÃO FICA AQUI. O catálogo não guarda espaço no começo nem no fim das
+ * frases. O legado tinha vários, e de forma inconsistente — ver `ESP` e as duas
+ * assimetrias marcadas nos ramos. Espaço final é invisível para quem edita e
+ * seria apagado sem querer; recolocá-lo aqui mantém a saída idêntica.
+ *
  * O 2º argumento do builder legado (`t`) era o `operadorPrimeiroNome`; aqui ele
  * é lido de `valores.operadorPrimeiroNome`.
  *
- * Mapeamento das variáveis do bundle (mantidas verbatim para fidelidade da
- * transcrição): i=cliente(maiúsc), a=1º nome cliente, o=solicitante(maiúsc),
- * s=1º nome solicitante, c=parente, l=cargo, u=canal, d=contato(dígitos),
- * f=contatoSol(dígitos), p=onu(maiúsc), m=1º "nome" da onu, h=sinal atual,
+ * Mapeamento das variáveis do bundle (mantido para rastrear a transcrição):
+ * i=cliente(maiúsc), a=1º nome cliente, o=solicitante(maiúsc), s=1º nome
+ * solicitante, c=parente, l=cargo, u=canal, d=contato(dígitos),
+ * fSol=contatoSol(dígitos), p=onu(maiúsc), m=1º "nome" da onu, h=sinal atual,
  * g=sinal anterior, _=oscilação, v=bairro, y=formaPag, b=dataVisita,
  * x=horaVisita, S=protocolo(maiúsc), C=ctoType, w=bloco CTO, t=operador.
  */
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_SINAL_ALTO } from '../catalogo/manutSinalAlto';
+
+/** Slug do modelo no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-sinal-alto';
+
+const f = fraseDe(SLUG, MANUT_SINAL_ALTO);
 
 /** Separador do Protocolo — 19 asteriscos. (legado: xA) */
 const SEP = '*'.repeat(19);
 /** Separador da O.S antes da indicação técnica — 39 iguais. (legado: kWe) */
 const SEP_EQ = '='.repeat(39);
-/** Indicação técnica fixa da O.S. (legado: jWe) */
-const INDICACAO_TECNICA =
-  'TECNICO: VERIFICAR CONECTOR E DROP INTERNO E EXTERNO, ACHANDO O PROBLEMA APRESENTAR AO CLIENTE. SENDO DEFEITO EM QUE E DE OBRIGACAO DO PROVEDOR, TOMAR PROVIDENCIAS E RESTITUIR SEM CUSTO. SENDO OCASIONADO PEDIR AUTORIZACAO DO CLIENTE PARA CORRIGIR E RESTABELECER LEMBRANDO DO VALOR A SER COBRADO NO ATO. APOS RESTITUIR INTERNET, DAR EXPLICACOES SOBRE PLANO, WI-FI E DISPOSITIVOS, CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO, ATUALIZAR FIRMWARE DO ROTEADOR SE ESTIVER DESATUALIZADA. TEMPO ESTIMADO 60 MIN.';
+/**
+ * Espaço final que o legado deixava no fim de várias frases do Protocolo.
+ * É diagramação, não conteúdo — por isso vive aqui e não no catálogo.
+ */
+const ESP = ' ';
 
 /** N espaços. (legado: OA) */
 function espacos(n: number): string {
@@ -40,7 +64,7 @@ function blocoCto(ctoType: string, cto: string, passante: string): string {
 
 /** Rodapé da O.S: separador + indicação técnica. (legado: PWe) */
 function rodapeOS(): string {
-  return `${SEP_EQ}\n\nINDICACAO TECNICA:\n\n${INDICACAO_TECNICA}`;
+  return `${SEP_EQ}\n\nINDICACAO TECNICA:\n\n${f('indicacaoTecnica')}`;
 }
 
 export function renderManutSinalAlto(valores: Valores): SaidaOS {
@@ -56,7 +80,7 @@ export function renderManutSinalAlto(valores: Valores): SaidaOS {
   const l = maiusc(n.cargo);
   const u = n.canal ?? '';
   const d = soDigitos(n.contato);
-  const f = soDigitos(n.contatoSol);
+  const fSol = soDigitos(n.contatoSol);
   const p = maiusc(n.onu);
   const m = primeiroNome(p);
   const h = maiusc(n.sinalONU);
@@ -73,167 +97,132 @@ export function renderManutSinalAlto(valores: Valores): SaidaOS {
 
   const OA = espacos;
 
-  let T = `MAN SINAL ALTO ${i} PROT:${S} ${y} (${t}) - ${v}`;
+  /** Campos comuns a quase toda frase; cada chamada acrescenta o que é seu. */
+  const base = {
+    cliente: a,
+    clienteCompleto: i,
+    solicitante: s,
+    solicitanteCompleto: o,
+    parente: c,
+    cargo: l,
+    canal: u,
+    contato: d,
+    contatoSolicitante: fSol,
+    onu: m,
+    equipamentos: p,
+    sinalAtual: h,
+    sinalAnterior: g,
+    oscilacao: _,
+    formaPag: y,
+    formaPagFrase: fraseFormaPag(y),
+    dataVisita: b,
+    horaVisita: x,
+    protocolo: S,
+    bairro: v,
+    tecnico: t,
+  };
+
+  let T = f('agenda', base);
   if (C === 'CTOI') T += ` *CTOI*`;
+
+  /**
+   * Espaçamento do miolo. Três dos cinco ramos usam exatamente este ritmo; os
+   * outros dois trocam um item cada — ver `RITMO` nas chamadas. Não é escolha
+   * de design, é o legado transcrito: são inconsistências do bundle original
+   * que a fixture cobra byte a byte.
+   */
+  const RITMO = {
+    /** Linha entre o status remoto e o separador seguinte. */
+    spacerStatus: OA(4),
+    /** Espaço no fim da pergunta sobre intervenção. */
+    fimPergunta: ESP,
+    /** Linha entre a pergunta e o separador seguinte. */
+    spacerPergunta: OA(4),
+  };
+
+  /**
+   * Miolo comum do Protocolo: da linha em branco após a abertura até o
+   * separador que antecede o aceite. Idêntico nos 5 ramos, exceto por quem
+   * conduz o diálogo (`pessoa`) e pelo ritmo acima.
+   */
+  const miolo = (pessoa: string, ritmo: typeof RITMO) => [
+    ``,
+    SEP,
+    OA(4),
+    f('statusRemoto', base),
+    ritmo.spacerStatus,
+    SEP,
+    OA(4),
+    f('relato', { ...base, pessoa }) + ESP,
+    OA(4),
+    f('verificacao', base) + ESP,
+    OA(4),
+    SEP,
+    OA(4),
+    f('orientacaoReinicio', { ...base, pessoa }) + ESP,
+    OA(4),
+    f('perguntaIntervencao', { ...base, pessoa }) + ritmo.fimPergunta,
+    ritmo.spacerPergunta,
+    SEP,
+    OA(4),
+    f('termosVisita'),
+    OA(4),
+    SEP,
+    OA(4),
+  ];
 
   let E = '';
   let D = '';
 
   if (r === 'pessoa-juridica') {
     E = [
-      `${s} (${l}) ENTROU EM CONTATO POR ${u} (${f}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaPj', base),
+      ...miolo(s, RITMO),
+      f('aceitePresencial', { ...base, pessoa: s }),
       ``,
-      SEP,
-      OA(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${m} COM SINAL ${h} ${_}.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `QUESTIONADO ${s} DISSE QUE ESTA SOFRENDO DESCONEXOES REPETIDAS EM SUA REDE, ALEGA QUE OS DISPOSITIVOS ESTAO CONECTADOS COM MENSAGEM DE CONECTADO SEM INTERNET OU APRESENTAM EXTREMA LENTIDAO. `,
-      OA(4),
-      `VERIFIQUEI REMOTAMENTE QUE A ${m} ESTA COM SINAL ALTO FORA DO PADRAO. REGISTRO DE ULTIMA MANUTENCAO ERA ${g}, SINAL ATUAL ${h} ${_}. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `ORIENTEI ${s} A DESCONECTAR EQUIPAMENTOS (${p}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
-      OA(4),
-      `PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `${s} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(y)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${b} AS ${x} HRS.`,
-      ``,
-      `CLIENTE SEM DUVIDAS.`,
+      f('encerramento'),
     ].join('\n');
-    D = `${s} (${l}) ENTROU EM CONTATO VIA ${u} (${f}) E DISSE QUE ESTA COM DESCONEXOES REPETIDAS, QUESTIONADO(A) DISSE QUE "TODOS APARELHOS DE SUA RESIDENCIA PERDEM CONEXAO COM A INTERNET REPETIDAS VEZES DURANTE O DIA (FICA CONECTADO AO WIFI E SEM INTERNET)". REMOTAMENTE VERIFIQUEI QUE CONSTAM VARIAS DESCONEXOES, ONU ACESA COM SINAL ALTO FORA DO PADRAO (${h} ${_}), FOI INSTALADO COM ${g}. ORIENTEI CLIENTE A DESCONECTAR AS FONTES DE ENERGIA DOS EQUIPAMENTOS (${p}) E RECONECTA-LOS APOS 30 SEGUNDOS, FEITO POREM CONEXAO E SINAL NAO NORMALIZOU. PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI A ${s} QUE E NECESSARIO VISITA TECNICA, QUE HAVENDO PROBLEMAS DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTO, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS DANIFICADOS. ${s} DISSE ESTA CIENTE E CONCORDOU COM A VISITA E CASO HAJA COBRANCA SERA PAGO NO ATO COM ${y}. VISITA AGENDADA PARA DIA ${b} AS ${x} HRS.`;
+    D = f('osPj', base);
   } else if (r === 'terceiro-solicita-terceiro-acompanha') {
+    // Assimetria do legado: só neste ramo a pergunta sobre intervenção não tem
+    // espaço final, e o espaçador que a segue é linha vazia em vez de OA(4).
     E = [
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaTerceiro', base),
+      ...miolo(s, { ...RITMO, fimPergunta: '', spacerPergunta: '' }),
+      f('aceiteTitularAutorizaTerceiro', base),
       ``,
-      SEP,
-      OA(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${m} COM SINAL ${h} ${_}.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `QUESTIONADO ${s} DISSE QUE ESTA SOFRENDO DESCONEXOES REPETIDAS EM SUA REDE, ALEGA QUE OS DISPOSITIVOS ESTAO CONECTADOS COM MENSAGEM DE CONECTADO SEM INTERNET OU APRESENTAM EXTREMA LENTIDAO. `,
-      OA(4),
-      `VERIFIQUEI REMOTAMENTE QUE A ${m} ESTA COM SINAL ALTO FORA DO PADRAO. REGISTRO DE ULTIMA MANUTENCAO ERA ${g}, SINAL ATUAL ${h} ${_}. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `ORIENTEI ${s} A DESCONECTAR EQUIPAMENTOS (${p}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
-      OA(4),
-      `PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO.`,
-      ``,
-      SEP,
-      OA(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(y)}. VISITA AGENDADA PARA O DIA ${b} AS ${x} HRS.`,
-      ``,
-      `CLIENTE SEM DUVIDAS.`,
+      f('encerramento'),
     ].join('\n');
-    D = `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) E DISSE QUE ESTA COM DESCONEXOES REPETIDAS, QUESTIONADO(A) DISSE QUE "TODOS APARELHOS DE SUA RESIDENCIA PERDEM CONEXAO COM A INTERNET REPETIDAS VEZES DURANTE O DIA (FICA CONECTADO AO WIFI E SEM INTERNET)". REMOTAMENTE VERIFIQUEI QUE CONSTAM VARIAS DESCONEXOES, ONU ACESA COM SINAL ALTO FORA DO PADRAO (${h} ${_}), FOI INSTALADO COM ${g}. ORIENTEI CLIENTE A DESCONECTAR AS FONTES DE ENERGIA DOS EQUIPAMENTOS (${p}) E RECONECTA-LOS APOS 30 SEGUNDOS, FEITO POREM CONEXAO E SINAL NAO NORMALIZOU. PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI A ${s} QUE E NECESSARIO VISITA TECNICA, QUE HAVENDO PROBLEMAS DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTO, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS DANIFICADOS. ${s} DISSE ESTA CIENTE E CONCORDOU COM A VISITA E CASO HAJA COBRANCA SERA PAGO NO ATO COM ${y}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`;
+    D = f('osTerceiroAutorizado', base);
   } else if (r === 'terceiro-solicita-titular-acompanha') {
+    // Assimetria do legado: aqui o espaçador depois do status remoto é linha
+    // vazia em vez de OA(4).
     E = [
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaTerceiro', base),
+      ...miolo(s, { ...RITMO, spacerStatus: '' }),
+      f('aceiteTitularAcompanha', base),
       ``,
-      SEP,
-      OA(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${m} COM SINAL ${h} ${_}.`,
-      ``,
-      SEP,
-      OA(4),
-      `QUESTIONADO ${s} DISSE QUE ESTA SOFRENDO DESCONEXOES REPETIDAS EM SUA REDE, ALEGA QUE OS DISPOSITIVOS ESTAO CONECTADOS COM MENSAGEM DE CONECTADO SEM INTERNET OU APRESENTAM EXTREMA LENTIDAO. `,
-      OA(4),
-      `VERIFIQUEI REMOTAMENTE QUE A ${m} ESTA COM SINAL ALTO FORA DO PADRAO. REGISTRO DE ULTIMA MANUTENCAO ERA ${g}, SINAL ATUAL ${h} ${_}. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `ORIENTEI ${s} A DESCONECTAR EQUIPAMENTOS (${p}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
-      OA(4),
-      `PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
-      ``,
-      `CLIENTE SEM DUVIDAS.`,
+      f('encerramento'),
     ].join('\n');
-    D = `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${u} (${f}) E DISSE QUE ESTA COM DESCONEXOES REPETIDAS, QUESTIONADO(A) DISSE QUE "TODOS APARELHOS DE SUA RESIDENCIA PERDEM CONEXAO COM A INTERNET REPETIDAS VEZES DURANTE O DIA (FICA CONECTADO AO WIFI E SEM INTERNET)". REMOTAMENTE VERIFIQUEI QUE CONSTAM VARIAS DESCONEXOES, ONU ACESA COM SINAL ALTO FORA DO PADRAO (${h} ${_}), FOI INSTALADO COM ${g}. ORIENTEI CLIENTE A DESCONECTAR AS FONTES DE ENERGIA DOS EQUIPAMENTOS (${p}) E RECONECTA-LOS APOS 30 SEGUNDOS, FEITO POREM CONEXAO E SINAL NAO NORMALIZOU. PERGUNTEI A ${s} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI A ${s} QUE E NECESSARIO VISITA TECNICA, QUE HAVENDO PROBLEMAS DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTO, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS DANIFICADOS. ${s} DISSE ESTA CIENTE E CONCORDOU COM A VISITA E CASO HAJA COBRANCA SERA PAGO NO ATO COM ${y}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`;
+    D = f('osTerceiroTitularAcompanha', base);
   } else if (r === 'titular-solicita-terceiro-acompanha') {
     E = [
-      `${a} ENTROU EM CONTATO POR ${u} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaTitular', base),
+      ...miolo(a, RITMO),
+      f('aceiteTitularAusente', base),
       ``,
-      SEP,
-      OA(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${m} COM SINAL ${h} ${_}.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `QUESTIONADO ${a} DISSE QUE ESTA SOFRENDO DESCONEXOES REPETIDAS EM SUA REDE, ALEGA QUE OS DISPOSITIVOS ESTAO CONECTADOS COM MENSAGEM DE CONECTADO SEM INTERNET OU APRESENTAM EXTREMA LENTIDAO. `,
-      OA(4),
-      `VERIFIQUEI REMOTAMENTE QUE A ${m} ESTA COM SINAL ALTO FORA DO PADRAO. REGISTRO DE ULTIMA MANUTENCAO ERA ${g}, SINAL ATUAL ${h} ${_}. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${p}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
-      OA(4),
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `${a} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO ${fraseFormaPag(y)}. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`,
-      ``,
-      `CLIENTE SEM DUVIDAS.`,
+      f('encerramento'),
     ].join('\n');
-    D = `${a} ENTROU EM CONTATO VIA ${u} (${d}) E DISSE QUE ESTA COM DESCONEXOES REPETIDAS, QUESTIONADO(A) DISSE QUE "TODOS APARELHOS DE SUA RESIDENCIA PERDEM CONEXAO COM A INTERNET REPETIDAS VEZES DURANTE O DIA (FICA CONECTADO AO WIFI E SEM INTERNET)". REMOTAMENTE VERIFIQUEI QUE CONSTAM VARIAS DESCONEXOES, ONU ACESA COM SINAL ALTO FORA DO PADRAO (${h} ${_}), FOI INSTALADO COM ${g}. ORIENTEI CLIENTE A DESCONECTAR AS FONTES DE ENERGIA DOS EQUIPAMENTOS (${p}) E RECONECTA-LOS APOS 30 SEGUNDOS, FEITO POREM CONEXAO E SINAL NAO NORMALIZOU. PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI A ${a} QUE E NECESSARIO VISITA TECNICA, QUE HAVENDO PROBLEMAS DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTO, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${a} DISSE ESTA CIENTE E CONCORDOU COM A VISITA E CASO HAJA COBRANCA SERA PAGO NO ATO COM ${y}. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${b} AS ${x} HRS.`;
+    D = f('osTitularAusente', base);
   } else {
     E = [
-      `${a} ENTROU EM CONTATO POR ${u} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      f('aberturaTitular', base),
+      ...miolo(a, RITMO),
+      f('aceitePresencial', { ...base, pessoa: a }),
       ``,
-      SEP,
-      OA(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${m} COM SINAL ${h} ${_}.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `QUESTIONADO ${a} DISSE QUE ESTA SOFRENDO DESCONEXOES REPETIDAS EM SUA REDE, ALEGA QUE OS DISPOSITIVOS ESTAO CONECTADOS COM MENSAGEM DE CONECTADO SEM INTERNET OU APRESENTAM EXTREMA LENTIDAO. `,
-      OA(4),
-      `VERIFIQUEI REMOTAMENTE QUE A ${m} ESTA COM SINAL ALTO FORA DO PADRAO. REGISTRO DE ULTIMA MANUTENCAO ERA ${g}, SINAL ATUAL ${h} ${_}. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `ORIENTEI ${a} A DESCONECTAR EQUIPAMENTOS (${p}) DA REDE ELETRICA E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. `,
-      OA(4),
-      `PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
-      OA(4),
-      SEP,
-      OA(4),
-      `INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.`,
-      OA(4),
-      SEP,
-      OA(4),
-      `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E CASO HAJA CUSTOS PAGARA ${fraseFormaPag(y)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${b} AS ${x} HRS.`,
-      ``,
-      `CLIENTE SEM DUVIDAS.`,
+      f('encerramento'),
     ].join('\n');
-    D = `${a} ENTROU EM CONTATO VIA ${u} (${d}) E DISSE QUE ESTA COM DESCONEXOES REPETIDAS, QUESTIONADO(A) DISSE QUE "TODOS APARELHOS DE SUA RESIDENCIA PERDEM CONEXAO COM A INTERNET REPETIDAS VEZES DURANTE O DIA (FICA CONECTADO AO WIFI E SEM INTERNET)". REMOTAMENTE VERIFIQUEI QUE CONSTAM VARIAS DESCONEXOES, ONU ACESA COM SINAL ALTO FORA DO PADRAO (${h} ${_}), FOI INSTALADO COM ${g}. ORIENTEI CLIENTE A DESCONECTAR AS FONTES DE ENERGIA DOS EQUIPAMENTOS (${p}) E RECONECTA-LOS APOS 30 SEGUNDOS, FEITO POREM CONEXAO E SINAL NAO NORMALIZOU. PERGUNTEI A ${a} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI A ${a} QUE E NECESSARIO VISITA TECNICA, QUE HAVENDO PROBLEMAS DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTO, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO) COBRA-SE VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS DANIFICADOS. ${a} DISSE ESTA CIENTE E CONCORDOU COM A VISITA E CASO HAJA COBRANCA SERA PAGO NO ATO COM ${y}. VISITA AGENDADA PARA DIA ${b} AS ${x} HRS.`;
+    D = f('osTitular', base);
   }
 
   const O = D + w + rodapeOS();

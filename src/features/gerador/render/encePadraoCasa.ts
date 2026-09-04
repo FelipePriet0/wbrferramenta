@@ -8,6 +8,14 @@
 import { maiusc, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { ENCE_PADRAO_CASA } from '../catalogo/encePadraoCasa';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'ence-padrao-casa';
+
+const f = fraseDe(SLUG, ENCE_PADRAO_CASA);
+
 export function renderEncePadraoCasa(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -15,28 +23,28 @@ export function renderEncePadraoCasa(valores: Valores): SaidaOS {
   // legado: n(e) => (t[e] ?? '').trim().toUpperCase()
   const n = (e: string) => maiusc(t[e]);
 
-  let r = `PADRAO CASA:\n\n`;
+  let r = `${f('titulo')}\n\n`;
 
-  r += (t.sem_id_cto === 'SIM' ? `CTO: XXXX` : `CTO: ${n('cto')}`) + `\n`;
-  r += `SINAL: ${n('sinal')}\n`;
-  r += `PORTA: ${n('porta')}\n\n`;
-  r += `PASSAGEM DO CABO DROP: ${n('passagem_cabo')} A PEDIDO DO CLIENTE.\n`;
+  r += (t.sem_id_cto === 'SIM' ? f('ctoOculta') : f('cto', { cto: n('cto') })) + `\n`;
+  r += f('sinal', { sinal: n('sinal') }) + `\n`;
+  r += f('porta', { porta: n('porta') }) + `\n\n`;
+  r += f('passagemCabo', { passagemCabo: n('passagem_cabo') }) + `\n`;
 
   if (t.possui_passante === 'SIM') {
-    r += `POSSUI PASSANTE: SIM\n`;
-    r += `MOTIVO DO PASSANTE: ${n('motivo_passante')}\n`;
-    r += `LOCAL DO PASSANTE: ${n('local_passante')}\n`;
-    r += `AUTORIZADO POR: ${n('autorizado_por')}\n`;
+    r += f('possuiPassante') + `\n`;
+    r += f('motivoPassante', { motivoPassante: n('motivo_passante') }) + `\n`;
+    r += f('localPassante', { localPassante: n('local_passante') }) + `\n`;
+    r += f('autorizadoPor', { autorizadoPor: n('autorizado_por') }) + `\n`;
   }
 
   const i = t.local_instalacao ?? '';
   let a = '';
   if (i === 'SOLTO EM CIMA DO MÓVEL') {
-    a = `SOLTO EM CIMA DO MÓVEL: ${n('descricao_movel')}. MOTIVO DE NÃO FIXAR: ${n('motivo_nao_fixado')}. O CLIENTE ESTÁ CIENTE DOS RISCOS CASO O EQUIPAMENTO SOFRA DANO POR QUEDA.`;
+    a = f('fixacaoSolto', { descricaoMovel: n('descricao_movel'), motivoNaoFixado: n('motivo_nao_fixado') });
   } else if (i === 'FIXADO NA PAREDE') {
-    a = `FIXADO NA PAREDE COM BUCHA E PARAFUSO A PEDIDO DO CLIENTE.`;
+    a = f('fixacaoParede');
   } else if (i === 'FIXADO NO MÓVEL') {
-    a = `FIXADO NO MÓVEL COM ${n('tipo_fixacao_movel')} A PEDIDO DO CLIENTE.`;
+    a = f('fixacaoMovel', { tipoFixacaoMovel: n('tipo_fixacao_movel') });
   }
 
   // "ONU" é feminino: a frase de fixação concorda em "FIXADA"/"SOLTA"; ROTEADOR
@@ -45,65 +53,65 @@ export function renderEncePadraoCasa(valores: Valores): SaidaOS {
 
   const o = t.tipo_equipamento ?? '';
   if (o === 'ONU + Roteador') {
-    r += `ONU ${n('onu')} MAC ${n('mac_onu')} ${aFem}\n`;
-    r += `ROTEADOR ${n('roteador')} MAC ${n('mac_roteador')} ${a}\n`;
+    r += f('linhaOnu', { onu: n('onu'), macOnu: n('mac_onu'), fixacao: aFem }) + `\n`;
+    r += f('linhaRoteador', { roteador: n('roteador'), macRoteador: n('mac_roteador'), fixacao: a }) + `\n`;
   } else if (o === 'ONT') {
-    r += `${n('ont_select')} MAC ${n('mac_ont_select')} ${a}\n`;
+    r += f('linhaOnt', { ont: n('ont_select'), macOnt: n('mac_ont_select'), fixacao: a }) + `\n`;
   } else if (o === 'Somente ONU') {
-    r += `ONU ${n('somente_onu_select')} MAC ${n('mac_somente_onu')} ${aFem}\n`;
+    r += f('linhaOnu', { onu: n('somente_onu_select'), macOnu: n('mac_somente_onu'), fixacao: aFem }) + `\n`;
   }
 
-  r += `TESTE REALIZADO NO NOTEBOOK DO TÉCNICO, VIA CABO, AFERIU ${(t.teste_notebook ?? '').trim()} MEGA DE DOWNLOAD.\n`;
-  r += `TESTE FEITO NO ${n('dispositivo_teste')} ${n('marca_modelo_teste')} DO CLIENTE AFERIU ${(t.velocidade_teste ?? '').trim()} MEGA DE DOWNLOAD.\n`;
+  r += f('testeNotebook', { testeNotebook: (t.teste_notebook ?? '').trim() }) + `\n`;
+  r += f('testeCliente', { dispositivoTeste: n('dispositivo_teste'), marcaModeloTeste: n('marca_modelo_teste'), velocidadeTeste: (t.velocidade_teste ?? '').trim() }) + `\n`;
 
   const s = t.ligacao_eletrica ?? '';
   if (s === 'T de Energia' || s === 'Extensão Elétrica') {
     const e = n('nome_cliente_energia');
     if (e) {
-      r += `CLIENTE: ${e} ACOMPANHOU A ORDEM DE SERVIÇO E ESTÁ CIENTE DE QUE O ADAPTADOR PODE DESLIGAR OU ATÉ MESMO QUEIMAR OS EQUIPAMENTOS EMPRESTADOS EM COMODATO.\n`;
+      r += f('cienciaAdaptador', { nomeClienteEnergia: e }) + `\n`;
     }
   }
 
   const c = n('teste_cobertura');
-  r += `TESTE DE COBERTURA WI-FI FOI REALIZADO NA PRESENÇA DE ${c}`;
+  r += f('testeCobertura', { testeCobertura: c });
   if (t.eh_assinante === 'NÃO') {
     r += ` (${n('parentesco_cobertura')})`;
   }
   r += `.\n`;
 
-  const l = n('app_wbr_celular');
+  const l = n('app_mznet_celular');
   if (l) {
-    r += `APP WBR: CELULAR ${l} DE ${c}, ESTE APP CONCEDE ACESSO AOS BOLETOS E CONTRATO.\n`;
+    r += f('appProvedor', { appCelular: l, testeCobertura: c }) + `\n`;
   }
 
   if (t.app_mztv === 'SIM') {
-    r += `APP MZTV OU CDNTV: SIM - DISPOSITIVO: ${n('dispositivo_mztv')}\n`;
+    r += f('appTvSim', { dispositivoTv: n('dispositivo_mztv') }) + `\n`;
   } else {
-    r += `APP MZTV OU CDNTV: NÃO\n`;
+    r += f('appTvNao') + `\n`;
   }
 
   if (s === 'Outro') {
-    r += `LIGAÇÕES ELÉTRICAS: ${n('observacao_ligacao_outros')}\n`;
+    r += f('ligacoesEletricas', { ligacaoEletrica: n('observacao_ligacao_outros') }) + `\n`;
   } else {
-    r += `LIGAÇÕES ELÉTRICAS: ${s.toUpperCase()}\n`;
+    r += f('ligacoesEletricas', { ligacaoEletrica: s.toUpperCase() }) + `\n`;
     if (s === 'T de Energia' || s === 'Extensão Elétrica') {
-      r += `${c} RECEBEU ORIENTAÇÃO SOBRE OS RISCOS DE USAR ${s.toUpperCase()}.\n`;
+      r += f('orientacaoRiscos', { testeCobertura: c, ligacaoEletrica: s.toUpperCase() }) + `\n`;
     }
   }
 
-  r += `DISPOSITIVOS CONECTADOS NA REDE: ${n('dispositivos_conectados')}\n`;
+  r += f('dispositivosConectados', { dispositivosConectados: n('dispositivos_conectados') }) + `\n`;
 
   if (t.pagamento === 'SIM') {
-    r += `PAGAMENTO (X)SIM ( )NAO\n`;
-    r += `\nVALOR R$: ${(t.valor_pagamento ?? '').trim()}\n`;
-    r += `FORMA PAGAMENTO ${n('forma_pagamento')}\n`;
+    r += f('pagamentoSim') + `\n`;
+    r += `\n` + f('valorPagamento', { valorPagamento: (t.valor_pagamento ?? '').trim() }) + `\n`;
+    r += f('formaPagamento', { formaPagamento: n('forma_pagamento') }) + `\n`;
   } else {
-    r += `PAGAMENTO ( )SIM (X)NAO\n`;
+    r += f('pagamentoNao') + `\n`;
   }
 
   const u = n('observacoes');
   if (u) {
-    r += `\nOBS.: ${u}\n`;
+    r += `\n` + f('observacoes', { observacoes: u }) + `\n`;
   }
 
   return { protocolo: '', os: '', saida: r };

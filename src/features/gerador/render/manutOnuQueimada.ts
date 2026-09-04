@@ -7,6 +7,17 @@
  */
 import { linhas, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_ONU_QUEIMADA } from '../catalogo/manutOnuQueimada';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-onu-queimada';
+
+// `frase` e não `f`: `f` já é o contato do solicitante (nome do bundle).
+const frase = fraseDe(SLUG, MANUT_ONU_QUEIMADA);
+
+/** Espaço final que o legado deixava na pergunta sobre intervenção. */
+const ESP = ' ';
 
 /** Separador de blocos (legado: Mj) — 41 sinais de igual. */
 const SEP_ONU = '='.repeat(41);
@@ -55,78 +66,84 @@ export function renderManutOnuQueimada(valores: Valores): SaidaOS {
     w = f;
   }
 
-  const T = b
-    ? 'CONCORDOU COM A VISITA E CASO HAJA COBRANCA OPTOU POR LANCAR O VALOR NA PROXIMA MENSALIDADE'
-    : `CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${_}`;
-  const E = `VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA O DIA ${v} ${y}`;
-  const D = `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${u} (${d}) COM ${a} (ASSINANTE) QUE CONFIRMOU E`;
+  const base = {
+    cliente: a, clienteCompleto: i, solicitanteExibido: S, pessoa: C,
+    solicitanteCompleto: o, parente: c, canal: u ?? '', contato: d,
+    contatoUsado: w ?? '', alarme: m, onu: h ?? '', formaPag: _ ?? '',
+    dataVisita: v ?? '', horaVisita: y ?? '', protocolo: g ?? '', bairro: p,
+    tecnico: t, custoAgenda: b ? 'MENSALIDADE' : (_ ?? ''),
+  };
+
+  const T = b ? frase('aceiteMensalidade') : frase('aceiteNoAto', base);
+  const E = frase('agendamento', base);
+  const D = frase('contatoTitular', base);
 
   let O: string[];
   if (r === 'titular-solicita-terceiro-acompanha') {
     O = [
-      `${a} ${T}, ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`,
+      `${a} ${T}, ${frase('titularAusenteProtocolo', base)} ${E}.`,
     ];
   } else if (r === 'terceiro-solicita-terceiro-acompanha') {
     O = [
       `${s} ${T}.`,
       '',
-      `${D} AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`,
+      `${D} ${frase('autorizouTerceiro', base)} ${E}.`,
     ];
   } else if (r === 'terceiro-solicita-titular-acompanha') {
     O = [
       `${s} ${T}.`,
       '',
-      `${D} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${E}.`,
+      `${D} ${frase('titularAcompanha')} ${E}.`,
     ];
   } else {
-    O = [`${C} ${T}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. ${E}.`];
+    O = [`${C} ${T}, ${frase('acompanhaTecnico')} ${E}.`];
   }
 
   let k: string;
   if (r === 'titular-solicita-terceiro-acompanha') {
-    k = `${a} ${T}, ${a} NAO ESTARA PRESENTE MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`;
+    k = `${a} ${T}, ${frase('titularAusenteOs', base)} ${E}.`;
   } else if (r === 'terceiro-solicita-terceiro-acompanha') {
-    k = `${s} ${T}. ${D} AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO CASO HOUVER. ${E}.`;
+    k = `${s} ${T}. ${D} ${frase('autorizouTerceiro', base)} ${E}.`;
   } else if (r === 'terceiro-solicita-titular-acompanha') {
-    k = `${s} ${T}. ${D} DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${E}.`;
+    k = `${s} ${T}. ${D} ${frase('titularAcompanha')} ${E}.`;
   } else {
     k = `${C} ${T}. ${E}.`;
   }
 
   const protocolo = linhas(
-    `${S} ENTROU EM CONTATO POR ${u} (${w}) INFORMANDO PROBLEMA DE CONEXAO.`,
+    frase('abertura', base),
     '',
     SEP_ONU,
     '',
-    'CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU SEM SINAL (DYINGGASP).',
+    frase('statusOnu'),
     '',
     SEP_ONU,
     '',
-    'QUESTIONADO, DISSE QUE UM DOS EQUIPAMENTOS DE INTERNET NAO ESTA LIGANDO.',
+    frase('relatoEquipamento'),
     '',
-    `REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ONU ${m} (SEM SINAL: DYINGGASP).`,
+    frase('verificacaoRemota', base),
     '',
-    `ORIENTEI ${C} A DESCONECTAR OS CABOS DE ENERGIA DA ONU E ROTEADOR E INVERTE-LOS, FEITO, POREM, CONEXAO NAO RESTABELECEU.`,
+    frase('orientacaoInverter', base),
     '',
-    `PERGUNTEI A ${C} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. `,
+    frase('perguntaIntervencao', base) + ESP,
     '',
     SEP_ONU,
     '',
-    'INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS.',
+    frase('termosVisita'),
     '',
     SEP_ONU,
     '',
     ...O,
     '',
-    'CLIENTE SEM DUVIDAS.',
+    frase('semDuvidas'),
   );
 
-  const para1 = `${S} ENTROU EM CONTATO POR ${u} (${w}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO, ${C} DISSE "QUE A ONU ESTA ${m}". REMOTAMENTE VERIFIQUEI QUE ONU ESTA DESCONECTADA/APAGADA. ORIENTEI ${C} A INVERTER AS FONTES DE ENERGIA DOS EQUIPAMENTOS (ONU E ROTEADOR) E RECONECTA-LOS APOS 30 SEGUNDOS. FEZ, POREM CONEXAO NAO RESTABELECEU. PERGUNTEI A ${C} SE EFETUOU ALGUMA MODIFICACAO/INTERVENCAO NA INSTALACAO E CLIENTE DISSE QUE NAO. INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA E QUE HAVENDO PROBLEMA DA RESPONSABILIDADE DO PROVEDOR VISITA NAO TERA CUSTOS, MAS, SENDO PROBLEMA OCASIONADO (ESPONTANEO OU NAO), SERA COBRADA VISITA TECNICA DE R$50,00 E ATE MESMO EQUIPAMENTOS SE DANIFICADOS. ${k}`;
-  const paraTecnico = `TECNICO: CONFERIR AS TOMADAS,  T , ETC. ONDE ESTAO LIGADOS ONU E ROTEADOR. CONFERIR FONTES DOS EQUIPAMENTOS E CONFERIR ONU (APARENCIA FISICA). SE NAO FOR PROBLEMAS NA TOMADA, NAS FONTES E ONU ESTIVER SEM AVARIAS, SUBSTITUIR ONU ${h} POR OUTRA SIMILAR. EFETUAR TESTES PADROES, FILMAR E FOTOGRAFAR. VERIFICAR ATUALIZACAO DO FIRMWARE DO ROTEADOR. CASO PROBLEMA SEJA NA TOMADA,  T , FONTES OU ONU AVARIADA: FILMAR E ENCAMINHAR PARA SUPORTE QUE LIGARA DE IMEDIATO PARA CLIENTE. SANAR TODAS AS DUVIDAS DE ${C}. TEMPO ESTIMADO 40 MINUTOS.`;
+  const para1 = `${frase('corpoOs', base)} ${k}`;
+  const paraTecnico = frase('indicacaoTecnica', base);
 
   const os = `${para1}\n\n${SEP_ONU}\n\nINDICACAO TECNICA:\n\n${paraTecnico}`;
 
-  const agenda = `MAN TROCA ONU ${i} PROT:${g} ${b ? 'MENSALIDADE' : _} (${t}) - ${p}`;
+  const agenda = frase('agenda', base);
 
   return { protocolo, os, agenda };
 }

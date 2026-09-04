@@ -10,6 +10,14 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_MUDANCA_PONTO } from '../catalogo/feedbackMudancaPonto';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-mudanca-ponto';
+
+const frase = fraseDe(SLUG, FEEDBACK_MUDANCA_PONTO);
+
 export function renderFeedbackMudancaPonto(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -30,24 +38,26 @@ export function renderFeedbackMudancaPonto(valores: Valores): SaidaOS {
   const h = t.formaPagamento || '';
   const e = t.energia || '';
 
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, comodoAnterior: o, comodoAtual: s, aparelho: l, marcaModelo: u, velocidadeCliente: d, velocidadeCabo: f, velocidadeWifi: p, valorOS: m, formaPagFrase: fraseFormaPag(h), energia: e };
+
   const g = [
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `CLIENTE CONFIRMOU MUDANÇA DE PONTO INTERNO, CONFIRMOU QUE NO LOCAL INSTALADO FICOU DE SEU AGRADO.`,
-    `EQUIPAMENTO DESINSTALADO DE: ${o}`,
-    `REINSTALADO EM: ${s}`,
-    `CONFIRMOU QUE APÓS A TROCA FOI FEITO TODOS OS TESTES DE FUNCIONAMENTO DA INTERNET, TESTE DE ABRANGÊNCIA E AFERIÇÃO NOS APARELHOS DO TECNICO E EM SEUS PESSOAIS.`,
+    frase('feedbackRealizado', base),
+    frase('confirmouMudanca'),
+    frase('desinstaladoDe', base),
+    frase('reinstaladoEm', base),
+    frase('testesRealizados'),
   ];
   if (c === 'sim') {
-    g.push(`CLIENTE DISPENSOU OS TESTES EM SEUS DISPOSITIVOS PESSOAIS.`);
+    g.push(frase('dispensouTestes'));
   } else {
     g.push(
-      `APARELHO TESTADO: ${l} ${u} AFERIU ${d}MBPS. NOTEBOOK DO TÉCNICO VIA CABO DE REDE AFERIU ${f}MBPS E ${p}MBPS VIA WI-FI NA REDE 5G.`,
+      frase('aparelhoTestado', base),
     );
   }
   g.push(
-    `EQUIPAMENTO LIGADO EM ${e}.`,
-    `O.S COM CUSTO DE R$ ${m} PAGO ${fraseFormaPag(h)}.`,
-    `CLIENTE SEM DUVIDAS.`,
+    frase('equipamentoLigado', base),
+    frase('osComCusto', base),
+    frase('semDuvidas'),
   );
 
   return { protocolo: '', os: g.join('\n') };

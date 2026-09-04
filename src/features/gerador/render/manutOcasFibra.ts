@@ -9,6 +9,14 @@
  */
 import { fraseFormaPag, maiusc, nucleoCustoDrop, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_OCAS_FIBRA } from '../catalogo/manutOcasFibra';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-ocas-fibra';
+
+// `frase` e não `f`: `f` já é o 1º nome da ONU (nome herdado do bundle).
+const frase = fraseDe(SLUG, MANUT_OCAS_FIBRA);
 
 /** Separador longo do Protocolo — 42 asteriscos. (legado: nA) */
 const SEP_LONGO = '*'.repeat(42);
@@ -36,7 +44,7 @@ function blocoCto(tipo: string, cto: string, passante: string): string {
 
 /** Indicação técnica da O.S. (legado: lWe) */
 function indicacaoTecnica(nome: string): string {
-  return `TECNICO: VERIFICAR DROP INTERNO E EXTERNO, SE SOBRA TECNICA FOR SUFICIENTE, USAR PARA REPARO E RESTABELECER CONEXAO. CASO NAO SEJA PASSAR OUTRO DROP. CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO. AO FINALIZAR ENTRAR EM CONTATO COM SUPORTE PARA CONFERIR SINAL E CONFIRMAR NORMALIZACAO COM ${nome}. TEMPO ESTIMADO 60 MIN.`;
+  return frase('indicacaoTecnica', { pessoa: nome });
 }
 
 /** Envelope padrão da O.S (fluxos titular e terceiro-acompanha-titular). (legado: uA) */
@@ -50,8 +58,7 @@ function envelopeOSRecuado(nome: string): string {
 }
 
 /** Texto do bloco de custo (fluxo terceiro-acompanha-titular). (legado: cWe) */
-const BLOCO_CUSTO =
-  'INFORMEI QUE E NECESSARIO VISITA TECNICA PARA VERIFICAR A FONTE DO PROBLEMA. ESTA VISITA TECNICA POSSUI O CUSTO DE R$50,00 E CASO OS EQUIPAMENTOS TENHAM DEFEITOS OCASIONADOS, SERA COBRADO O VALOR REFERENTE AOS MESMOS.';
+const BLOCO_CUSTO = () => frase('blocoCustoPadrao');
 
 export function renderManutOcasFibra(valores: Valores): SaidaOS {
   const vRaw: Valores = {};
@@ -77,9 +84,7 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   // condicional ao valor. Protocolo: explicação + formas de pagamento. O.S: só a
   // explicação (a frase de pagamento vem logo depois no template). Ausente => ''
   // (fidelidade às fixtures). Núcleo compartilhado em `nucleoCustoDrop`.
-  const custoProto = m
-    ? `${nucleoCustoDrop(m)} VALOR PAGO NO ATO EM DINHEIRO, CARTAO OU PIX.`
-    : '';
+  const custoProto = m ? `${nucleoCustoDrop(m)} ${frase('custoFormasPagamento')}` : '';
   const custoOs = m ? `${nucleoCustoDrop(m)} ` : '';
   const h = maiusc(v.formaPag);
   const g = v.dataVisita;
@@ -87,7 +92,20 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   const cto = v.ctoType || 'CTOE';
   const y = blocoCto(cto, maiusc(v.cto), maiusc(v.passante));
 
-  let agenda = `MAN ${duasPalavras(maiusc(v.alarme ?? ''))} (OCASIONADO) ${i} PROT:${v.protocolo ?? ''} ${h} (${t}) - ${maiusc(v.bairro)}`;
+  const base = {
+    cliente: a, clienteCompleto: i, solicitante: s, solicitanteCompleto: o,
+    parente: c, canal: l, contato: u, contatoSolicitante: d, onu: f,
+    motivo: p, formaPag: h, formaPagFrase: fraseFormaPag(h),
+    dataVisita: g, horaVisita: hora,
+  };
+
+  let agenda = frase('agenda', {
+    ...base,
+    alarme: duasPalavras(maiusc(v.alarme ?? '')),
+    protocolo: v.protocolo ?? '',
+    tecnico: t ?? '',
+    bairro: maiusc(v.bairro),
+  });
   if (cto === 'CTOI') agenda += ` *CTOI*`;
 
   const montar = (proto: string[], os: string): SaidaOS => ({
@@ -99,19 +117,19 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTerceiro', base),
         '', SEP_CURTO, esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${f} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(4), SEP_CURTO, esp(4),
-        `QUESTIONADO, ${s} DISSE QUE A ${f} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${s} DISSE QUE "${p}", E FICOU SEM ACESSO A INTERNET.`,
+        frase('relatoComSolicitante', base),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${f} ESTA DESCONECTADO/APAGADA.`,
+        frase('verificacaoApagada', base),
         '', SEP_LONGO, '', custoProto, esp(4), SEP_LONGO, '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. ${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E FARA O PAGAMENTO ${fraseFormaPag(h)}. VISITA AGENDADA PARA O DIA ${g} AS ${hora} HRS.`,
+        frase('aceiteTerceiroAutorizado', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${p}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${f} APAGADA. EXPLIQUEI QUE COM A QUEDA/INTERVENCAO PODE TER DANIFICADO A FIBRA, CONECTOR OU ATE MESMO OS EQUIPAMENTOS. ${custoOs}${s} CONCORDOU COM A VISITA E CASO HAJA COBRANCA SOLICITOU PAGAR NO ATO COM ${h}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${o} (${c}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${g} AS ${hora} HRS.` +
+      `${frase('osTerceiroAutorizado', base)} ${custoOs}${frase('osFechoTerceiroAutorizado', base)}` +
         y +
         envelopeOSRecuado(s),
     );
@@ -120,21 +138,21 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   if (tipo === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTerceiro', base),
         '', SEP_CURTO, esp(4),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${f} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(4), SEP_CURTO, esp(4),
-        `QUESTIONADO, DISSE QUE A ${f} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${s} DISSE QUE "${p}", E FICOU SEM ACESSO A INTERNET.`,
+        frase('relatoTerceiro', base),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${f} ESTA DESCONECTADO/APAGADA.`,
+        frase('verificacaoApagada', base),
         esp(4), SEP_CURTO, '',
-        m ? custoProto : BLOCO_CUSTO,
+        m ? custoProto : BLOCO_CUSTO(),
         '', SEP_CURTO, '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU A VISITA. ${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E FARA O PAGAMENTO ${fraseFormaPag(h)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA PARA O DIA ${g} AS ${hora} HRS.`,
+        frase('aceiteTitularAcompanha', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
-      `${s} (${c} DE ${a}) ENTROU EM CONTATO POR ${l} (${d}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${p}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${f} APAGADA. ${custoOs}${s} CONCORDOU COM A VISITA E FARA O PAGAMENTO ${fraseFormaPag(h)}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${l} (${u}) COM ${a} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${g} AS ${hora} HRS.` +
+      `${frase('osTerceiroTitularAcompanha', base)} ${custoOs}${frase('osFechoTerceiroTitularAcompanha', base)}` +
         y +
         envelopeOS(a),
     );
@@ -143,19 +161,19 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${a} ENTROU EM CONTATO POR ${l} (${u}) INFORMANDO PROBLEMA DE CONEXAO.`,
+        frase('aberturaTitular', base),
         esp(20), SEP_CURTO, esp(24),
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${f} SEM SINAL.`,
+        frase('statusOnu', base),
         esp(24), SEP_CURTO, esp(24),
-        `QUESTIONADO, DISSE QUE A ${f} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${a} DISSE QUE "${p}", E FICOU SEM ACESSO A INTERNET.`,
+        frase('relatoTitular', base),
         '',
-        `REMOTAMENTE VERIFIQUEI QUE ${f} ESTA DESCONECTADO/APAGADA.`,
+        frase('verificacaoApagada', base),
         esp(24), SEP_CURTO, esp(20), custoProto, '', SEP_CURTO, esp(20),
-        `${a} CONCORDOU COM A VISITA E FARA O PAGAMENTO COM ${h}. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${g} AS ${hora} HRS.`,
+        frase('aceiteTitularAusente', base),
         '',
-        'CLIENTE SEM DUVIDAS.',
+        frase('semDuvidas'),
       ],
-      `${a} ENTROU EM CONTATO POR ${l} (${u}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${p}", E FICOU SEM ACESSO A INTERNET. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO DO SISTEMA E ${f} APAGADA. ${custoOs}${a} CONCORDOU COM A VISITA E FARA O PAGAMENTO COM ${h}. ${a} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${o} (${c}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${g} AS ${hora} HRS.` +
+      `${frase('osTitular', base)} ${custoOs}${frase('aceiteTitularAusente', base)}` +
         y +
         envelopeOS(a),
     );
@@ -164,19 +182,19 @@ export function renderManutOcasFibra(valores: Valores): SaidaOS {
   // titular-solicita-titular-acompanha (padrão)
   return montar(
     [
-      `${a} ENTROU EM CONTATO POR ${l} (${u}) INFORMANDO PROBLEMA DE CONEXAO.`,
+      frase('aberturaTitular', base),
       '', SEP_LONGO, esp(4),
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ${f} SEM SINAL.`,
+      frase('statusOnu', base),
       esp(4), SEP_LONGO,
-      `REMOTAMENTE VERIFIQUEI QUE ${f} ESTA DESCONECTADO.`,
+      frase('verificacaoDesconectado', base),
       '',
-      `QUESTIONADO, DISSE QUE A ${f} ESTA COM LUZ VERMELHA ACESA. PERGUNTEI O MOTIVO E ${a} DISSE QUE "${p}".`,
+      frase('relatoTitularSemAcesso', base),
       '', custoProto, '', SEP_LONGO, '',
-      `${a} CONCORDOU COM OS TERMOS DA VISITA TECNICA E FARA O PAGAMENTO ${fraseFormaPag(h)}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${g} AS ${hora} HRS.`,
+      frase('aceiteTitularSozinho', base),
       '',
-      'CLIENTE SEM DUVIDAS.',
+      frase('semDuvidas'),
     ],
-    `${a} ENTROU EM CONTATO POR ${l} (${u}) E DISSE QUE ESTA SEM CONEXAO COM A INTERNET. QUESTIONADO DISSE QUE: "${p}", E FICOU SEM ACESSO A INTERNET. PERGUNTEI SOBRE A ${f}, E CLIENTE DISSE QUE ESTA COM LUZ VERMELHA ACESA. REMOTAMENTE VERIFIQUEI QUE USUARIO ESTA DESCONECTADO E ${f} APAGADA. ${custoOs}${a} AUTORIZOU VISITA E PAGARA ${fraseFormaPag(h)} NO ATO. VISITA AGENDADA PARA ${g} AS ${hora} HRS.` +
+    `${frase('osTitularSozinho', base)} ${custoOs}${frase('osFechoTitularSozinho', base)}` +
       y +
       envelopeOS(a),
   );

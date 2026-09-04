@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Building2, Check, ChevronDown, Copy, UserRound, Users } from 'lucide-react';
+import { ArrowLeft, Building2, Check, ChevronDown, Copy, Pencil, UserRound, Users, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { SimpleSelect } from '@/components/ui/select';
 import { formatMacAddress } from '@/lib/masks';
@@ -12,12 +12,24 @@ import { getModelo } from './modelos/registry';
 import type { CampoConfig, ModeloForm } from './modelos/altplanRemotoForm';
 import type { SaidaOS } from './render/altplanRemoto';
 import { maiusc } from './render/helpers';
+import { iniciarTrace, pararTrace } from './catalogo/store';
+import { segmentar } from './catalogo/segmentar';
+import { contarTambemEm } from './catalogo/registry';
+import { useEditorEmulado } from './editor/useEditorEmulado';
+import { contarRamos } from './editor/ramos';
+import { SaidaEditavel } from './editor/SaidaEditavel';
 import type { Valores } from './render/helpers';
 
 const FONTE = "'Google Sans Flex', Ubuntu, 'Segoe UI', system-ui, sans-serif";
 const TEXTO = '#1a2027';
 const AZUL = '#0B42C6'; // headers de seção / eyebrow
 const AZUL_VIVO = '#0B42C6'; // pill + abas (interativo)
+/**
+ * Cor de ESTADO do modo de edição — não é cor de marca. Na toolmznet a paleta
+ * do gerador é verde e aqui é azul; laranja fica fora das duas, então só
+ * aparece quando se está mexendo no que todo mundo vê.
+ */
+const LARANJA = '#FF6600';
 
 const INICIAL: Valores = {
   tipoSolicitacao: 'titular',
@@ -299,11 +311,14 @@ function SaidaColuna({
   saida,
   aba,
   setAba,
+  edicao,
 }: {
   form: ModeloForm;
   saida: SaidaOS;
   aba: string;
   setAba: (k: string) => void;
+  /** Ausente = modo normal. Presente = a saída vira blocos clicáveis. */
+  edicao?: React.ComponentProps<typeof SaidaEditavel> | null;
 }) {
   const abas = ABAS_META.filter((a) => {
     const v = saida[a.key];
@@ -337,7 +352,18 @@ function SaidaColuna({
           })}
         </div>
       )}
-      {atual && <OutputPane titulo={atual.titulo} texto={String(saida[atual.key] ?? '')} />}
+      {atual && edicao ? (
+        <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800">
+          <div className="border-b border-zinc-100 px-4 py-2.5 dark:border-zinc-800">
+            <span className="text-xs font-bold uppercase tracking-wide text-zinc-500">
+              {atual.titulo}
+            </span>
+          </div>
+          <SaidaEditavel {...edicao} />
+        </div>
+      ) : (
+        atual && <OutputPane titulo={atual.titulo} texto={String(saida[atual.key] ?? '')} />
+      )}
     </div>
   );
 }
@@ -358,6 +384,8 @@ export function GeradorOS({
     modelo ? initialValores(modelo.form, tecnico) : INICIAL,
   );
   const [aba, setAba] = useState<string>('protocolo');
+  const [chaveAberta, setChaveAberta] = useState<string | null>(null);
+  const editor = useEditorEmulado(slug);
 
   // Reseta o formulário ao trocar de modelo (navegação client-side sem remontar).
   useEffect(() => {
@@ -375,13 +403,36 @@ export function GeradorOS({
 
   // O "(TÉCNICO)" da agenda sai em CAIXA-ALTA como o resto da linha; o campo de
   // entrada continua exibindo o nome como o operador digitou.
-  const saida = useMemo(
-    () =>
-      modelo
-        ? modelo.render({ ...valores, operadorPrimeiroNome: maiusc(valores.operadorPrimeiroNome) })
-        : null,
-    [modelo, valores],
-  );
+  // `editor.versao` entra nas dependências porque os overrides chegam do banco
+  // depois da primeira renderização.
+  const { saida, trace } = useMemo(() => {
+    if (!modelo) return { saida: null, trace: [] };
+    const entrada = { ...valores, operadorPrimeiroNome: maiusc(valores.operadorPrimeiroNome) };
+    iniciarTrace();
+    try {
+      return { saida: modelo.render(entrada), trace: pararTrace() };
+    } catch (e) {
+      // O trace precisa ser desligado mesmo quando o render estoura, senão vaza
+      // para a próxima renderização e a segmentação sai errada.
+      pararTrace();
+      throw e;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modelo, valores, editor.versao]);
+
+  /** Em quantos ramos cada frase aparece — medido, não declarado. */
+  const ramos = useMemo(() => {
+    if (!modelo || !editor.editando) return {};
+    const campos = modelo.form.secoes.flatMap((sec) => sec.campos);
+    const variavel = campos.find((c) => c.id === modelo.form.variavelId);
+    return contarRamos(
+      modelo.render,
+      modelo.form.variavelId,
+      (variavel?.opcoes ?? []).map((o) => o.value),
+      valores,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modelo, valores, editor.editando, editor.versao]);
 
   if (!modelo) {
     return (
@@ -402,6 +453,43 @@ export function GeradorOS({
 
   return (
     <div className="mx-auto w-full max-w-7xl" style={{ fontFamily: FONTE, color: TEXTO }}>
+      {editor.editando && (
+        <div
+          className="mb-4 flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-[13px] font-semibold"
+          style={{
+            borderColor: `${LARANJA}52`,
+            borderLeftWidth: 4,
+            backgroundColor: `${LARANJA}14`,
+            color: '#7a3200',
+          }}
+        >
+          MODO EDIÇÃO
+          <span className="font-medium" style={{ color: '#9a5520' }}>
+            — o que você publicar passa a valer para todos os atendentes, na hora.
+          </span>
+          <span className="ml-auto flex shrink-0 items-center gap-3 text-[11px] font-medium">
+            <span className="flex items-center gap-1.5" style={{ color: '#7a3200' }}>
+              <span
+                className="inline-block h-2.5 w-2.5 rounded-sm"
+                style={{ backgroundColor: `${LARANJA}33`, border: `1px solid ${LARANJA}` }}
+              />
+              clique para editar
+            </span>
+            <span className="flex items-center gap-1.5 text-zinc-500">
+              <span className="inline-block h-2.5 w-2.5 rounded-sm bg-zinc-200" />
+              travado
+            </span>
+          </span>
+        </div>
+      )}
+      {/* Só quem edita vê a falha: o atendente também carrega os overrides, mas
+          quando a carga falha o gerador cai no padrão e a O.S sai correta. */}
+      {editor.erro && editor.disponivel && (
+        <p className="mb-4 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-semibold text-red-700">
+          Não foi possível carregar os textos publicados; o gerador está usando o padrão do
+          sistema. ({editor.erro})
+        </p>
+      )}
       <div className="mb-5 flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase" style={{ letterSpacing: '0.96px', color: AZUL }}>
@@ -412,20 +500,62 @@ export function GeradorOS({
           </h1>
           <p className="mt-1 text-sm text-zinc-500">{form.descricao}</p>
         </div>
-        <Link
-          href={`${hubBase}/${categoriaSlug}`}
-          className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200"
-        >
-          <ArrowLeft className="h-4 w-4" /> {form.titulo}
-        </Link>
+        <div className="flex shrink-0 items-center gap-2">
+          {!editor.editando && (
+            <Link
+              href={`${hubBase}/${categoriaSlug}`}
+              className="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200"
+            >
+              <ArrowLeft className="h-4 w-4" /> {form.titulo}
+            </Link>
+          )}
+          {/* Peso visual baixo de propósito: um gestor abre esta tela dezenas de
+              vezes para gerar O.S e pouquíssimas para editar texto. O azul sólido
+              continua reservado ao Copiar, que é a ação de quem atende. */}
+          {editor.disponivel && (
+            <button
+              type="button"
+              onClick={() => {
+                setChaveAberta(null);
+                editor.setEditando(!editor.editando);
+              }}
+              className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors"
+              style={
+                editor.editando
+                  ? { borderColor: LARANJA, backgroundColor: LARANJA, color: '#fff' }
+                  : { borderColor: '#e4e4e7', color: TEXTO }
+              }
+            >
+              {editor.editando ? (
+                <>
+                  <X className="h-4 w-4" /> Sair da edição
+                </>
+              ) : (
+                <>
+                  <Pencil className="h-4 w-4" /> Editar
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-        {/* Coluna 1 — formulário */}
-        <div className="rounded-[28px] border bg-white p-6 dark:bg-zinc-900/60" style={{ borderColor: 'rgba(33,33,33,0.12)' }}>
+        {/* Coluna 1 — formulário. No modo edição ele é secundário: vira só a
+            fonte de valores da prévia, e o esmaecimento diz isso. */}
+        <div
+          className="rounded-[28px] border bg-white p-6 transition-opacity dark:bg-zinc-900/60"
+          style={{ borderColor: 'rgba(33,33,33,0.12)', opacity: editor.editando ? 0.55 : 1 }}
+        >
           <h2 className="mb-4 text-[15px] font-bold" style={{ color: TEXTO }}>
-            Preencha atentamente o formulário abaixo
+            {editor.editando ? 'Dados de exemplo' : 'Preencha atentamente o formulário abaixo'}
           </h2>
+          {editor.editando && (
+            <p className="-mt-2 mb-4 text-xs leading-relaxed text-zinc-500">
+              Estes valores não geram O.S — servem para você ver como o texto fica
+              preenchido na prévia.
+            </p>
+          )}
           <div className="flex flex-col gap-5">
             {/* O técnico que gerou a O.S vai para o "(TÉCNICO)" da agenda; o valor é
                 semeado do usuário logado (operadorPrimeiroNome) sem campo na UI. */}
@@ -472,7 +602,31 @@ export function GeradorOS({
         </div>
 
         {/* Coluna 2 — saída emulada (abas dinâmicas: só as que o modelo produz) */}
-        <SaidaColuna form={form} saida={saida!} aba={aba} setAba={setAba} />
+        <SaidaColuna
+          form={form}
+          saida={saida!}
+          aba={aba}
+          setAba={setAba}
+          edicao={
+            editor.editando && editor.catalogo
+              ? {
+                  modeloSlug: slug,
+                  segmentos: segmentar(String(saida?.[aba as keyof SaidaOS] ?? ''), trace),
+                  catalogo: editor.catalogo,
+                  metas: editor.metas,
+                  ramos,
+                  tambemEm: contarTambemEm(slug, editor.catalogo),
+                  vars: valores,
+                  chaveAberta,
+                  onAbrir: setChaveAberta,
+                  onFechar: () => setChaveAberta(null),
+                  onPublicar: editor.publicar,
+                  onRestaurar: editor.restaurarPadrao,
+                  onHistorico: editor.historico,
+                }
+              : null
+          }
+        />
       </div>
     </div>
   );

@@ -19,6 +19,17 @@ import {
 } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { WIFI_EXTEND_TPLINK } from '../catalogo/wifiExtendTplink';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'wifi-extend-tplink';
+
+const frase = fraseDe(SLUG, WIFI_EXTEND_TPLINK);
+
+/** Espaço que o legado deixava antes da quebra. */
+const ESP = ' ';
+
 /** Espaços (legado: gM). */
 const esp = (n: number) => ' '.repeat(n);
 
@@ -47,23 +58,16 @@ function Nqe(e: string): string {
  * Sufixo comum das indicações técnicas (legado: `vM`). Todas as variantes
  * (`Dqe`/`Oqe`/`kqe`/`Aqe`) terminam com este mesmo bloco no bundle.
  */
-const VM =
-  ' EM LOCAL DE CONCORDANCIA DO CLIENTE E NA MELHOR ÁREA DE COBERTURA WI-FI. PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. BAIXAR E INSTALAR OS APP S QUE FAZEM PARTE DO PLANO ESCOLHIDO, TANTO NOS TELEFONES E TV S QUE POSSUÍREM COMPATIBILIDADE PARA FUNCIONAMENTO E NÃO HAVENDO DAR EXPLICAÇÕES. COLHER ASSINATURAS (O.S E CONTRATO), ENTREGAR DOCUMENTAÇÃO (VIAS DO CLIENTE), RECOLHER CARNÊ ANTIGO.';
+const VM = () => ' ' + frase('procedimentosTecnicos');
 
 /** Indicação técnica sem troca (legado: Dqe). */
-const DQE_TECNICO =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO. INSTALAR 2° ROTEADOR (MODELO COMPATIVEL AO PLANO)' +
-  VM;
+const DQE_TECNICO = () => frase('aberturaIndicacaoSemTroca') + VM();
 
 /** Indicação técnica com troca — TP-LINK, cliente PF (legado: kqe). */
-const KQE_TECNICO =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO. CONFERIR INSTALAÇÃO E EQUIPAMENTOS EM COMODATO, NÃO HAVENDO DANOS SUBSTITUIR ROTEADOR ATUAL (PRIMÁRIO) POR ONT TPLINK. INSTALAR 2° ROTEADOR (MODELO COMPATIVEL AO PLANO)' +
-  VM;
+const KQE_TECNICO = () => frase('aberturaIndicacaoComTroca') + VM();
 
 /** Indicação técnica com troca — TP-LINK, cliente PJ (legado: Aqe). */
-const AQE_TECNICO =
-  'TÉCNICO: PLANO JÁ ALTERADO PARA NOVO PLANO ESCOLHIDO. CONFERIR INSTALAÇÃO E EQUIPAMENTOS EM COMODATO, NÃO HAVENDO DANOS SUBSTITUIR ROTEADOR ATUAL (PRIMÁRIO) POR ONT TPLINK . INSTALAR 2° ROTEADOR (MODELO COMPATIVEL AO PLANO)' +
-  VM;
+const AQE_TECNICO = () => frase('aberturaIndicacaoComTroca') + VM();
 
 export function renderWifiExtendTplink(valores: Valores): SaidaOS {
   const v: Valores = {};
@@ -137,9 +141,9 @@ export function renderWifiExtendTplink(valores: Valores): SaidaOS {
     z +
     M +
     I +
-    `INFORMEI AO CLIENTE QUE PARA CASOS COMO ESTE (RESIDENCIA GRANDE, SOBRADO, AREA DE LAZER ETC) TRABALHAMOS COM OS PLANOS QUE POSSUEM O WI-FI EXTEND.` +
+    frase('explicaPlanos') +
     I +
-    `EM RESUMO EXPLIQUEI QUE WI-FI EXTEND CONSISTE NUM SEGUNDO ROTEADOR ADICIONAL QUE ${trechoConexao}. ESTE EM SI UTILIZA O MESMO NOME DE REDE E SENHA DO ROTEADOR PRINCIPAL SENDO COMO UM ESCRAVO.\nESTE 2° ROTEADOR FICA EMPRESTADO EM REGIME DE COMODATO.` +
+    `${frase('explicaComoFunciona', { trechoConexao })}\n${frase('comodato')}` +
     I +
     N +
     I +
@@ -147,7 +151,7 @@ export function renderWifiExtendTplink(valores: Valores): SaidaOS {
     I +
     D +
     I +
-    `INFORMEI A NECESSIDADE DO AGENDAMENTO DE VISITA TÉCNICA PARA INSTALAÇÃO E CONFIGURAÇÃO DO ROTEADOR ADICIONAL, REALIZAR OS TESTES DE ABRANGÊNCIA, QUALIDADE, VELOCIDADE E SANAR TODAS AS DÚVIDAS QUE CLIENTE/USUÁRIOS POSSAM TER. \nVISITA ISENTA DE CUSTOS.` +
+    `${frase('necessidadeVisita')}${ESP}\n${frase('visitaIsenta')}` +
     I +
     D +
     I +
@@ -161,7 +165,7 @@ export function renderWifiExtendTplink(valores: Valores): SaidaOS {
     : `${T} SOLICITOU POR ${u} (${d}) ALTERAÇÃO DO PLANO DE INTERNET: PLANO ATUAL: ${m}. PLANO ESCOLHIDO: ${h}; VENCIMENTO: DIA ${S} DO MÊS; VIGÊNCIA DO CONTRATO: 12 MESES (VIDE CONTRATO). VISITA AGENDADA PARA ${y} ÀS ${b} HRS.`;
   // ee = a ? (n==='TPLINK' ? (r?Aqe:kqe) : Oqe) : Dqe. Variante TP-LINK: com
   // troca, PJ → Aqe, PF → kqe; sem troca → Dqe.
-  const ee = a ? (r ? AQE_TECNICO : KQE_TECNICO) : DQE_TECNICO;
+  const ee = a ? (r ? AQE_TECNICO : KQE_TECNICO) : DQE_TECNICO();
   const te = V + `\n\n` + D + `\n\nINDICAÇÃO TÉCNICA:\n\n` + ee;
 
   const conexaoAgenda = conexao === 'CABO' ? 'CABEADO' : conexao === 'MESH' ? 'MESH (SEM FIO)' : '';

@@ -9,6 +9,13 @@
  */
 import { fraseFormaPag, maiusc, nucleoCustoDrop, primeiroNome, soDigitos } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
+import { fraseDe } from '../catalogo/store';
+import { MANUT_REALOC_FIBRA } from '../catalogo/manutRealocFibra';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'manut-realoc-fibra';
+
+const f = fraseDe(SLUG, MANUT_REALOC_FIBRA);
 
 /** Separador do fluxo titular/PJ — 39 sinais de igual. (legado: AA) */
 const SEP_TITULAR = '='.repeat(39);
@@ -24,7 +31,7 @@ const ESP4 = ' '.repeat(4);
  * do 3º argumento do envelope legado. (legado: GWe)
  */
 function indicacaoTecnica(nome: string): string {
-  return `TECNICO: VERIFICAR DROP INTERNO E EXTERNO, SE SOBRA TECNICA FOR SUFICIENTE, USAR PARA REPARO E RESTABELECER CONEXAO. CASO NAO SEJA PASSAR OUTRO DROP. CORRIGIR QUALQUER INCONSISTENCIAS NA INSTALACAO QUE NAO TIVER PADRAO. AO FINALIZAR ENTRAR EM CONTATO COM SUPORTE PARA CONFERIR SINAL E CONFIRMAR NORMALIZACAO COM ${nome}. TEMPO ESTIMADO 60 MIN.`;
+  return f('indicacaoTecnica', { pessoa: nome });
 }
 
 /**
@@ -74,15 +81,23 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   // original (fidelidade às fixtures/legado). Núcleo em `nucleoCustoDrop`.
   const temValor = valor !== '';
   const custoLinhaProto = temValor
-    ? `${nucleoCustoDrop(valor)} VALOR PAGO NO ATO EM DINHEIRO, CARTAO OU PIX.`
-    : `FOI INFORMADO O VALOR DE ${valor}, PAGO NO ATO EM DINHEIRO, CARTAO OU PIX.`;
+    ? `${nucleoCustoDrop(valor)} ${f('custoFormasPagamento')}`
+    : f('custoSemValor', { valor });
   // Cláusula de custo da O.S: com valor, a explicação (terminada em ponto)
   // antecede a frase de quem paga; vazio mantém "CUSTO DE ; ..." das fixtures.
   const custoClauseOs = temValor
     ? `${nucleoCustoDrop(valor)} `
     : `CUSTO DE ${valor}; `;
 
-  const agenda = `MAN REMANEJAMENTO DE FIBRA ${clienteFull} PROT:${n.protocolo} ${formaPag} (${operador}) - ${bairro}`;
+  const base = {
+    cliente, clienteCompleto: clienteFull, solicitante: sol,
+    solicitanteCompleto: solFull, parente, cargo, canal, contato,
+    contatoSolicitante: contatoSol, sinalONU: sinal, motivo, valor,
+    formaPag, formaPagFrase: fraseFormaPag(formaPag),
+    dataVisita, horaVisita, protocolo: n.protocolo, bairro, tecnico: operador,
+  };
+
+  const agenda = f('agenda', base);
 
   const montar = (protoLinhas: string[], osTexto: string): SaidaOS => ({
     protocolo: protoLinhas.join('\n'),
@@ -93,18 +108,18 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   if (tipo === 'pessoa-juridica') {
     return montar(
       [
-        `${sol} (${cargo}) ENTROU EM CONTATO POR ${canal} (${contato}) E SOLICITOU SUPORTE.`,
+        f('aberturaPj', base),
         '', SEP_TITULAR, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${sinal}.`,
+        f('statusOnu', base),
         '', SEP_TITULAR, '',
-        `QUESTIONADO ${sol} DISSE QUE "${motivo}".`,
+        f('motivoCliente', { ...base, pessoa: sol }),
         '',
         custoLinhaProto,
         ESP4, SEP_TITULAR, ESP4,
-        `${sol} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO COM ${formaPag}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('aceitePresencial', { ...base, pessoa: sol }),
       ],
       envelopeOS(
-        `${sol} (${cargo}) ENTROU EM CONTATO POR ${canal} (${contato}) PARA SOLICITAR SUPORTE. QUESTIONADO, DISSE "${motivo}". ${custoClauseOs}CLIENTE PAGARA ${fraseFormaPag(formaPag)}. AGENDADA PARA ${dataVisita} AS ${horaVisita} HORAS.`,
+        `${f('osAberturaPj', base)} ${custoClauseOs}${f('osFechoClientePaga', base)}`,
         SEP_TITULAR,
         sol,
         false,
@@ -115,18 +130,18 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   if (tipo === 'titular-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${cliente} ENTROU EM CONTATO POR ${canal} (${contato}) E SOLICITOU SUPORTE.`,
+        f('aberturaTitular', base),
         '', SEP_TERCEIRO_ACOMPANHA, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${sinal}.`,
+        f('statusOnu', base),
         '', SEP_TERCEIRO_ACOMPANHA, '',
-        `QUESTIONADO ${cliente} DISSE QUE "${motivo}".`,
+        f('motivoCliente', { ...base, pessoa: cliente }),
         '',
         custoLinhaProto,
         ESP4, SEP_TERCEIRO_ACOMPANHA, ESP4,
-        `${cliente} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO COM ${formaPag}, ${cliente} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solFull} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('aceiteTitularAusente', base),
       ],
       envelopeOS(
-        `${cliente} ENTROU EM CONTATO POR ${canal} (${contato}) PARA SOLICITAR SUPORTE. QUESTIONADO, DISSE "${motivo}". ${custoClauseOs}CLIENTE PAGARA ${fraseFormaPag(formaPag)}. ${cliente} DISSE QUE NAO ESTARA PRESENTE, MAS AUTORIZOU ${solFull} (${parente}) A ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        `${f('osAberturaTitular', base)} ${custoClauseOs}${f('osFechoTitularAusente', base)}`,
         SEP_TERCEIRO_ACOMPANHA,
         'CLIENTE',
         true,
@@ -137,20 +152,20 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   if (tipo === 'terceiro-solicita-terceiro-acompanha') {
     return montar(
       [
-        `${sol} (${parente} DE ${cliente}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E SOLICITOU SUPORTE.`,
+        f('aberturaTerceiro', base),
         '', SEP_TERCEIRO, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${sinal} SEM OSCILACAO.`,
+        f('statusOnuSemOscilacao', base),
         '', SEP_TERCEIRO, '',
-        `QUESTIONADO ${sol} DISSE QUE "${motivo}".`,
+        f('motivoCliente', { ...base, pessoa: sol }),
         '',
         custoLinhaProto,
         '', SEP_TERCEIRO, ESP4,
-        `${sol} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO COM ${formaPag}.`,
+        f('aceiteSemAcompanhante', base),
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${cliente} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('contatoAutorizaTerceiro', base),
       ],
       envelopeOS(
-        `${sol} (${parente} DE ${cliente}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) PARA SOLICITAR SUPORTE. QUESTIONADO, DISSE "${motivo}". ${custoClauseOs}${sol} SOLICITOU PAGAR ${fraseFormaPag(formaPag)}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${cliente} (ASSINANTE) QUE CONFIRMOU E AUTORIZOU ${solFull} (${parente}) ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        `${f('osAberturaTerceiro', base)} ${custoClauseOs}${f('osFechoTerceiroAutorizado', base)}`,
         SEP_TERCEIRO,
         'CLIENTE',
         false,
@@ -161,20 +176,20 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   if (tipo === 'terceiro-solicita-titular-acompanha') {
     return montar(
       [
-        `${sol} (${parente} DE ${cliente}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) E SOLICITOU SUPORTE.`,
+        f('aberturaTerceiro', base),
         '', SEP_TERCEIRO, '',
-        `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${sinal}.`,
+        f('statusOnu', base),
         '', SEP_TERCEIRO, '',
-        `QUESTIONADO ${sol} DISSE QUE "${motivo}".`,
+        f('motivoCliente', { ...base, pessoa: sol }),
         '',
         custoLinhaProto,
         ESP4, SEP_TERCEIRO, ESP4,
-        `${sol} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO COM ${formaPag}.`,
+        f('aceiteSemAcompanhante', base),
         '',
-        `POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${cliente} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        f('contatoTitularAcompanha', base),
       ],
       envelopeOS(
-        `${sol} (${parente} DE ${cliente}) ENTROU EM CONTATO POR ${canal} (${contatoSol}) PARA SOLICITAR SUPORTE. QUESTIONADO, DISSE "${motivo}". ${custoClauseOs}${sol} ESCOLHEU PAGAR ${fraseFormaPag(formaPag)}. POR PROCEDIMENTO PADRAO ENTREI EM CONTATO POR ${canal} (${contato}) COM ${cliente} (ASSINANTE) QUE CONFIRMOU E DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR, ASSINAR O.S E EFETUAR O PAGAMENTO. VISITA AGENDADA (A PEDIDO DO CLIENTE) PARA ${dataVisita} AS ${horaVisita} HRS.`,
+        `${f('osAberturaTerceiro', base)} ${custoClauseOs}${f('osFechoTitularAcompanha', base)}`,
         SEP_TERCEIRO,
         'CLIENTE',
         false,
@@ -185,18 +200,18 @@ export function renderManutRealocFibra(valores: Record<string, string>): SaidaOS
   // titular-solicita-titular-acompanha (padrão)
   return montar(
     [
-      `${cliente} ENTROU EM CONTATO POR ${canal} (${contato}) E SOLICITOU SUPORTE.`,
+      f('aberturaTitular', base),
       '', SEP_TITULAR, '',
-      `CLIENTE SEM BLOQUEIO, SEM REDUCAO E ONU ${sinal}.`,
+      f('statusOnu', base),
       '', SEP_TITULAR, '',
-      `QUESTIONADO ${cliente} DISSE QUE "${motivo}".`,
+      f('motivoCliente', { ...base, pessoa: cliente }),
       '',
       custoLinhaProto,
       '', SEP_TITULAR, '',
-      `${cliente} CONCORDOU COM OS TERMOS DA VISITA TECNICA, PAGAMENTO SERA FEITO NO ATO COM ${formaPag}, DISSE QUE ESTARA PRESENTE PARA ACOMPANHAR O TECNICO. VISITA AGENDADA PARA O DIA ${dataVisita} AS ${horaVisita} HRS.`,
+      f('aceitePresencial', { ...base, pessoa: cliente }),
     ],
     envelopeOS(
-      `${cliente} ENTROU EM CONTATO POR ${canal} (${contato}) PARA SOLICITAR SUPORTE. QUESTIONADO, DISSE "${motivo}". ${custoClauseOs}CLIENTE PAGARA ${fraseFormaPag(formaPag)}. AGENDADA PARA ${dataVisita} AS ${horaVisita} HORAS.`,
+      `${f('osAberturaTitular', base)} ${custoClauseOs}${f('osFechoClientePaga', base)}`,
       SEP_TITULAR,
       cliente,
       true,

@@ -7,16 +7,23 @@
 import { fraseFormaPag, maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { WIFI_EXTEND_PONTO } from '../catalogo/wifiExtendPonto';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'wifi-extend-ponto';
+
+const f = fraseDe(SLUG, WIFI_EXTEND_PONTO);
+
 /** Separador da O.S (legado: mqe). */
 const SEP_OS = '*'.repeat(35);
 
 /** Indicação técnica padrão, sem troca do roteador primário (legado: Kqe). */
-const INDICACAO_PADRAO =
-  'TÉCNICO: INSTALAR ROTEADOR (MODELO COMPATIVEL AO PLANO) EM LOCAL DE CONCORDANCIA DO CLIENTE E NA MELHOR ÁREA DE COBERTURA WI-FI. CONFIGURAR REDE, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAREM, REALIZAR TESTES DA FUNCIONALIDADE DA INTERNET, AFERIR PLANO COM DISPOSITIVOS DO CLIENTE E OUTROS QUE ESTIVEREM NO LOCAL, FOTOGRAFAR, FILMAR, COMPARAR E EXPLICAR. CORRIGIR QUALQUER INCONSISTÊNCIAS NA INSTALAÇÃO QUE NÃO ESTIVER NO PADRÃO. RECEBER O VALOR DO EQUIPAMENTO E SERVIÇO NA FORMA COMBINADA. TEMPO ESTIMADO 60 MIN.';
+const INDICACAO_PADRAO = () => f('indicacaoPadrao');
 
 /** Indicação técnica com troca do roteador primário (legado: qqe). */
 function indicacaoTroca(roteador: string): string {
-  return `TÉCNICO: CONFERIR INSTALAÇÃO E EQUIPAMENTOS EM COMODATO, NÃO HAVENDO DANOS SUBSTITUIR ROTEADOR ${roteador} POR ROTEADOR ZTE H-199A E CONFIGURAR COMO PONTO PRINCIPAL. INSTALAR ROTEADOR EXTEND ZTE H-199A OU H-196A EM LOCAL DE CONCORDANCIA DO CLIENTE E NA MELHOR ÁREA DE COBERTURA WI-FI. PADRONIZAR NOME DAS REDES ("NOME DO CLIENTE_WBR"), CONFERIR NAVEGAÇÃO IPv6, PADRONIZAR PORTA E SENHA DE ACESSO REMOTO, LIBERAR ACESSO EXTERNO PELA WAN; TESTAR ABRANGÊNCIA DA REDE WI-FI E EXPLICAR SOBRE COBERTURA, CONECTAR TODOS DISPOSITIVOS QUE APRESENTAR E REALIZAR TESTES, VERIFICAR E EXPLICAR SOBRE EQUIPAMENTOS QUE FUNCIONARAM MELHOR LIGADOS DIRETAMENTE AO ROTEADOR POR CABOS. BAIXAR E INSTALAR OS APP S QUE FAZEM PARTE DO PLANO ESCOLHIDO, TANTO NOS TELEFONES E TV S QUE POSSUÍREM COMPATIBILIDADE PARA FUNCIONAMENTO E NÃO HAVENDO DAR EXPLICAÇÕES. RECEBER O VALOR DO EQUIPAMENTO E SERVIÇO NA FORMA COMBINADA. TEMPO ESTIMADO 60 MIN.`;
+  return f('indicacaoTroca', { roteador });
 }
 
 export function renderWifiExtendPonto(valores: Valores): SaidaOS {
@@ -45,13 +52,18 @@ export function renderWifiExtendPonto(valores: Valores): SaidaOS {
   const ponto = ehTroca ? `(${roteador})` : '(ROTEADOR PRIMÁRIO)';
   const pagFrase = fraseFormaPag(formaPag);
 
-  const os =
-    `POR ${canal} (${contato}) ${quem} SOLICITOU A COMPRA DE 01 ROTEADOR ADICIONAL PARA EXPANDIR A ABRANGÊNCIA DA REDE WI-FI DENTRO DA MESMA ${local} EM QUE FOI INSTALADO O PONTO PRINCIPAL ${ponto}. VALOR ACORDADO DO ROTEADOR R$360,00 QUE SERÁ PAGO EM ${parcela} ${pagFrase}. E INSTALAÇÃO/CONFIGURAÇÃO GRÁTIS. VISITA AGENDADA PARA INSTALAÇÃO DO EQUIPAMENTO EM ${dataVisita} ÀS ${horaVisita} HORAS.`;
+  const base = {
+    canal, contato, quem, local, ponto, parcela, pagFrase,
+    dataVisita, horaVisita, clienteCompleto: cliente,
+    protocolo, formaPag: maiusc(formaPag), tecnico: operador, bairro, roteador,
+  };
 
-  const indicacao = ehTroca ? indicacaoTroca(roteador) : INDICACAO_PADRAO;
+  const os = f('corpoOs', base);
+
+  const indicacao = ehTroca ? indicacaoTroca(roteador) : INDICACAO_PADRAO();
 
   const pontoTextoOS = `${os}\n\n${SEP_OS}\n\nINDICAÇÃO TÉCNICA:\n\n${indicacao}`;
-  const pontoTextoAgenda = `PONTO ADICIONAL ${cliente} PROT:${protocolo} ${maiusc(formaPag)} (${operador}) - ${bairro}`;
+  const pontoTextoAgenda = f('agenda', base);
 
   return { protocolo: '', os: pontoTextoOS, agenda: pontoTextoAgenda };
 }

@@ -10,6 +10,14 @@
 import { maiusc, primeiroNome, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_TROCA_EQUIP } from '../catalogo/feedbackTrocaEquip';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-troca-equip';
+
+const frase = fraseDe(SLUG, FEEDBACK_TROCA_EQUIP);
+
 export function renderFeedbackTrocaEquip(valores: Valores): SaidaOS {
   const t: Valores = {};
   for (const [k, val] of Object.entries(valores)) t[k] = String(val ?? '');
@@ -27,18 +35,20 @@ export function renderFeedbackTrocaEquip(valores: Valores): SaidaOS {
   const f = `${o} ${s}`;
   const p = `${c} ${l}`;
 
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, equipRemovido: f, equipInstalado: p, velocidadeCabo: u, velocidadeWifi: d };
+
   const texto = [
     // Correção vs. legado: o builder PJe tinha "ÁS HRS" solto (hora faltando) —
     // como `dataHora` é datetime (data+hora), o texto certo é "DIA <data e hora>.".
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `VISITA REALIZADA REFERENTE A UM PROBLEMA NO EQUIPAMENTO EMPRESTADO. FOI EFETUADA A TROCA DO EQUIPAMENTO E O ACESSO FOI RESTABELECIDO.`,
-    `CLIENTE CONFIRMOU A TROCA DO EQUIPAMENTO.`,
-    `DESINSTALADO: ${f}`,
-    `INSTALADO: ${p}`,
-    `CLIENTE CONFIRMOU QUE FOI REALIZADO TESTES DE AFERIÇÃO DA VELOCIDADE E REDE 2.4G E 5G.`,
-    `NOTEBOOK DO TÉCNICO VIA CABO DE REDE AFERIU ${u}MEGA. VIA WI-FI CONECTADO NA REDE 5G AFERIU ${d}MEGA.`,
-    `EQUIPAMENTOS INSTALADOS EM TOMADA INDIVIDUAL.`,
-    `O.S. SEM CUSTOS.`,
+    frase('feedbackRealizado', base),
+    frase('motivoVisita'),
+    frase('confirmouTroca'),
+    frase('desinstalado', base),
+    frase('instalado', base),
+    frase('testesRealizados'),
+    frase('aferricaoNotebook', base),
+    frase('tomadaIndividual'),
+    frase('osSemCusto'),
   ].join('\n');
 
   return { protocolo: '', os: texto };

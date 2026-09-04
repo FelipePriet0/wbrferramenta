@@ -16,6 +16,14 @@
 import { maiusc, primeiroNome, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_WIFI_EXTEND } from '../catalogo/feedbackWifiExtend';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-wifi-extend';
+
+const frase = fraseDe(SLUG, FEEDBACK_WIFI_EXTEND);
+
 /** Bloco descritivo de um roteador (ponto principal ou Wi-Fi Extend). */
 function blocoRoteador(sufixo: string, titulo: string, t: Valores, nome: string, dispensouTestes: boolean): string {
   const local = maiusc(t[`local${sufixo}`]);
@@ -56,16 +64,18 @@ export function renderFeedbackWifiExtend(valores: Valores): SaidaOS {
   const u = t.obs?.trim() || '';
   const d = s === 1 ? 'ROTEADOR' : 'ROTEADORES';
 
+  const base = { cliente: n, canal: r, contato: i, dataHora: a, plano: o, qtd: String(s), palavraRoteador: d, wifiCabo: c, obs: u };
+
   const f = [
-    `FIZ FEEDBACK COM ${n} POR ${r} (${i}) DIA ${a}.`,
-    `${n} CONFIRMOU INSTALAÇÃO DE ${s} ${d} WI-FI EXTEND. PLANO ATUAL: ${o}.`,
-    `${n} CONFIRMOU QUE FORAM REALIZADOS TESTES DE AFERIÇÃO DE VELOCIDADE, ORIENTAÇÃO DE COBERTURA WI-FI E REDE 2.4G E 5G.`,
+    frase('feedbackRealizado', base),
+    frase('confirmouInstalacao', base),
+    frase('testesRealizados', base),
   ];
 
   if (l === 'sim') {
-    f.push(`${n} DISPENSOU OS TESTES EM SEUS DISPOSITIVOS PESSOAIS.`);
+    f.push(frase('dispensouTestes', base));
   } else {
-    f.push(`TESTES REALIZADOS VIA ${c}.`);
+    f.push(frase('testesVia', base));
   }
   f.push('');
 
@@ -78,8 +88,8 @@ export function renderFeedbackWifiExtend(valores: Valores): SaidaOS {
     if (e < s) f.push('');
   }
 
-  f.push('', 'CLIENTE SEM DUVIDAS.');
-  if (u) f.push('', `OBS: ${u}`);
+  f.push('', frase('semDuvidas'));
+  if (u) f.push('', frase('observacao', base));
 
   return { protocolo: '', os: f.join('\n') };
 }

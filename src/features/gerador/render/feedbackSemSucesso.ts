@@ -7,6 +7,14 @@
 import type { Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { FEEDBACK_SEM_SUCESSO } from '../catalogo/feedbackSemSucesso';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'feedback-sem-sucesso';
+
+const f = fraseDe(SLUG, FEEDBACK_SEM_SUCESSO);
+
 export function renderFeedbackSemSucesso(valores: Valores): SaidaOS {
   const v = (id: string) => valores[id] ?? '';
   const canal1 = v('canal1');
@@ -20,21 +28,23 @@ export function renderFeedbackSemSucesso(valores: Valores): SaidaOS {
   const equipWifi = v('equipWifi');
   const equipCabo = v('equipCabo');
 
+  const base = { canal1, contato1, dataHora1, canal2, contato2, dataHora2, sinal, equipWifi, equipCabo };
+
   const linhas = [
-    `TENTATIVA DE FEEDBACK VIA ${canal1} (${contato1}) DIA ${dataHora1}, E NÃO FUI ATENDIDO`,
+    f('primeiraTentativa', base),
     ``,
-    `TENTATIVA DE CONTATO VIA ${canal2} (${contato2}) DIA ${dataHora2}. NÃO HOUVE RETORNO POR PARTE DO CLIENTE`,
+    f('segundaTentativa', base),
     ``,
-    `PROTOCOLO SERÁ ENCERRADO COMO CONCLUÍDO`,
-    `CONEXÃO ATIVA COM IP E SINAL DE FIBRA (${sinal})`,
+    f('encerramento'),
+    f('conexaoAtiva', base),
     ``,
   ];
   if (dispositivosRadio === 'sim') {
     linhas.push(
-      `(${equipWifi}) EQUIPAMENTO(S) CONECTADO(S) VIA WI-FI. E (${equipCabo}) VIA CABO DE REDE (PRINT EM ANEXO)`,
+      f('dispositivosConectados', base),
     );
   } else {
-    linhas.push(`NÃO HÁ DISPOSITIVOS CONECTADOS NA INTERNET NO MOMENTO (PRINT EM ANEXO)`);
+    linhas.push(f('semDispositivos'));
   }
 
   return { protocolo: '', os: '', saida: linhas.join('\n') };

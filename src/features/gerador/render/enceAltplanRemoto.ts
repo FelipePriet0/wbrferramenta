@@ -8,6 +8,14 @@
 import { maiusc, soDigitos, type Valores } from './helpers';
 import type { SaidaOS } from './altplanRemoto';
 
+import { fraseDe } from '../catalogo/store';
+import { ENCE_ALTPLAN_REMOTO } from '../catalogo/enceAltplanRemoto';
+
+/** Slug no registry — é a chave dos overrides no banco. */
+const SLUG = 'ence-altplan-remoto';
+
+const f = fraseDe(SLUG, ENCE_ALTPLAN_REMOTO);
+
 /** Valor do radio "Houve troca de roteador?" que dispara o modo com troca. */
 const SIM = 'SIM'; // legado: LP
 
@@ -21,53 +29,53 @@ export function renderEnceAltplanRemoto(valores: Valores): SaidaOS {
   let i = '';
 
   if (r) {
-    i += `DESINSTALEI ROTEADOR ${n('rotRetirou')} MAC: ${n('macRotRetirou')} E INSTALEI ROTEADOR ${n('rotInstalou')} MAC: ${n('macRotInstalou')}.\n`;
+    i += f('trocaRoteador', { rotRetirou: n('rotRetirou'), macRotRetirou: n('macRotRetirou'), rotInstalou: n('rotInstalou'), macRotInstalou: n('macRotInstalou') }) + `\n`;
   } else {
-    i += `ROTEADOR JÁ INSTALADO ${n('rotSemTroca')} MAC: ${n('macRotSemTroca')}.\n`;
+    i += f('semTrocaRoteador', { rotSemTroca: n('rotSemTroca'), macRotSemTroca: n('macRotSemTroca') }) + `\n`;
   }
 
-  i += `EQUIPAMENTO ${n('onu')} JÁ INSTALADO, MAC ${n('macONU')}\n`;
-  i += `ROTEADOR FIXADO COM BUCHA E PARAFUSO: ${n('fixacaoRoteador')}\n`;
-  if (t.fixacaoRoteador === 'NÃO') i += `LOCALIZAÇÃO DO EQUIPAMENTO: ${n('localRoteador')}\n`;
-  i += `ONU FIXADA COM BUCHA E PARAFUSO: ${n('fixacaoONU')}\n`;
-  if (t.fixacaoONU === 'NÃO') i += `LOCALIZAÇÃO DO EQUIPAMENTO: ${n('localONU')}\n`;
+  i += f('equipamentoInstalado', { onu: n('onu'), macONU: n('macONU') }) + `\n`;
+  i += f('fixacaoRoteador', { fixacaoRoteador: n('fixacaoRoteador') }) + `\n`;
+  if (t.fixacaoRoteador === 'NÃO') i += f('localizacaoEquipamento', { local: n('localRoteador') }) + `\n`;
+  i += f('fixacaoOnu', { fixacaoONU: n('fixacaoONU') }) + `\n`;
+  if (t.fixacaoONU === 'NÃO') i += f('localizacaoEquipamento', { local: n('localONU') }) + `\n`;
 
   const a = soDigitos(t.testeCabo);
   const o = soDigitos(t.testeWifi);
-  i += `\nTESTE NO NOTEBOOK DO KIT VIA CABO ${a} MBPS\n`;
-  i += `TESTE NO NOTEBOOK DO KIT VIA WI-FI 5G ${o} MBPS\n`;
+  i += `\n` + f('testeCabo', { testeCabo: a }) + `\n`;
+  i += f('testeWifi', { testeWifi: o }) + `\n`;
 
   const s = soDigitos(t.velocidade1);
-  i += `TESTE EM ${n('dispositivo1')} DO CLIENTE: ${n('marcaModelo1')} VIA ${n('meioAfericao1')} AFERIU A VELOCIDADE DE ${s} MBPS\n`;
+  i += f('testeDispositivo', { dispositivo: n('dispositivo1'), marcaModelo: n('marcaModelo1'), meioAfericao: n('meioAfericao1'), velocidade: s }) + `\n`;
   if ((t.dispositivo2 ?? '').trim()) {
     const e = soDigitos(t.velocidade2);
-    i += `TESTE EM ${n('dispositivo2')} DO CLIENTE: ${n('marcaModelo2')} VIA ${n('meioAfericao2')} AFERIU A VELOCIDADE DE ${e} MBPS\n`;
+    i += f('testeDispositivo', { dispositivo: n('dispositivo2'), marcaModelo: n('marcaModelo2'), meioAfericao: n('meioAfericao2'), velocidade: e }) + `\n`;
   }
 
   const compat = n('aparelhoCompativel') === 'NÃO' ? 'NÃO É' : 'É';
-  i += `APARELHO ${compat} COMPATÍVEL COM A VELOCIDADE CONTRATADA.\n`;
-  i += `REALIZOU TESTES DE COBERTURA WI-FI? ${n('testeCobertura')}\n`;
-  if (t.testeCobertura === 'NÃO') i += `MOTIVO: ${n('motivoNaoTeste')}\n`;
+  i += f('compatibilidade', { compat }) + `\n`;
+  i += f('testeCobertura', { testeCobertura: n('testeCobertura') }) + `\n`;
+  if (t.testeCobertura === 'NÃO') i += f('motivoNaoTeste', { motivoNaoTeste: n('motivoNaoTeste') }) + `\n`;
 
-  i += `\nLIGAÇÃO ELÉTRICA: ${n('ligacaoEletrica')}\n`;
+  i += `\n` + f('ligacaoEletrica', { ligacaoEletrica: n('ligacaoEletrica') }) + `\n`;
   if (r) i += '\n';
-  if (t.ligacaoEletrica === 'OUTROS') i += `OBSERVAÇÃO: ${n('observacaoLigacao')}\n`;
+  if (t.ligacaoEletrica === 'OUTROS') i += f('observacaoLigacao', { observacaoLigacao: n('observacaoLigacao') }) + `\n`;
 
-  const c = n('appWbr');
-  if (c) i += `APLICATIVO WBR-PLAY INSTALADO EM: ${c}\n`;
-  const l = n('appWbrPlus');
-  if (l) i += `APLICATIVO WBR-PLAY PLUS (ITTV) INSTALADO EM: ${l}\n`;
+  const c = n('appMznet');
+  if (c) i += f('appPlay', { appMznet: c }) + `\n`;
+  const l = n('appMznetPlus');
+  if (l) i += f('appPlayPlus', { appMznetPlus: l }) + `\n`;
   const u = n('appDeezer');
-  if (u) i += `APLICATIVO DEEZER INSTALADO EM: ${u}\n`;
+  if (u) i += f('appDeezer', { appDeezer: u }) + `\n`;
 
-  i += `\nO.S ${n('custos')} CUSTOS\n`;
+  i += `\n` + f('custos', { custos: n('custos') }) + `\n`;
   if (t.custos === 'COM') {
-    i += `VALOR: R$${maiusc(t.valorCustos)}\n`;
-    i += `FORMA DE PAGAMENTO: ${n('formaPagamento')}\n`;
+    i += f('valorCustos', { valorCustos: maiusc(t.valorCustos) }) + `\n`;
+    i += f('formaPagamento', { formaPagamento: n('formaPagamento') }) + `\n`;
   }
 
-  i += `\nOBSERVAÇÕES: ${n('observacoes')}\n`;
-  i += '\nCLIENTE SEM DÚVIDAS.';
+  i += `\n` + f('observacoes', { observacoes: n('observacoes') }) + `\n`;
+  i += '\n' + f('semDuvidas');
 
   return { protocolo: '', os: '', saida: i };
 }
