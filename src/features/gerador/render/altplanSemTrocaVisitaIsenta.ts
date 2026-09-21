@@ -7,6 +7,7 @@
  * `altplanSemTrocaVisitaIsenta.diff.test.ts`.
  */
 import {
+  blocoCtoSimples,
   descreveSinal,
   maiusc,
   primeiroNome,
@@ -87,8 +88,8 @@ function indicacaoTecnica(duploEspaco: boolean): string {
 }
 
 /** Envelope da O.S com separador + indicação técnica. (legado: EO) */
-function envelopeOS(corpo: string, duploEspaco = false): string {
-  return `${corpo}\n\n${SEP_OS}\n\nINDICAÇÃO TÉCNICA:\n\n${indicacaoTecnica(duploEspaco)}`;
+function envelopeOS(corpo: string, cto: string, duploEspaco = false): string {
+  return `${corpo}${cto}\n\n${SEP_OS}\n\nINDICAÇÃO TÉCNICA:\n\n${indicacaoTecnica(duploEspaco)}`;
 }
 
 export function renderAltplanSemTrocaVisitaIsenta(
@@ -119,6 +120,7 @@ export function renderAltplanSemTrocaVisitaIsenta(
   const horaVisita = v.horaVisita ?? '';
   const protocolo = v.protocolo ?? '';
   const sinal = descreveSinal(v);
+  const cto = blocoCtoSimples(v.cto);
   const ofertado = ehOfertado(v);
 
   const base = {
@@ -165,6 +167,7 @@ export function renderAltplanSemTrocaVisitaIsenta(
       ],
       envelopeOS(
         f('osTitularAutorizaTerceiro', base),
+        cto,
       ),
     );
   }
@@ -185,6 +188,7 @@ export function renderAltplanSemTrocaVisitaIsenta(
       ],
       envelopeOS(
         f('osTerceiroTitularAcompanha', base),
+        cto,
       ),
     );
   }
@@ -205,6 +209,7 @@ export function renderAltplanSemTrocaVisitaIsenta(
       ],
       envelopeOS(
         f('osTerceiroAutorizado', base),
+        cto,
       ),
     );
   }
@@ -223,6 +228,7 @@ export function renderAltplanSemTrocaVisitaIsenta(
     ],
     envelopeOS(
       f('osTitular', base),
+      cto,
       true,
     ),
   );

@@ -7,6 +7,7 @@
  * `altplanTrocaVisitaIsenta.diff.test.ts`.
  */
 import {
+  blocoCtoSimples,
   descreveSinal,
   maiusc,
   primeiroNome,
@@ -78,8 +79,8 @@ function ofertadoOS(texto: string): string {
 }
 
 /** Envelope da indicação técnica na O.S (legado: GO). */
-function comIndicacaoTecnica(texto: string): string {
-  return `${texto}\n\n${SEP_INDICACAO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
+function comIndicacaoTecnica(texto: string, cto: string): string {
+  return `${texto}${cto}\n\n${SEP_INDICACAO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 /** Bloco superior do protocolo, comum a todos os tipos (legado: KO desta família). */
@@ -142,6 +143,7 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
   const horaVisita = v.horaVisita ?? '';
   const protocolo = v.protocolo ?? '';
   const sinal = descreveSinal(v);
+  const cto = blocoCtoSimples(v.cto);
   // O 2º arg do builder legado (`t`) era o primeiro nome do operador, impresso na
   // agenda como ` (${t})`. Aqui é lido de `valores.operadorPrimeiroNome`, igual aos
   // demais modelos do gerador — sem operador, o slot some (fixtures do legado).
@@ -181,6 +183,7 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
       ],
       comIndicacaoTecnica(
         `${osTitular} ${f('osFechoTitularAutorizaTerceiro', base)}`,
+        cto,
       ),
     );
   }
@@ -195,6 +198,7 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
       ],
       comIndicacaoTecnica(
         `${osTerceiro} ${f('osFechoTitularAcompanha', base)}`,
+        cto,
       ),
     );
   }
@@ -209,6 +213,7 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
       ],
       comIndicacaoTecnica(
         `${osTerceiro} ${f('osFechoTerceiroAutorizado', base)}`,
+        cto,
       ),
     );
   }
@@ -221,6 +226,7 @@ export function renderAltplanTrocaVisitaIsenta(valores: Valores): SaidaOS {
     ],
     comIndicacaoTecnica(
       `${osTitular} ${f('osFechoTitular', base)}`,
+      cto,
     ),
   );
 }

@@ -99,6 +99,7 @@ export const ALTPLAN_TROCA_VISITA_ISENTA_FORM: ModeloForm = {
         { id: 'dataVisita', label: 'Data da visita', controle: 'date', placeholder: 'dd/mm/aaaa', span: 4 },
         { id: 'horaVisita', label: 'Horário', controle: 'select', opcoes: HORARIOS_VISITA_SIMPLES, span: 4 },
         { id: 'protocolo', label: 'Nº Protocolo', controle: 'text', placeholder: '123.456', span: 4 },
+        { id: 'cto', label: 'CTO', controle: 'text', placeholder: 'Nº da CTO', span: 4 },
       ],
     },
   ],

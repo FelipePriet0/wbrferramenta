@@ -6,6 +6,7 @@
  * legado — ver `altplanSemTrocaVisitaPaga.diff.test.ts`.
  */
 import {
+  blocoCtoSimples,
   descreveSinal,
   fraseFormaPag,
   maiusc,
@@ -74,8 +75,8 @@ function LO(nome: string, roteador: string): string {
 }
 
 /** Envolve a O.S com o rodapé de indicação técnica (legado: FO). */
-function FO(texto: string): string {
-  return `${texto}
+function FO(texto: string, cto: string): string {
+  return `${texto}${cto}
 
 ${VVe}
 
@@ -136,6 +137,7 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
   const proto = n.protocolo ?? '';
   const v = maiusc(n.formaPag);
   const y = descreveSinal(n);
+  const cto = blocoCtoSimples(n.cto);
   // Legado: YVe(e,t) usa o 2º parâmetro `t` (primeiro nome do operador) na agenda.
   // Aqui é lido de `valores.operadorPrimeiroNome`, igual aos demais modelos do
   // gerador — sem operador, o slot some (fixtures do legado geradas sem `t`).
@@ -177,6 +179,7 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
       ],
       FO(
         frase('osTitularAutorizaTerceiro', base),
+        cto,
       ),
     );
   }
@@ -195,6 +198,7 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
       ],
       FO(
         frase('osTerceiroTitularAcompanha', base),
+        cto,
       ),
     );
   }
@@ -213,6 +217,7 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
       ],
       FO(
         frase('osTerceiroAutorizado', base),
+        cto,
       ),
     );
   }
@@ -229,6 +234,7 @@ export function renderAltplanSemTrocaVisitaPaga(valores: Valores): SaidaOS {
     ],
     FO(
       frase('osTitular', base),
+      cto,
     ),
   );
 }

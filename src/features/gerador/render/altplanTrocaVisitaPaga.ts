@@ -6,6 +6,7 @@
  * legado — ver `altplanTrocaVisitaPaga.diff.test.ts`.
  */
 import {
+  blocoCtoSimples,
   descreveSinal,
   fraseFormaPag,
   maiusc,
@@ -108,8 +109,8 @@ function blocoProtocolo(
 }
 
 /** Fecha a O.S com o separador longo + indicação técnica (legado: tk). */
-function fechaOS(corpo: string): string {
-  return `${corpo}\n\n${SEP_LONGO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
+function fechaOS(corpo: string, cto: string): string {
+  return `${corpo}${cto}\n\n${SEP_LONGO}\n\nINDICAÇÃO TÉCNICA:\n\n${INDICACAO_TECNICA()}`;
 }
 
 export function renderAltplanTrocaVisitaPaga(
@@ -136,6 +137,7 @@ export function renderAltplanTrocaVisitaPaga(
       : f('compatSim', { roteador: roteadorTxt });
   const roteadorSug = maiusc(v.roteadorSug);
   const formaPag = maiusc(v.formaPag);
+  const cto = blocoCtoSimples(v.cto);
   const p: DadosPlano = {
     motivo: maiusc(v.motivo),
     planoAtual: v.planoAtual ?? '',
@@ -184,6 +186,7 @@ export function renderAltplanTrocaVisitaPaga(
       ].join('\n'),
       fechaOS(
         `${osTitular} ${f('osFechoTitularAutorizaTerceiro', base)} ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        cto,
       ),
     );
   }
@@ -198,6 +201,7 @@ export function renderAltplanTrocaVisitaPaga(
       ].join('\n'),
       fechaOS(
         `${osTerceiro} ${f('osFechoTitularAcompanha', base)} ${custoVisita} AGENDADA PARA O DIA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        cto,
       ),
     );
   }
@@ -212,6 +216,7 @@ export function renderAltplanTrocaVisitaPaga(
       ].join('\n'),
       fechaOS(
         `${osTerceiro} ${f('osFechoTerceiroAutorizado', base)} ${custoVisita} AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`,
+        cto,
       ),
     );
   }
@@ -222,6 +227,6 @@ export function renderAltplanTrocaVisitaPaga(
       ...blocoProtocolo(entradaTitular, sinal, compat, p),
       f('aceiteTitularSozinho', base),
     ].join('\n'),
-    fechaOS(`${osTitular} ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`),
+    fechaOS(`${osTitular} ${custoVisita} VISITA AGENDADA PARA ${dataVisita} ÀS ${horaVisita} HRS.`, cto),
   );
 }

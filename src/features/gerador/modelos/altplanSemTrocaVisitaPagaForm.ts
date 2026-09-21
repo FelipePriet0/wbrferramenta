@@ -97,6 +97,7 @@ export const ALTPLAN_SEM_TROCA_VISITA_PAGA_FORM: ModeloForm = {
         { id: 'horaVisita', label: 'Horário', controle: 'select', opcoes: HORARIOS_VISITA_SIMPLES, span: 6 },
         { id: 'formaPag', label: 'Forma de pagamento', controle: 'text', placeholder: 'Ex.: PIX, DINHEIRO, CARTÃO', span: 6 },
         { id: 'protocolo', label: 'Nº Protocolo', controle: 'text', placeholder: '123.456', span: 6 },
+        { id: 'cto', label: 'CTO', controle: 'text', placeholder: 'Nº da CTO', span: 6 },
       ],
     },
   ],

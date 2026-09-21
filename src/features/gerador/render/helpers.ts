@@ -93,6 +93,16 @@ export function linhas(...partes: string[]): string {
 }
 
 /**
+ * Linha "CTO: <valor>." inserida na O.S. quando o campo `cto` é preenchido
+ * (modelos de Alteração de Plano com visita técnica). Vazio → '' (some da O.S,
+ * igual ao padrão dos demais blocos condicionais do gerador).
+ */
+export function blocoCtoSimples(cto: unknown): string {
+  const v = maiusc(cto);
+  return v ? `\nCTO: ${v}.\n` : '';
+}
+
+/**
  * Data e hora atuais (do momento em que o texto é gerado/copiado), formatadas
  * como "DD/MM/AAAA" e "HH:MM". Usado pelo bloco de encerramento de modelos
  * remotos — o horário de encerramento é sempre "agora", não um campo do
