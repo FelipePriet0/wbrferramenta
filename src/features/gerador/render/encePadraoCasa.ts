@@ -79,7 +79,7 @@ export function renderEncePadraoCasa(valores: Valores): SaidaOS {
   }
   r += `.\n`;
 
-  const l = n('app_mznet_celular');
+  const l = n('app_wbr_celular');
   if (l) {
     r += f('appProvedor', { appCelular: l, testeCobertura: c }) + `\n`;
   }

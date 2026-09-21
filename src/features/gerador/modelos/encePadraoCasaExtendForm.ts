@@ -198,8 +198,8 @@ export const ENCE_PADRAO_CASA_EXTEND_FORM: ModeloForm = {
         { id: 'eh_assinante', label: 'Esse cliente é o titular?', controle: 'radio', span: 6, opcoes: SIM_NAO },
         { id: 'parentesco_cobertura', label: 'Grau de parentesco', controle: 'text', span: 6, mostrarQuando: naoEhAssinante },
         { id: 'app_wbr_celular', label: 'App WBR — celular instalado (marca/modelo)', controle: 'text', span: 6 },
-        { id: 'app_mztv', label: 'Instalou App MZTV ou CDNTV?', controle: 'radio', span: 6, opcoes: SIM_NAO },
-        { id: 'dispositivo_mztv', label: 'Dispositivo MZTV/CDNTV', controle: 'select', span: 6, opcoes: DISPOSITIVO_MZTV, mostrarQuando: instalouMztv },
+        { id: 'app_mztv', label: 'Instalou App WBR TV ou CDNTV?', controle: 'radio', span: 6, opcoes: SIM_NAO },
+        { id: 'dispositivo_mztv', label: 'Dispositivo WBR TV/CDNTV', controle: 'select', span: 6, opcoes: DISPOSITIVO_MZTV, mostrarQuando: instalouMztv },
       ],
     },
     {

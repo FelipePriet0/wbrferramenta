@@ -87,12 +87,12 @@ export const ENCE_PADRAO_EMPRESA: Catalogo = {
   appTvSim: {
     // ⚠️ Cita o app de TV do provedor.
     rotulo: 'App de TV instalado — sim',
-    texto: 'APP MZTV OU CDNTV: SIM - DISPOSITIVO: {dispositivoTv}',
+    texto: 'APP WBR TV OU CDNTV: SIM - DISPOSITIVO: {dispositivoTv}',
     obrigatorios: [],
   },
   appTvNao: {
     rotulo: 'App de TV instalado — não',
-    texto: 'APP MZTV OU CDNTV: NÃO',
+    texto: 'APP WBR TV OU CDNTV: NÃO',
     obrigatorios: [],
   },
   ligacoesEletricas: { rotulo: 'Ligações elétricas', texto: 'LIGAÇÕES ELÉTRICAS: {ligacaoEletrica}', obrigatorios: [] },

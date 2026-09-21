@@ -1,9 +1,6 @@
 /**
  * Catálogo de frases do modelo `feedback-stb-roku`.
  * Feedback após instalação e configuração de conversor ou Roku TV.
- *
- * ⚠️ NONO VAZAMENTO DE BRANDING: `appInstalado` cita o "APP MZTV".
- * Vira o nome do app da WBR no sync.
  */
 import type { Catalogo } from './tipos';
 
@@ -34,9 +31,8 @@ export const FEEDBACK_STB_ROKU: Catalogo = {
     obrigatorios: [],
   },
   appInstalado: {
-    // ⚠️ Cita o app do provedor. Vira o app da WBR no sync.
     rotulo: 'App de TV instalado',
-    texto: 'APP MZTV INSTALADO E CONFIGURADO NO APARELHO {aparelho}.',
+    texto: 'APP WBR TV INSTALADO E CONFIGURADO NO APARELHO {aparelho}.',
     obrigatorios: [],
   },
   compraEIsencao: {

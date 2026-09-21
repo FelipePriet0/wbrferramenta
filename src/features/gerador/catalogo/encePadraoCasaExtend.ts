@@ -46,10 +46,10 @@ export const ENCE_PADRAO_CASA_EXTEND: Catalogo = {
   appTvSim: {
     // ⚠️ Cita o app de TV do provedor.
     rotulo: 'App de TV instalado — sim',
-    texto: 'APP MZTV OU CDNTV: {dispositivoTv}',
+    texto: 'APP WBR TV OU CDNTV: {dispositivoTv}',
     obrigatorios: [],
   },
-  appTvNao: { rotulo: 'App de TV instalado — não', texto: 'APP MZTV OU CDNTV: NÃO', obrigatorios: [] },
+  appTvNao: { rotulo: 'App de TV instalado — não', texto: 'APP WBR TV OU CDNTV: NÃO', obrigatorios: [] },
   dispositivosConectados: {
     rotulo: 'Dispositivos conectados na rede',
     texto: 'DISPOSITIVOS CONECTADOS NA REDE: {dispositivosConectados}',

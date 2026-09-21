@@ -61,9 +61,9 @@ export function renderEnceAltplanRemoto(valores: Valores): SaidaOS {
   if (r) i += '\n';
   if (t.ligacaoEletrica === 'OUTROS') i += f('observacaoLigacao', { observacaoLigacao: n('observacaoLigacao') }) + `\n`;
 
-  const c = n('appMznet');
+  const c = n('appWbr');
   if (c) i += f('appPlay', { appMznet: c }) + `\n`;
-  const l = n('appMznetPlus');
+  const l = n('appWbrPlus');
   if (l) i += f('appPlayPlus', { appMznetPlus: l }) + `\n`;
   const u = n('appDeezer');
   if (u) i += f('appDeezer', { appDeezer: u }) + `\n`;

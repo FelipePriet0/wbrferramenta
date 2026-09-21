@@ -73,7 +73,7 @@ export const FEEDBACK_STB_ROKU_FORM: ModeloForm = {
         },
         {
           id: 'appMztv',
-          label: 'App MZTV instalado?',
+          label: 'App WBR TV instalado?',
           controle: 'radio',
           span: 6,
           opcoes: [

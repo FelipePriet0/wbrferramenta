@@ -72,7 +72,7 @@ export function renderEncePadraoEmpresa(valores: Valores): SaidaOS {
   if (t.eh_assinante === `NÃO`) r += ` (${n(`parentesco_cobertura`)})`;
   r += `.\n\n`;
 
-  const l = n(`app_mznet_celular`);
+  const l = n(`app_wbr_celular`);
   if (l) r += f('appProvedor', { appCelular: l, testeCobertura: c }) + `\n`;
   if (t.app_mztv === `SIM`) {
     r += f('appTvSim', { dispositivoTv: n(`dispositivo_mztv`) }) + `\n`;

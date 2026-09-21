@@ -122,9 +122,9 @@ export function renderEncePadraoCasaExtend(valores: Valores): SaidaOS {
   if (nomeEnergia) i += ` E ${nomeEnergia}`;
   i += '.\n';
 
-  const appMznet = n('app_mznet_celular');
-  if (appMznet) {
-    i += f('appProvedor', { appCelular: appMznet });
+  const appWbr = n('app_wbr_celular');
+  if (appWbr) {
+    i += f('appProvedor', { appCelular: appWbr });
     if (t.eh_assinante === 'NÃO') i += ` DE ${nomeCobertura} (${n('parentesco_cobertura')})`;
     else i += ` DO TITULAR ${nomeCobertura}`;
     i += ', ESTE APP CONCEDE ACESSO AOS BOLETOS E CONTRATO.\n';
