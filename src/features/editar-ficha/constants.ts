@@ -77,6 +77,7 @@ const CANAIS_SVA_OPTIONS: Opt[] = [
 // Múltipla escolha: nada marcado = sem SVA.
 export const SVA_OPTIONS: Opt[] = [
   { label: 'IP PÚBLICO - R$ 20,00', value: 'IP PÚBLICO - R$ 20,00' },
+  { label: 'IP PÚBLICO (1.000 MEGA) - R$ 30,00', value: 'IP PÚBLICO (1.000 MEGA) - R$ 30,00' },
   { label: 'IP FIXO - R$ 200,00', value: 'IP FIXO - R$ 200,00' },
   { label: 'WIFI EXTEND - R$ 35,00 CADA PONTO', value: 'WIFI EXTEND - R$ 35,00 CADA PONTO' },
   // Wi-Fi 7 substitui a ONT/roteador principal; só no plano de 1.000 Mega (qualquer IP).
