@@ -12,7 +12,7 @@ export type AppModel = {
   plano_acesso?: string;
   venc?: string | number | null;
   carne_impresso?: boolean;
-  sva_avulso?: string;
+  sva_avulso?: string[] | null;
   taxa_instalacao?: string;
   via?: string;
 };

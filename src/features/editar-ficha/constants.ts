@@ -23,38 +23,8 @@ export const PLANO_OPTIONS: Opt[] = [
   { label: '1000 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 130,00', value: '1000 Mega + WBR TV+, SVOD + IP Dinâmico - R$ 130,00' },
   { label: '1000 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90', value: '1000 Mega + WBR TV+, SVOD + IP Fixo - R$ 299,90' },
 
-  // Canais pagos (Premiere / Combate) — tabelas WBR de 29/10/2026.
-  // Premiere e Combate custam o mesmo; "ambos" é o pacote com os dois.
-
-  // ── Fibra + Premiere/Combate (CGNAT) ──
-  { label: '— Fibra + Premiere/Combate (CGNAT) —', value: '__hdr_canais_cgnat', disabled: true },
-  { label: '150 Mega + WBR TV + Premiere - R$ 89,90', value: '150 Mega + WBR TV + Premiere - R$ 89,90' },
-  { label: '150 Mega + WBR TV + Combate - R$ 89,90', value: '150 Mega + WBR TV + Combate - R$ 89,90' },
-  { label: '150 Mega + WBR TV + Premiere + Combate - R$ 109,90', value: '150 Mega + WBR TV + Premiere + Combate - R$ 109,90' },
-  { label: '300 Mega + WBR TV + Premiere - R$ 99,90', value: '300 Mega + WBR TV + Premiere - R$ 99,90' },
-  { label: '300 Mega + WBR TV + Combate - R$ 99,90', value: '300 Mega + WBR TV + Combate - R$ 99,90' },
-  { label: '300 Mega + WBR TV + Premiere + Combate - R$ 119,90', value: '300 Mega + WBR TV + Premiere + Combate - R$ 119,90' },
-  { label: '600 Mega + WBR TV + Premiere - R$ 109,90', value: '600 Mega + WBR TV + Premiere - R$ 109,90' },
-  { label: '600 Mega + WBR TV + Combate - R$ 109,90', value: '600 Mega + WBR TV + Combate - R$ 109,90' },
-  { label: '600 Mega + WBR TV + Premiere + Combate - R$ 129,90', value: '600 Mega + WBR TV + Premiere + Combate - R$ 129,90' },
-  { label: '1000 Mega + WBR TV+, SVOD + Premiere - R$ 129,90', value: '1000 Mega + WBR TV+, SVOD + Premiere - R$ 129,90' },
-  { label: '1000 Mega + WBR TV+, SVOD + Combate - R$ 129,90', value: '1000 Mega + WBR TV+, SVOD + Combate - R$ 129,90' },
-  { label: '1000 Mega + WBR TV+, SVOD + Premiere + Combate - R$ 149,90', value: '1000 Mega + WBR TV+, SVOD + Premiere + Combate - R$ 149,90' },
-
-  // ── Fibra + Premiere/Combate + IP Dinâmico ──
-  { label: '— Fibra + Premiere/Combate + IP Dinâmico —', value: '__hdr_canais_ipdin', disabled: true },
-  { label: '150 Mega + WBR TV + IP Dinâmico + Premiere - R$ 110,00', value: '150 Mega + WBR TV + IP Dinâmico + Premiere - R$ 110,00' },
-  { label: '150 Mega + WBR TV + IP Dinâmico + Combate - R$ 110,00', value: '150 Mega + WBR TV + IP Dinâmico + Combate - R$ 110,00' },
-  { label: '150 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 130,00', value: '150 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 130,00' },
-  { label: '300 Mega + WBR TV + IP Dinâmico + Premiere - R$ 120,00', value: '300 Mega + WBR TV + IP Dinâmico + Premiere - R$ 120,00' },
-  { label: '300 Mega + WBR TV + IP Dinâmico + Combate - R$ 120,00', value: '300 Mega + WBR TV + IP Dinâmico + Combate - R$ 120,00' },
-  { label: '300 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 140,00', value: '300 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 140,00' },
-  { label: '600 Mega + WBR TV + IP Dinâmico + Premiere - R$ 130,00', value: '600 Mega + WBR TV + IP Dinâmico + Premiere - R$ 130,00' },
-  { label: '600 Mega + WBR TV + IP Dinâmico + Combate - R$ 130,00', value: '600 Mega + WBR TV + IP Dinâmico + Combate - R$ 130,00' },
-  { label: '600 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 150,00', value: '600 Mega + WBR TV + IP Dinâmico + Premiere + Combate - R$ 150,00' },
-  { label: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Premiere - R$ 160,00', value: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Premiere - R$ 160,00' },
-  { label: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Combate - R$ 160,00', value: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Combate - R$ 160,00' },
-  { label: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Premiere + Combate - R$ 180,00', value: '1000 Mega + WBR TV+, SVOD + IP Dinâmico + Premiere + Combate - R$ 180,00' },
+  // IP fixo Full com canais é produto próprio (tabela WBR 29/10/2026), não IP fixo + R$ 30.
+  // Nos demais planos Premiere/Combate entram pelo SVA Avulso.
 
   // ── Fibra + Premiere/Combate + IP Fixo ──
   { label: '— Fibra + Premiere/Combate + IP Fixo —', value: '__hdr_canais_ipfixo', disabled: true },
@@ -96,8 +66,16 @@ export const PLANO_OPTIONS: Opt[] = [
   { label: '500 Mega + WBR TV+, SVOD + IP Fixo - R$ 349,90', value: '500 Mega + WBR TV+, SVOD + IP Fixo - R$ 349,90' },
 ];
 
+// Mesmo preço em cidades, distritos e rural.
+const CANAIS_SVA_OPTIONS: Opt[] = [
+  { label: '— Canais —', value: '__hdr_canais', disabled: true },
+  { label: 'PREMIERE - R$ 30,00', value: 'PREMIERE - R$ 30,00' },
+  { label: 'COMBATE - R$ 30,00', value: 'COMBATE - R$ 30,00' },
+  { label: 'PREMIERE + COMBATE - R$ 50,00', value: 'PREMIERE + COMBATE - R$ 50,00' },
+];
+
+// Múltipla escolha: nada marcado = sem SVA.
 export const SVA_OPTIONS: Opt[] = [
-  { label: 'XXXXX', value: 'XXXXX' },
   { label: 'IP PÚBLICO - R$ 20,00', value: 'IP PÚBLICO - R$ 20,00' },
   { label: 'IP FIXO - R$ 200,00', value: 'IP FIXO - R$ 200,00' },
   { label: 'WIFI EXTEND - R$ 35,00 CADA PONTO', value: 'WIFI EXTEND - R$ 35,00 CADA PONTO' },
@@ -107,6 +85,7 @@ export const SVA_OPTIONS: Opt[] = [
     label: 'ROKU TV - R$ 230,00 À VISTA / R$ 280,00 PARA DIVIDIR',
     value: 'ROKU TV - R$ 230,00 À VISTA / R$ 280,00 PARA DIVIDIR',
   },
+  ...CANAIS_SVA_OPTIONS,
   { label: '— Telefone Fixo —', value: '__hdr_tel', disabled: true },
   { label: 'PLANO 150 MB + TEL. FIXO - R$ 79,90', value: 'PLANO 150 MB + TEL. FIXO - R$ 79,90' },
   { label: 'PLANO 300 MB + TEL. FIXO - R$ 89,90', value: 'PLANO 300 MB + TEL. FIXO - R$ 89,90' },
@@ -127,8 +106,8 @@ export const RURAL_PLANO_OPTIONS: Opt[] = [
 ];
 
 export const RURAL_SVA_OPTIONS: Opt[] = [
-  { label: 'XXXXX', value: 'XXXXX' },
   { label: 'WBR PLAY (AVULSO) - R$ 29,90', value: 'WBR PLAY (AVULSO) - R$ 29,90' },
+  ...CANAIS_SVA_OPTIONS,
 ];
 
 export const TAXA_INST_OPTIONS: Opt[] = [
