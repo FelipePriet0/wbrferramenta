@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { UserCircle } from 'lucide-react';
 import { fetchFieldHistory, type FieldHistoryEntry } from '@/services/fieldAuditLog';
+import { formatAuditValue } from '@/lib/sva';
 
 const ACTION_LABEL: Record<string, string> = {
   preenchido: 'Preenchido por',
@@ -93,12 +94,12 @@ export function FieldHistoryModal({
                 {e.old_value != null && (
                   <div className="flex gap-1.5 items-start">
                     <span className="mt-0.5 shrink-0 text-[9px] font-bold uppercase tracking-wide text-zinc-400 w-[28px]">De</span>
-                    <span className="text-[11px] text-zinc-500 line-through break-words">{e.old_value || '(vazio)'}</span>
+                    <span className="text-[11px] text-zinc-500 line-through break-words">{formatAuditValue(e.old_value) || '(vazio)'}</span>
                   </div>
                 )}
                 <div className="flex gap-1.5 items-start">
                   <span className="mt-0.5 shrink-0 text-[9px] font-bold uppercase tracking-wide text-zinc-400 w-[28px]">Para</span>
-                  <span className="text-[11px] text-zinc-800 break-words">{e.new_value || '(vazio)'}</span>
+                  <span className="text-[11px] text-zinc-800 break-words">{formatAuditValue(e.new_value) || '(vazio)'}</span>
                 </div>
               </div>
             </div>

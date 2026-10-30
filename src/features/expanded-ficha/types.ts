@@ -17,7 +17,7 @@ export type ExpandedAppModel = {
   bairro?: string;
   plano_acesso?: string;
   venc?: string | number | null;
-  sva_avulso?: string;
+  sva_avulso?: string[] | null;
   taxa_instalacao?: string;
   via?: string;
   carne_impresso?: boolean;

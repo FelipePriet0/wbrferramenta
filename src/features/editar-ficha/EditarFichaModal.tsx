@@ -40,7 +40,8 @@ import { ParecerComposer } from '@/features/parecer/ParecerComposer';
 import { LabelsPopover } from '@/features/labels/LabelsPopover';
 import { TransferOperatorModal } from '@/features/kanban/components/TransferOperatorModal';
 import { supabase } from '@/lib/supabase';
-import { Field, Select } from './components/Fields';
+import { Field, MultiSelect, Select } from './components/Fields';
+import { toSvaList } from '@/lib/sva';
 import { AuditProvider } from '@/features/expanded-ficha/AuditContext';
 import { PareceresList } from './components/PareceresList';
 import {
@@ -705,11 +706,11 @@ auditField="email"
                       queueAppPatch('venc', v ? Number(v) : null)
                     }
                   />
-                  <Select
+                  <MultiSelect
                     label="SVA Avulso"
-                    value={app.sva_avulso ?? ''}
+                    value={toSvaList(app.sva_avulso)}
                     options={isRural ? RURAL_SVA_OPTIONS : SVA_OPTIONS}
-                    onChange={(v) => queueAppPatch('sva_avulso', v)}
+                    onChange={(v) => queueAppPatch('sva_avulso', v.length ? v : null)}
                   />
                   <Select
                     label="Carnê impresso"

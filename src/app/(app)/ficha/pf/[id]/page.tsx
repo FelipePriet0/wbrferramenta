@@ -55,7 +55,8 @@ import { FreshFichaConfetti } from '@/components/effects/welcome-confetti';
 import { AdobeField } from '@/features/expanded-ficha/components/AdobeField';
 import { AdobeTextarea } from '@/features/expanded-ficha/components/AdobeTextarea';
 import { AdobeCard } from '@/features/expanded-ficha/components/AdobeCard';
-import { AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
+import { AdobeMultiSelect, AdobeSelect } from '@/features/expanded-ficha/components/AdobeSelect';
+import { toSvaList } from '@/lib/sva';
 import { ComoConheceuPopover, type ComoConheceuOption } from '@/features/expanded-ficha/components/ComoConheceuPopover';
 import { CarneImpressoPopover } from '@/features/expanded-ficha/components/CarneImpressoPopover';
 import { listComoConheceuOptions } from '@/services/comoConheceu';
@@ -1426,9 +1427,9 @@ auditField="email"
                   <label className="pf-highlight-field mb-0.5 block text-[9px] font-bold uppercase tracking-wide leading-none">
                     SVA Avulso
                   </label>
-                  <AdobeSelect
-                    value={app.sva_avulso ?? ''}
-                    onChange={(v) => queueApp('sva_avulso', v)}
+                  <AdobeMultiSelect
+                    value={toSvaList(app.sva_avulso)}
+                    onChange={(v) => queueApp('sva_avulso', v.length ? v : null)}
                     options={SVA_OPTIONS}
                     triggerClassName="h-[21px] w-full rounded-[2px] border border-zinc-400 bg-blue-100 px-1 text-[10px] text-zinc-900"
                     contentClassName="rounded-lg shadow-lg border-0"

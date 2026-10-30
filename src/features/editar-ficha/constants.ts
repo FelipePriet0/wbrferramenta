@@ -74,8 +74,8 @@ const CANAIS_SVA_OPTIONS: Opt[] = [
   { label: 'PREMIERE + COMBATE - R$ 50,00', value: 'PREMIERE + COMBATE - R$ 50,00' },
 ];
 
+// Múltipla escolha: nada marcado = sem SVA.
 export const SVA_OPTIONS: Opt[] = [
-  { label: 'XXXXX', value: 'XXXXX' },
   { label: 'IP PÚBLICO - R$ 20,00', value: 'IP PÚBLICO - R$ 20,00' },
   { label: 'IP FIXO - R$ 200,00', value: 'IP FIXO - R$ 200,00' },
   { label: 'WIFI EXTEND - R$ 35,00 CADA PONTO', value: 'WIFI EXTEND - R$ 35,00 CADA PONTO' },
@@ -106,7 +106,6 @@ export const RURAL_PLANO_OPTIONS: Opt[] = [
 ];
 
 export const RURAL_SVA_OPTIONS: Opt[] = [
-  { label: 'XXXXX', value: 'XXXXX' },
   { label: 'WBR PLAY (AVULSO) - R$ 29,90', value: 'WBR PLAY (AVULSO) - R$ 29,90' },
   ...CANAIS_SVA_OPTIONS,
 ];

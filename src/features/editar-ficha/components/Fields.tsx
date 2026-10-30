@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useState } from 'react';
-import { SimpleSelect } from '@/components/ui/select';
+import { SimpleMultiSelect, SimpleSelect } from '@/components/ui/select';
 import type { Opt } from '../types';
 import { ContextMenu } from '@/features/expanded-ficha/components/ContextMenu';
 import { FieldHistoryModal } from '@/features/expanded-ficha/components/FieldHistoryModal';
@@ -114,6 +114,32 @@ export function Select({ label, value, onChange, options }: SelectProps) {
       <SimpleSelect
         value={value}
         onChange={(v) => onChange(v)}
+        options={options}
+        placeholder=""
+        triggerClassName="h-10 rounded-[2px] px-3 text-sm bg-blue-100 border border-zinc-400 shadow-none focus-visible:ring-[3px] focus-visible:ring-emerald-600/20 focus-visible:border-emerald-600 uppercase font-bold"
+        contentClassName="shadow-none"
+      />
+    </div>
+  );
+}
+
+export function MultiSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string[];
+  onChange: (v: string[]) => void;
+  options: Opt[];
+}) {
+  return (
+    <div className="w-full">
+      <span className={labelCls}>{label}</span>
+      <SimpleMultiSelect
+        value={value}
+        onChange={onChange}
         options={options}
         placeholder=""
         triggerClassName="h-10 rounded-[2px] px-3 text-sm bg-blue-100 border border-zinc-400 shadow-none focus-visible:ring-[3px] focus-visible:ring-emerald-600/20 focus-visible:border-emerald-600 uppercase font-bold"
